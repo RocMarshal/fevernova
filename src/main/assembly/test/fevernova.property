@@ -1,0 +1,6 @@
+fevernova = performance
+
+performance.source.parallelism = 1
+performance.parser.parallelism = 1
+performance.parser.forword = false
+performance.sink.parallelism   = 1

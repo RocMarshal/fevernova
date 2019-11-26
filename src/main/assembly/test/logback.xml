@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration scan="true" scanPeriod="60 seconds">
+    <property name="LOG_HOME" value="/tmp/fevernova"/>
+
+    <appender name="main" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <Encoding>UTF-8</Encoding>
+        <file>${LOG_HOME}/fevernova.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <FileNamePattern>${LOG_HOME}/fevernova.log-%d{yyyy-MM-dd}</FileNamePattern>
+            <MaxHistory>7</MaxHistory>
+        </rollingPolicy>
+        <layout class="ch.qos.logback.classic.PatternLayout">
+            <pattern>%d{HH:mm:ss.SSS} %class %-5level %msg%n</pattern>
+        </layout>
+    </appender>
+
+    <appender name="data" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <Encoding>UTF-8</Encoding>
+        <file>${LOG_HOME}/fevernova-data.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <FileNamePattern>${LOG_HOME}/fevernova-data.log-%d{yyyy-MM-dd}</FileNamePattern>
+            <MaxHistory>7</MaxHistory>
+        </rollingPolicy>
+        <layout class="ch.qos.logback.classic.PatternLayout">
+            <pattern>%msg%n</pattern>
+        </layout>
+    </appender>
+
+    <appender name="monitor" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <Encoding>UTF-8</Encoding>
+        <file>${LOG_HOME}/fevernova-monitor.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <FileNamePattern>${LOG_HOME}/fevernova-monitor.log-%d{yyyy-MM-dd}</FileNamePattern>
+            <MaxHistory>7</MaxHistory>
+        </rollingPolicy>
+        <layout class="ch.qos.logback.classic.PatternLayout">
+            <pattern>%d{HH:mm:ss.SSS} %class %-5level %msg%n</pattern>
+        </layout>
+    </appender>
+
+    <appender name="config" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <Encoding>UTF-8</Encoding>
+        <file>${LOG_HOME}/fevernova-config.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <FileNamePattern>${LOG_HOME}/fevernova-config.log-%d{yyyy-MM-dd}</FileNamePattern>
+            <MaxHistory>30</MaxHistory>
+        </rollingPolicy>
+        <layout class="ch.qos.logback.classic.PatternLayout">
+            <pattern>%msg%n</pattern>
+        </layout>
+    </appender>
+
+    <logger name="fevernova-config" level="INFO" additivity="false">
+        <appender-ref ref="config"/>
+    </logger>
+
+    <logger name="fevernova-data" level="INFO" additivity="false">
+        <appender-ref ref="data"/>
+    </logger>
+
+    <logger name="fevernova-monitor" level="INFO" additivity="false">
+        <appender-ref ref="monitor"/>
+    </logger>
+
+    <logger name="org.quartz" level="OFF" additivity="false">
+        <appender-ref ref="quartz"/>
+    </logger>
+
+    <logger name="org.apache.kafka.common.utils.AppInfoParser" level="OFF" additivity="false">
+        <appender-ref ref="main"/>
+    </logger>
+
+    <root level="INFO">
+        <appender-ref ref="main"/>
+    </root>
+
+</configuration>
