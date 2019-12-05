@@ -18,12 +18,16 @@ public class JobTags {
 
     private String cluster;
 
-    private String deployment;
-
-    private String pod;
+    private int unit;
 
     private String level;
 
-    private int unit;
+    private String deployment;
+
+    private String podName;
+
+    private int podTotalNum;
+
+    private int podIndex;
 
 }

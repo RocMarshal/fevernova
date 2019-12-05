@@ -28,24 +28,27 @@ public class Start {
 
     static Option UNIT = Option.builder().longOpt("unit").hasArg(true).required(true).desc("资源规格").build();
 
+    static Option LEVEL = Option.builder().longOpt("level").hasArg(true).required(true).desc("任务级别").build();
+
     static Option LOGCONFIG = Option.builder().longOpt("logconfig").hasArg(true).required(true).desc("日志配置文件的路径").build();
 
     static Option CONFIGURL = Option.builder().longOpt("configurl").hasArg(true).required(false).desc("配置的URL").build();
 
     static Option CONFIGPATH = Option.builder().longOpt("configpath").hasArg(true).required(false).desc("配置文件路径").build();
 
-    static Option DEPLOYMENTNAME = Option.builder().longOpt("deploymentname").hasArg(true).required(false).desc("deployment名字").build();
+    static Option DEPLOYMENTNAME = Option.builder().longOpt("deploymentname").hasArg(true).required(true).desc("deployment名字").build();
 
-    static Option PODNAME = Option.builder().longOpt("podname").hasArg(true).required(false).desc("pod名字").build();
+    static Option PODNAME = Option.builder().longOpt("podname").hasArg(true).required(true).desc("pod名字").build();
 
-    static Option LEVEL = Option.builder().longOpt("level").hasArg(true).required(false).desc("任务级别").build();
+    static Option PODTOTALNUM = Option.builder().longOpt("podtotalnum").hasArg(true).required(true).desc("pod名字").build();
 
+    static Option PODINDEX = Option.builder().longOpt("podindex").hasArg(true).required(true).desc("pod名字").build();
 
     static Options OPTIONS = new Options();
 
     static {
-        OPTIONS.addOption(JOBTYPE).addOption(JOBID).addOption(CLUSTER).addOption(UNIT).addOption(LOGCONFIG).addOption(CONFIGPATH)
-                .addOption(CONFIGURL).addOption(DEPLOYMENTNAME).addOption(PODNAME).addOption(LEVEL);
+        OPTIONS.addOption(JOBTYPE).addOption(JOBID).addOption(CLUSTER).addOption(UNIT).addOption(LEVEL).addOption(LOGCONFIG).addOption(CONFIGPATH)
+                .addOption(CONFIGURL).addOption(DEPLOYMENTNAME).addOption(PODNAME).addOption(PODTOTALNUM).addOption(PODINDEX);
     }
 
     public static void main(String[] args) {
@@ -57,10 +60,12 @@ public class Start {
                     .jobType(commandLine.getOptionValue(JOBTYPE.getLongOpt()))
                     .jobId(commandLine.getOptionValue(JOBID.getLongOpt()))
                     .cluster(commandLine.getOptionValue(CLUSTER.getLongOpt()))
-                    .deployment(commandLine.getOptionValue(DEPLOYMENTNAME.getLongOpt()))
-                    .pod(commandLine.getOptionValue(PODNAME.getLongOpt()))
-                    .level(commandLine.getOptionValue(LEVEL.getLongOpt()))
                     .unit(Integer.parseInt(commandLine.getOptionValue(UNIT.getLongOpt())))
+                    .level(commandLine.getOptionValue(LEVEL.getLongOpt()))
+                    .deployment(commandLine.getOptionValue(DEPLOYMENTNAME.getLongOpt()))
+                    .podName(commandLine.getOptionValue(PODNAME.getLongOpt()))
+                    .podTotalNum(Integer.parseInt(commandLine.getOptionValue(PODTOTALNUM.getLongOpt())))
+                    .podIndex(Integer.parseInt(commandLine.getOptionValue(PODINDEX.getLongOpt())))
                     .build();
 
             String logConfig = commandLine.getOptionValue(LOGCONFIG.getLongOpt());
