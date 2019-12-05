@@ -9,7 +9,7 @@ import com.github.fevernova.framework.common.data.BarrierData;
 import com.github.fevernova.framework.component.channel.ChannelProxy;
 import com.github.fevernova.framework.component.source.AbstractSource;
 import com.github.fevernova.framework.service.barrier.listener.BarrierCompletedListener;
-import com.github.fevernova.framework.service.checkpoint.CheckPointSaver;
+import com.github.fevernova.framework.service.checkpoint.CheckPointSaverWithCoordiantor;
 import com.github.fevernova.framework.service.checkpoint.ICheckPointSaver;
 import com.github.fevernova.kafka.KafkaConstants;
 import com.github.fevernova.kafka.KafkaUtil;
@@ -58,7 +58,7 @@ public class JobSource extends AbstractSource<byte[], KafkaData> implements Cons
         this.topics = Util.splitStringWithFilter(super.taskContext.get(KafkaConstants.TOPICS), ",", null);
         this.kafkaContext = new TaskContext(KafkaConstants.KAFKA, super.taskContext.getSubProperties(KafkaConstants.KAFKA_));
         this.pollTimeOut = super.taskContext.getLong(KafkaConstants.POLLTIMEOUT, 5000L);
-        this.checkpoints = new CheckPointSaver<>();
+        this.checkpoints = new CheckPointSaverWithCoordiantor<>();
         this.topics.forEach(topic -> {
             TaskContext topicContext = new TaskContext(topic, super.taskContext.getSubProperties(topic + "."));
             String ptsStr = topicContext.getString(KafkaConstants.PARTITIONS);
@@ -150,10 +150,12 @@ public class JobSource extends AbstractSource<byte[], KafkaData> implements Cons
 
 
     @Override
-    public void completed(BarrierData barrierData, BarrierData coordinatorBarrierData) throws Exception {
+    public void completed(BarrierData barrierData, boolean coordinatorResult) throws Exception {
 
-        BarrierData barrier = (coordinatorBarrierData != null ? coordinatorBarrierData : barrierData);
-        KafkaCheckPoint checkPoint = this.checkpoints.getCheckPoint(barrier.getBarrierId());
+        if (!coordinatorResult) {
+            return;
+        }
+        KafkaCheckPoint checkPoint = this.checkpoints.getCheckPoint(barrierData.getBarrierId());
         Map<String, Map<Integer, Long>> offsets = checkPoint.getOffsets();
         if (log.isInfoEnabled()) {
             log.info("commit offset : " + JSON.toJSONString(offsets));

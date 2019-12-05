@@ -40,8 +40,6 @@ public class BarrierService implements BarrierServiceCallBack {
 
     private GlobalContext globalContext;
 
-    private BarrierCoordinatorListener barrierCoordinatorListenerMaster;
-
     private int componentsNum = 0;
 
     private ThreadPoolExecutor executors = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>(16));
@@ -72,9 +70,6 @@ public class BarrierService implements BarrierServiceCallBack {
         if (component instanceof BarrierCoordinatorListener) {
             BarrierCoordinatorListener coordinatorCPListener = (BarrierCoordinatorListener) component;
             this.barrierCoordinatorListeners.add(coordinatorCPListener);
-            if (coordinatorCPListener.isMaster()) {
-                this.barrierCoordinatorListenerMaster = coordinatorCPListener;
-            }
         }
     }
 
@@ -121,16 +116,16 @@ public class BarrierService implements BarrierServiceCallBack {
     protected void notifyListeners(final BarrierData barrierData) {
 
         Thread thread = new Thread(() -> {
-            BarrierData coordinatorSelectResult = null;
+            boolean coordinatorResult = true;
             if (!barrierCoordinatorListeners.isEmpty()) {
                 try {
-                    List<BarrierData> coordinatorCollectResult = Lists.newArrayList();
+                    List<Boolean> coordinatorCollectResult = Lists.newArrayList();
                     for (BarrierCoordinatorListener barrierCoordinatorListener : barrierCoordinatorListeners) {
                         coordinatorCollectResult.add(barrierCoordinatorListener.collect(barrierData));
                     }
-                    coordinatorSelectResult = barrierCoordinatorListenerMaster.select(coordinatorCollectResult);
+                    coordinatorResult = coordinatorCollectResult.stream().anyMatch(result -> !result);
                     for (BarrierCoordinatorListener barrierCoordinatorListener : barrierCoordinatorListeners) {
-                        barrierCoordinatorListener.submit(coordinatorSelectResult);
+                        barrierCoordinatorListener.result(coordinatorResult, barrierData);
                     }
                 } catch (Throwable e) {
                     this.globalContext.fatalError("BarrierService.coordinator Error", e);
@@ -139,7 +134,7 @@ public class BarrierService implements BarrierServiceCallBack {
 
             for (BarrierCompletedListener barrierCompletedListener : barrierCompletedListeners) {
                 try {
-                    barrierCompletedListener.completed(barrierData, coordinatorSelectResult);
+                    barrierCompletedListener.completed(barrierData, coordinatorResult);
                 } catch (Throwable e) {
                     log.error("barrierCompletedListener completed error", e);
                 }

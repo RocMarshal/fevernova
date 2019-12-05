@@ -157,10 +157,9 @@ public class JobSource extends AbstractSource<byte[], KafkaData> implements Cons
 
 
     @Override
-    public void completed(BarrierData barrierData, BarrierData coordinatorBarrierData) throws Exception {
+    public void completed(BarrierData barrierData, boolean coordinatorResult) throws Exception {
 
-        BarrierData barrier = (coordinatorBarrierData != null ? coordinatorBarrierData : barrierData);
-        KafkaCheckPoint checkPoint = this.checkpoints.getCheckPoint(barrier.getBarrierId());
+        KafkaCheckPoint checkPoint = this.checkpoints.getCheckPoint(barrierData.getBarrierId());
         Map<String, Map<Integer, Long>> offsets = checkPoint.getOffsets();
         if (log.isInfoEnabled()) {
             log.info("commit offset : " + JSON.toJSONString(offsets));

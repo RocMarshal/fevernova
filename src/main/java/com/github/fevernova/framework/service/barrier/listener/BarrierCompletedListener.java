@@ -8,6 +8,6 @@ public interface BarrierCompletedListener {
 
 
     //抛异常,任务会继续运行
-    void completed(BarrierData barrierData, BarrierData coordinatorBarrierData) throws Exception;
+    void completed(BarrierData barrierData, boolean coordinatorResult) throws Exception;
 
 }
