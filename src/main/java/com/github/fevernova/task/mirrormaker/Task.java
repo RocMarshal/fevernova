@@ -20,9 +20,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class Task extends BaseTask {
 
 
-    int parserParallelism = 0;
+    int parserInitParallelism = 0;
 
-    int sinkParallelism = 0;
+    int sinkInitParallelism = 0;
 
 
     public Task(TaskContext context, JobTags tags) {
@@ -30,9 +30,9 @@ public class Task extends BaseTask {
         super(context, tags);
         context.put(Constants.INPUTCHANNEL_ + Constants.SIZE, "1024");
         context.put(Constants.OUTPUTCHANNEL_ + Constants.SIZE, "512");
-        this.parserParallelism =
+        this.parserInitParallelism =
                 context.getInteger(Constants.PARSER_ + Constants.PARALLELISM, Math.min(this.globalContext.getJobTags().getUnit(), 3));
-        this.sinkParallelism = context.getInteger(Constants.SINK_ + Constants.PARALLELISM, this.globalContext.getJobTags().getUnit());
+        this.sinkInitParallelism = context.getInteger(Constants.SINK_ + Constants.PARALLELISM, this.globalContext.getJobTags().getUnit());
     }
 
 
@@ -51,8 +51,8 @@ public class Task extends BaseTask {
                 .parserParallelism(Math.min(this.globalContext.getJobTags().getUnit(), 3))
                 .sinkParallelism(this.globalContext.getJobTags().getUnit() + 1)
                 .sourceAvailbleNum(new AtomicInteger(1))
-                .parserAvailbleNum(new AtomicInteger(this.parserParallelism))
-                .sinkAvailbleNum(new AtomicInteger(this.sinkParallelism))
+                .parserAvailbleNum(new AtomicInteger(this.parserInitParallelism))
+                .sinkAvailbleNum(new AtomicInteger(this.sinkInitParallelism))
                 .inputDynamicBalance(false)
                 .outputDynamicBalance(false)
                 .metricEvaluateClass(NoMetricEvaluate.class)

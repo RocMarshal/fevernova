@@ -44,11 +44,6 @@ public abstract class AbstractBatchSink extends AbstractSink {
     }
 
 
-    public void init() {
-
-    }
-
-
     @Override protected void handleEvent(Data event) {
 
         if (!this.inBatch) {

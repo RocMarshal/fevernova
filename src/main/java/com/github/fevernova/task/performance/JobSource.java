@@ -3,7 +3,6 @@ package com.github.fevernova.task.performance;
 
 import com.github.fevernova.framework.common.context.GlobalContext;
 import com.github.fevernova.framework.common.context.TaskContext;
-import com.github.fevernova.framework.common.data.BarrierData;
 import com.github.fevernova.framework.component.channel.ChannelProxy;
 import com.github.fevernova.framework.component.source.AbstractSource;
 import com.github.fevernova.kafka.data.KafkaData;
@@ -32,8 +31,4 @@ public class JobSource extends AbstractSource<Integer, KafkaData> {
         super.handleRows.inc(100);
     }
 
-
-    @Override protected void snapshotWhenBarrier(BarrierData barrierData) {
-
-    }
 }

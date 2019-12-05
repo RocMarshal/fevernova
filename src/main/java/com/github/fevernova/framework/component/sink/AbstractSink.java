@@ -20,9 +20,8 @@ public abstract class AbstractSink extends Processor {
     }
 
 
-    @Override public void init() {
+    @Override protected void snapshotWhenBarrier(BarrierData barrierData) {
 
-        super.init();
     }
 
 
@@ -34,5 +33,11 @@ public abstract class AbstractSink extends Processor {
     @Override public void onBroadcastData(BroadcastData broadcastData) {
 
         onBroadcast(broadcastData);
+    }
+
+
+    @Override protected BroadcastData onBroadcast(BroadcastData broadcastData) {
+
+        return broadcastData;
     }
 }

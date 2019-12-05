@@ -27,12 +27,6 @@ public abstract class Processor extends Component implements WorkHandler<DataEve
     }
 
 
-    @Override public void init() {
-
-        super.init();
-    }
-
-
     @Override
     public void onEvent(DataEvent event) {
 

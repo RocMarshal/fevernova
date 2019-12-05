@@ -10,6 +10,7 @@ import com.github.fevernova.framework.common.data.broadcast.BroadcastData;
 import com.github.fevernova.framework.component.Component;
 import com.github.fevernova.framework.component.ComponentStatus;
 import com.github.fevernova.framework.component.channel.ChannelProxy;
+import com.github.fevernova.framework.component.channel.WaitNotify;
 import com.github.fevernova.framework.service.barrier.listener.BarrierEmitListener;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.Validate;
@@ -19,7 +20,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 
 @Slf4j
-public abstract class AbstractSource<K, V extends Data> extends Component implements Runnable, BarrierEmitListener {
+public abstract class AbstractSource<K, V extends Data> extends Component implements Runnable, BarrierEmitListener, WaitNotify {
 
 
     private final ArrayBlockingQueue<BarrierData> barriersQueue = new ArrayBlockingQueue<>(10);
@@ -41,13 +42,6 @@ public abstract class AbstractSource<K, V extends Data> extends Component implem
 
 
     @Override
-    public void init() {
-
-        super.init();
-    }
-
-
-    @Override
     public void run() {
 
         try {
@@ -62,7 +56,7 @@ public abstract class AbstractSource<K, V extends Data> extends Component implem
                 if (this.status == ComponentStatus.RUNNING) {
                     work();
                 } else if (this.status == ComponentStatus.PAUSE) {
-                    Util.sleepSec(1);
+                    Util.sleepMS(1);
                 }
             }
         } catch (Throwable e) {
@@ -98,6 +92,11 @@ public abstract class AbstractSource<K, V extends Data> extends Component implem
     }
 
 
+    @Override protected void snapshotWhenBarrier(BarrierData barrierData) {
+
+    }
+
+
     @Override protected void distributeBarrier(BarrierData barrierData) {
 
         this.channelProxy.distributeBarrier(barrierData);
@@ -113,5 +112,11 @@ public abstract class AbstractSource<K, V extends Data> extends Component implem
     @Override protected BroadcastData onBroadcast(BroadcastData broadcastData) {
 
         return broadcastData;
+    }
+
+
+    @Override public void waitTime(long nanos) {
+
+        this.waitTime.inc(nanos);
     }
 }

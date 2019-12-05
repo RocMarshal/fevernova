@@ -5,7 +5,6 @@ import com.github.fevernova.framework.common.context.GlobalContext;
 import com.github.fevernova.framework.common.context.TaskContext;
 import com.github.fevernova.framework.common.data.BarrierData;
 import com.github.fevernova.framework.common.data.Data;
-import com.github.fevernova.framework.common.data.broadcast.BroadcastData;
 import com.github.fevernova.framework.component.sink.AbstractSink;
 import com.github.fevernova.kafka.KafkaConstants;
 import com.github.fevernova.kafka.KafkaUtil;
@@ -60,14 +59,9 @@ public class JobSink extends AbstractSink implements Callback {
             return;
         }
         Integer pt = (this.partitionRebalance ? null : data.getPartitionId());
-        ProducerRecord<byte[], byte[]> record = new ProducerRecord<>(this.destTopic, pt, data.getTimestamp(), data.getKey(), data.getValue());
+        String targetTopic = (data.getDestTopic() != null ? data.getDestTopic() : this.destTopic);
+        ProducerRecord<byte[], byte[]> record = new ProducerRecord<>(targetTopic, pt, data.getTimestamp(), data.getKey(), data.getValue());
         this.kafka.send(record, this);
-    }
-
-
-    @Override protected BroadcastData onBroadcast(BroadcastData broadcastData) {
-
-        return broadcastData;
     }
 
 

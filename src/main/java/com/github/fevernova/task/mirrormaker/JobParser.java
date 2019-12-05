@@ -4,7 +4,6 @@ package com.github.fevernova.task.mirrormaker;
 import com.github.fevernova.framework.common.context.GlobalContext;
 import com.github.fevernova.framework.common.context.TaskContext;
 import com.github.fevernova.framework.common.data.Data;
-import com.github.fevernova.framework.common.data.broadcast.BroadcastData;
 import com.github.fevernova.framework.component.channel.ChannelProxy;
 import com.github.fevernova.framework.component.parser.AbstractParser;
 import com.github.fevernova.kafka.data.KafkaData;
@@ -31,18 +30,13 @@ public class JobParser extends AbstractParser<byte[], KafkaData> {
         }
 
         KafkaData container = feedOne(kafkaData.getKey());
+        container.setTopic(kafkaData.getTopic());
+        container.setDestTopic(kafkaData.getDestTopic());
         container.setKey(kafkaData.getKey());
         container.setValue(kafkaData.getValue());
         container.setPartitionId(kafkaData.getPartitionId());
         container.setTimestamp(kafkaData.getTimestamp());
         push();
-    }
-
-
-    @Override
-    protected BroadcastData onBroadcast(BroadcastData broadcastData) {
-
-        return broadcastData;
     }
 
 }

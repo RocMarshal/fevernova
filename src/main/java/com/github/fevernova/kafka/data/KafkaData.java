@@ -13,6 +13,8 @@ public class KafkaData implements Data {
 
     private String topic;
 
+    private String destTopic;
+
     private byte[] key;
 
     private byte[] value;
@@ -25,6 +27,7 @@ public class KafkaData implements Data {
     @Override public void clearData() {
 
         this.topic = null;
+        this.destTopic = null;
         this.key = null;
         this.value = null;
         this.partitionId = -1;

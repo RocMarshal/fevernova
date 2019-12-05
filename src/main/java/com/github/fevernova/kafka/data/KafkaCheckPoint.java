@@ -10,10 +10,9 @@ import java.util.Map;
 
 public class KafkaCheckPoint implements CheckPoint {
 
-    //TODO 要支持多topic
 
     @Getter
-    private Map<Integer, Long> offsets;
+    private Map<String, Map<Integer, Long>> offsets;
 
 
     public KafkaCheckPoint() {
@@ -22,9 +21,12 @@ public class KafkaCheckPoint implements CheckPoint {
     }
 
 
-    public void put(int partition, long offset) {
+    public void put(String topic, int partition, long offset) {
 
-        this.offsets.put(partition, offset);
+        if (!this.offsets.containsKey(topic)) {
+            this.offsets.put(topic, Maps.newHashMap());
+        }
+        this.offsets.get(topic).put(partition, offset);
     }
 
 }

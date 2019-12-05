@@ -61,6 +61,12 @@ public abstract class AbstractParser<K, V extends Data> extends Processor {
     }
 
 
+    @Override protected BroadcastData onBroadcast(BroadcastData broadcastData) {
+
+        return broadcastData;
+    }
+
+
     public void broadcast(BroadcastData broadcastData) {
 
         this.channelProxy.broadcast(broadcastData);

@@ -22,7 +22,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.kafka.clients.consumer.*;
 import org.apache.kafka.common.TopicPartition;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.locks.ReentrantLock;
 
 
@@ -38,11 +41,13 @@ public class JobSource extends AbstractSource<byte[], KafkaData> implements Cons
 
     private ReentrantLock kafkaLock = new ReentrantLock();
 
-    private String topic;
+    private List<String> topics;
 
     private long pollTimeOut;
 
     private List<TopicPartition> partitions = Lists.newArrayList();
+
+    private Map<String, String> destTopics;
 
 
     public JobSource(GlobalContext globalContext,
@@ -52,23 +57,22 @@ public class JobSource extends AbstractSource<byte[], KafkaData> implements Cons
                      ChannelProxy channelProxy) {
 
         super(globalContext, taskContext, index, inputsNum, channelProxy);
-        this.topic = super.taskContext.get("topic");
+        this.topics = Util.splitStringWithFilter(super.taskContext.get("topics"), ",", null);
+        this.destTopics = Maps.newHashMapWithExpectedSize(this.topics.size());
         this.kafkaContext = new TaskContext(KafkaConstants.KAFKA, super.taskContext.getSubProperties(KafkaConstants.KAFKA_));
         this.pollTimeOut = super.taskContext.getLong("polltimeout", 5000L);
         this.checkpoints = new CheckPointSaver<>();
-        String ptsStr = super.taskContext.getString("partitions");
-        if (StringUtils.isNotBlank(ptsStr)) {
-            List<String> pts = Util.splitStringWithFilter(ptsStr, ",", null);
-            pts.forEach(s -> partitions.add(new TopicPartition(topic, Integer.valueOf(s))));
-        }
+        this.topics.forEach(topic -> {
+            TaskContext topicContext = new TaskContext(topic, super.taskContext.getSubProperties(topic + "."));
+            String destTopic = topicContext.getString("desttopic");
+            this.destTopics.put(topic, destTopic);
+            String ptsStr = topicContext.getString("partitions");
+            if (StringUtils.isNotBlank(ptsStr)) {
+                List<String> pts = Util.splitStringWithFilter(ptsStr, ",", null);
+                pts.forEach(s -> partitions.add(new TopicPartition(topic, Integer.valueOf(s))));
+            }
+        });
 
-    }
-
-
-    @Override
-    public void init() {
-
-        super.init();
     }
 
 
@@ -78,9 +82,9 @@ public class JobSource extends AbstractSource<byte[], KafkaData> implements Cons
         super.onStart();
         this.kafkaConsumer = KafkaUtil.createConsumer(this.kafkaContext);
         if (this.partitions.isEmpty()) {
-            this.kafkaConsumer.subscribe(Arrays.asList(this.topic), this);
+            this.kafkaConsumer.subscribe(this.topics, this);
         } else {
-            this.kafkaConsumer.assign(partitions);
+            this.kafkaConsumer.assign(this.partitions);
         }
     }
 
@@ -95,17 +99,24 @@ public class JobSource extends AbstractSource<byte[], KafkaData> implements Cons
         } finally {
             this.kafkaLock.unlock();
         }
+
         if (records != null && !records.isEmpty()) {
-            Iterator<ConsumerRecord<byte[], byte[]>> iterator = records.iterator();
-            iterator.forEachRemaining(ele -> {
-                KafkaData data = feedOne(ele.key());
-                data.setKey(ele.key());
-                data.setValue(ele.value());
-                data.setPartitionId(ele.partition());
-                data.setTimestamp(ele.timestamp());
-                push();
-            });
-            super.handleRows.inc(records.count());
+            Set<TopicPartition> tmpPartitions = records.partitions();
+            for (TopicPartition topicPartition : tmpPartitions) {
+                List<ConsumerRecord<byte[], byte[]>> recordList = records.records(topicPartition);
+                String destTopic = this.destTopics.get(topicPartition.topic());
+                recordList.forEach(ele -> {
+                    KafkaData data = feedOne(ele.key());
+                    data.setTopic(ele.topic());
+                    data.setDestTopic(destTopic);
+                    data.setKey(ele.key());
+                    data.setValue(ele.value());
+                    data.setPartitionId(ele.partition());
+                    data.setTimestamp(ele.timestamp());
+                    push();
+                });
+                super.handleRows.inc(recordList.size());
+            }
         }
     }
 
@@ -116,8 +127,8 @@ public class JobSource extends AbstractSource<byte[], KafkaData> implements Cons
         KafkaCheckPoint checkPoint = new KafkaCheckPoint();
         this.kafkaLock.lock();
         try {
-            this.kafkaConsumer.assignment().forEach(topicPartition -> checkPoint.put(topicPartition.partition(), kafkaConsumer
-                    .position(new TopicPartition(topic, topicPartition.partition()))));
+            this.kafkaConsumer.assignment().forEach(topicPartition -> checkPoint.put(topicPartition.topic(), topicPartition.partition(), kafkaConsumer
+                    .position(new TopicPartition(topicPartition.topic(), topicPartition.partition()))));
         } catch (Throwable e) {
             log.error("JobSource Snapshot Error : ", e);
         } finally {
@@ -150,7 +161,7 @@ public class JobSource extends AbstractSource<byte[], KafkaData> implements Cons
 
         BarrierData barrier = (coordinatorBarrierData != null ? coordinatorBarrierData : barrierData);
         KafkaCheckPoint checkPoint = this.checkpoints.getCheckPoint(barrier.getBarrierId());
-        Map<Integer, Long> offsets = checkPoint.getOffsets();
+        Map<String, Map<Integer, Long>> offsets = checkPoint.getOffsets();
         if (log.isInfoEnabled()) {
             log.info("commit offset : " + JSON.toJSONString(offsets));
         }
@@ -158,7 +169,7 @@ public class JobSource extends AbstractSource<byte[], KafkaData> implements Cons
             return;
         }
         Map<TopicPartition, OffsetAndMetadata> params = Maps.newHashMap();
-        offsets.forEach((k, v) -> params.put(new TopicPartition(this.topic, k), new OffsetAndMetadata(v)));
+        offsets.forEach((topic, offset) -> offset.forEach((k, v) -> params.put(new TopicPartition(topic, k), new OffsetAndMetadata(v))));
         this.kafkaLock.lock();
         try {
             this.kafkaConsumer.commitSync(params);
