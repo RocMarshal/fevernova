@@ -10,6 +10,8 @@ import com.github.fevernova.framework.service.barrier.listener.BarrierCompletedL
 import com.github.fevernova.framework.service.barrier.listener.BarrierCoordinatorListener;
 import com.github.fevernova.framework.service.barrier.listener.BarrierEmitListener;
 import com.github.fevernova.framework.service.barrier.listener.BarrierServiceCallBack;
+import com.github.fevernova.framework.service.state.StateValue;
+import com.github.fevernova.framework.task.Manager;
 import com.github.fevernova.framework.task.TaskTopology;
 import com.google.common.collect.Lists;
 import lombok.Getter;
@@ -39,14 +41,14 @@ public class BarrierService implements BarrierServiceCallBack {
 
     private final List<BarrierCompletedListener> barrierCompletedListeners = Lists.newArrayList();
 
-    private GlobalContext globalContext;
+    private final GlobalContext globalContext;
 
-    private int componentsNum = 0;
-
-    private ThreadPoolExecutor executors = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>(16));
+    private final ThreadPoolExecutor executors = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>(16));
 
     @Getter
     private final boolean exactlyOnce;
+
+    private int componentsNum = 0;
 
 
     public BarrierService(GlobalContext globalContext, TaskContext taskContext) {
@@ -128,17 +130,20 @@ public class BarrierService implements BarrierServiceCallBack {
                         coordinatorCollectResult.add(barrierCoordinatorListener.collect(barrierData));
                     }
                     boolean coordinatorResult = coordinatorCollectResult.stream().anyMatch(result -> !result);
-                    if (coordinatorResult && this.exactlyOnce) {
+                    if (coordinatorResult) {
+                        List<StateValue> stateValues = Lists.newArrayList();
                         for (BarrierCoordinatorListener barrierCoordinatorListener : barrierCoordinatorListeners) {
-                            barrierCoordinatorListener.getStateForRecovery(barrierData);
+                            stateValues.add(barrierCoordinatorListener.getStateForRecovery(barrierData));
                         }
-                        //TODO save state
-                    }
-                    for (BarrierCoordinatorListener barrierCoordinatorListener : barrierCoordinatorListeners) {
-                        barrierCoordinatorListener.result(coordinatorResult, barrierData);
-                    }
-                    if (coordinatorResult && this.exactlyOnce) {
-                        //TODO delete state
+                        Manager.getInstance().getStateService().saveStateValues(barrierData, stateValues);
+                        for (BarrierCoordinatorListener barrierCoordinatorListener : barrierCoordinatorListeners) {
+                            barrierCoordinatorListener.result(coordinatorResult, barrierData);
+                        }
+                        Manager.getInstance().getStateService().achieveStateValues(barrierData);
+                    } else {
+                        for (BarrierCoordinatorListener barrierCoordinatorListener : barrierCoordinatorListeners) {
+                            barrierCoordinatorListener.result(coordinatorResult, barrierData);
+                        }
                     }
                 } catch (Throwable e) {
                     this.globalContext.fatalError("BarrierService.coordinator Error", e);

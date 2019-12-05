@@ -2,6 +2,7 @@ package com.github.fevernova.framework.service.barrier.listener;
 
 
 import com.github.fevernova.framework.common.data.BarrierData;
+import com.github.fevernova.framework.service.state.StateValue;
 
 
 public interface BarrierCoordinatorListener {
@@ -9,7 +10,7 @@ public interface BarrierCoordinatorListener {
 
     boolean collect(BarrierData barrierData) throws Exception;
 
-    void getStateForRecovery(BarrierData barrierData);
+    StateValue getStateForRecovery(BarrierData barrierData);
 
     void result(boolean result, BarrierData barrierData) throws Exception;
 

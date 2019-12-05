@@ -11,6 +11,7 @@ import com.github.fevernova.framework.component.channel.selector.ISelector;
 import com.github.fevernova.framework.service.aligned.Aligner;
 import com.github.fevernova.framework.task.Manager;
 import com.google.common.collect.Lists;
+import org.apache.commons.lang3.Validate;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -67,7 +68,10 @@ public class ChannelProxy<K, V extends Data> {
 
         this.dynamicBalance = dynamicBalance;
         this.aligner = Manager.getInstance().getAlignService().getAligner(taskContext.getName(), taskContext.getInteger(Constants.PARALLELISM));
-        this.isExactlyOnce = Manager.getInstance().getAlignService().isExactlyOnce();
+        this.isExactlyOnce = Manager.getInstance().getBarrierService().isExactlyOnce();
+        if (this.isExactlyOnce) {
+            Validate.isTrue(!this.dynamicBalance, "dynamicBalance can not be true, when excactly once is true");
+        }
     }
 
 

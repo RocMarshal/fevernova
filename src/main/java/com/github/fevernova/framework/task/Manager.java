@@ -14,6 +14,7 @@ import com.github.fevernova.framework.service.barrier.BarrierService;
 import com.github.fevernova.framework.service.monitor.MonitorJob;
 import com.github.fevernova.framework.service.monitor.MonitorService;
 import com.github.fevernova.framework.service.scheduler.Schedulerd;
+import com.github.fevernova.framework.service.state.StateService;
 import com.google.common.collect.Maps;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -38,6 +39,9 @@ public class Manager {
     @Getter
     protected final MonitorService monitorService;
 
+    @Getter
+    protected final StateService stateService;
+
     protected final Schedulerd scheduler;
 
     protected TaskTopology taskTopology;
@@ -49,6 +53,7 @@ public class Manager {
         this.taskContext = taskContext;
         this.barrierService = new BarrierService(globalContext, taskContext);
         this.alignService = new AlignService(globalContext, taskContext);
+        this.stateService = new StateService(globalContext, taskContext);
         this.monitorService =
                 new MonitorService(globalContext, new TaskContext(Constants.MONITOR, taskContext.getSubProperties(Constants.MONITOR_)));
         this.scheduler = new Schedulerd(globalContext, new TaskContext(Constants.TIMER, taskContext.getSubProperties(Constants.TIMER_)));
