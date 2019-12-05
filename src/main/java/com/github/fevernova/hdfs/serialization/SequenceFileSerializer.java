@@ -2,6 +2,7 @@ package com.github.fevernova.hdfs.serialization;
 
 
 import com.github.fevernova.framework.common.context.TaskContext;
+import com.github.fevernova.framework.common.data.Data;
 import com.github.fevernova.framework.common.data.DataEvent;
 
 
@@ -18,7 +19,7 @@ public interface SequenceFileSerializer {
      * @param e event
      * @return a list of records corresponding to the given event
      */
-    Iterable<Record> serialize(DataEvent e);
+    Iterable<Record> serialize(Data e);
 
     /**
      * Knows how to construct this output formatter.<br/>

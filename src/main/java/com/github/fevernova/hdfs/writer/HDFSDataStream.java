@@ -3,7 +3,7 @@ package com.github.fevernova.hdfs.writer;
 
 import com.github.fevernova.framework.common.context.GlobalContext;
 import com.github.fevernova.framework.common.context.TaskContext;
-import com.github.fevernova.framework.common.data.DataEvent;
+import com.github.fevernova.framework.common.data.Data;
 import com.github.fevernova.hdfs.serialization.DataSerializer;
 import com.github.fevernova.hdfs.serialization.DataSerializerFactory;
 import lombok.extern.slf4j.Slf4j;
@@ -59,7 +59,7 @@ public class HDFSDataStream extends AbstractHDFSWriter {
 
 
     @Override
-    public int writeData(DataEvent event) throws IOException {
+    public int writeData(Data event) throws IOException {
 
         return this.serializer.write(event);
     }

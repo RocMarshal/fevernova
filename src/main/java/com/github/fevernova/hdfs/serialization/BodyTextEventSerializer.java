@@ -3,6 +3,7 @@ package com.github.fevernova.hdfs.serialization;
 
 import com.github.fevernova.framework.common.Configurable;
 import com.github.fevernova.framework.common.context.TaskContext;
+import com.github.fevernova.framework.common.data.Data;
 import com.github.fevernova.framework.common.data.DataEvent;
 import lombok.extern.slf4j.Slf4j;
 
@@ -28,7 +29,7 @@ public class BodyTextEventSerializer implements DataSerializer, Configurable {
 
 
     @Override
-    public int write(DataEvent event) throws IOException {
+    public int write(Data event) throws IOException {
 
         out.write(event.getBytes());
         out.write('\n');

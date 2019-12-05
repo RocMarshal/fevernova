@@ -3,7 +3,7 @@ package com.github.fevernova.hdfs.writer;
 
 import com.github.fevernova.framework.common.context.GlobalContext;
 import com.github.fevernova.framework.common.context.TaskContext;
-import com.github.fevernova.framework.common.data.DataEvent;
+import com.github.fevernova.framework.common.data.Data;
 import com.github.fevernova.hdfs.serialization.SequenceFileSerializer;
 import com.github.fevernova.hdfs.serialization.SequenceFileSerializerFactory;
 import com.github.fevernova.hdfs.serialization.SequenceFileSerializerType;
@@ -68,7 +68,7 @@ public class HDFSSequenceFile extends AbstractHDFSWriter {
 
 
     @Override
-    public int writeData(DataEvent e) throws IOException {
+    public int writeData(Data e) throws IOException {
 
         for (SequenceFileSerializer.Record record : this.serializer.serialize(e)) {
             this.writer.append(record.getKey(), record.getValue());

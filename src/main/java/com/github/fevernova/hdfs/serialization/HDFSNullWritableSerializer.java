@@ -2,7 +2,7 @@ package com.github.fevernova.hdfs.serialization;
 
 
 import com.github.fevernova.framework.common.context.TaskContext;
-import com.github.fevernova.framework.common.data.DataEvent;
+import com.github.fevernova.framework.common.data.Data;
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.io.NullWritable;
 
@@ -27,25 +27,25 @@ public class HDFSNullWritableSerializer implements SequenceFileSerializer {
 
 
     @Override
-    public Iterable<Record> serialize(DataEvent e) {
+    public Iterable<Record> serialize(Data e) {
 
         return Collections.singletonList(new Record(getKey(e), getValue(e)));
     }
 
 
-    private Object getValue(DataEvent e) {
+    private Object getValue(Data e) {
 
         return makeByteWritable(e);
     }
 
 
-    private Object getKey(DataEvent e) {
+    private Object getKey(Data e) {
 
         return NullWritable.get();
     }
 
 
-    private BytesWritable makeByteWritable(DataEvent e) {
+    private BytesWritable makeByteWritable(Data e) {
 
         BytesWritable bytesObject = new BytesWritable();
         bytesObject.set(e.getBytes(), 0, e.getBytes().length);

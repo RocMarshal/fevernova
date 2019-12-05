@@ -3,7 +3,7 @@ package com.github.fevernova.hdfs.serialization;
 
 import com.github.fevernova.framework.common.Configurable;
 import com.github.fevernova.framework.common.context.TaskContext;
-import com.github.fevernova.framework.common.data.DataEvent;
+import com.github.fevernova.framework.common.data.Data;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -28,7 +28,7 @@ public class AvroEventSerializer implements DataSerializer, Configurable {
 
 
     @Override
-    public int write(DataEvent event) throws IOException {
+    public int write(Data event) throws IOException {
 
         return 0;
     }

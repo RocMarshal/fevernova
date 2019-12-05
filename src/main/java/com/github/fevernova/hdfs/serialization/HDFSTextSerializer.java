@@ -2,7 +2,7 @@ package com.github.fevernova.hdfs.serialization;
 
 
 import com.github.fevernova.framework.common.context.TaskContext;
-import com.github.fevernova.framework.common.data.DataEvent;
+import com.github.fevernova.framework.common.data.Data;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 
@@ -12,7 +12,7 @@ import java.util.Collections;
 public class HDFSTextSerializer implements SequenceFileSerializer {
 
 
-    private Text makeText(DataEvent e) {
+    private Text makeText(Data e) {
 
         Text textObject = new Text();
         textObject.set(e.getBytes(), 0, e.getBytes().length);
@@ -35,7 +35,7 @@ public class HDFSTextSerializer implements SequenceFileSerializer {
 
 
     @Override
-    public Iterable<Record> serialize(DataEvent e) {
+    public Iterable<Record> serialize(Data e) {
 
         Object key = getKey(e);
         Object value = getValue(e);
@@ -43,14 +43,14 @@ public class HDFSTextSerializer implements SequenceFileSerializer {
     }
 
 
-    private Object getKey(DataEvent e) {
+    private Object getKey(Data e) {
 
         long eventStamp = e.getTimestamp();
         return new LongWritable(eventStamp);
     }
 
 
-    private Object getValue(DataEvent e) {
+    private Object getValue(Data e) {
 
         return makeText(e);
     }

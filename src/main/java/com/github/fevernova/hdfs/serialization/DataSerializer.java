@@ -2,7 +2,7 @@ package com.github.fevernova.hdfs.serialization;
 
 
 import com.github.fevernova.framework.common.context.TaskContext;
-import com.github.fevernova.framework.common.data.DataEvent;
+import com.github.fevernova.framework.common.data.Data;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -29,7 +29,7 @@ public interface DataSerializer {
      * @return size of data
      * @throws IOException
      */
-    public int write(DataEvent event) throws IOException;
+    public int write(Data event) throws IOException;
 
     /**
      * Hook to flush any internal write buffers to the underlying stream.
