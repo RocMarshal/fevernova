@@ -1,4 +1,4 @@
-package com.github.fevernova.task.mirrormaker;
+package com.github.fevernova.task.logdist;
 
 
 import com.alibaba.fastjson.JSON;
@@ -47,8 +47,6 @@ public class JobSource extends AbstractSource<byte[], KafkaData> implements Cons
 
     private List<TopicPartition> partitions = Lists.newArrayList();
 
-    private Map<String, String> destTopics;
-
 
     public JobSource(GlobalContext globalContext,
                      TaskContext taskContext,
@@ -58,14 +56,11 @@ public class JobSource extends AbstractSource<byte[], KafkaData> implements Cons
 
         super(globalContext, taskContext, index, inputsNum, channelProxy);
         this.topics = Util.splitStringWithFilter(super.taskContext.get(KafkaConstants.TOPICS), ",", null);
-        this.destTopics = Maps.newHashMapWithExpectedSize(this.topics.size());
         this.kafkaContext = new TaskContext(KafkaConstants.KAFKA, super.taskContext.getSubProperties(KafkaConstants.KAFKA_));
         this.pollTimeOut = super.taskContext.getLong(KafkaConstants.POLLTIMEOUT, 5000L);
         this.checkpoints = new CheckPointSaver<>();
         this.topics.forEach(topic -> {
             TaskContext topicContext = new TaskContext(topic, super.taskContext.getSubProperties(topic + "."));
-            String destTopic = topicContext.getString("desttopic");
-            this.destTopics.put(topic, destTopic);
             String ptsStr = topicContext.getString(KafkaConstants.PARTITIONS);
             if (StringUtils.isNotBlank(ptsStr)) {
                 List<String> pts = Util.splitStringWithFilter(ptsStr, ",", null);
@@ -104,11 +99,9 @@ public class JobSource extends AbstractSource<byte[], KafkaData> implements Cons
             Set<TopicPartition> tmpPartitions = records.partitions();
             for (TopicPartition topicPartition : tmpPartitions) {
                 List<ConsumerRecord<byte[], byte[]>> recordList = records.records(topicPartition);
-                String destTopic = this.destTopics.get(topicPartition.topic());
                 recordList.forEach(ele -> {
                     KafkaData data = feedOne(ele.key());
                     data.setTopic(ele.topic());
-                    data.setDestTopic(destTopic);
                     data.setKey(ele.key());
                     data.setValue(ele.value());
                     data.setPartitionId(ele.partition());

@@ -1,4 +1,4 @@
-package com.github.fevernova.task.logtunnel;
+package com.github.fevernova.task.logdist;
 
 
 import com.github.fevernova.framework.common.context.GlobalContext;
@@ -31,6 +31,7 @@ public class JobParser extends AbstractParser<byte[], KafkaData> {
         }
 
         KafkaData container = feedOne(kafkaData.getKey());
+        container.setTopic(kafkaData.getTopic());
         container.setKey(kafkaData.getKey());
         container.setValue(kafkaData.getValue());
         container.setPartitionId(kafkaData.getPartitionId());
