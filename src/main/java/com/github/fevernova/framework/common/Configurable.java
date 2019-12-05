@@ -1,11 +1,18 @@
 package com.github.fevernova.framework.common;
 
 
+import com.github.fevernova.framework.common.context.GlobalContext;
 import com.github.fevernova.framework.common.context.TaskContext;
 
 
 public interface Configurable {
 
 
-    void configure(TaskContext context);
+    default void configure(GlobalContext globalContext, TaskContext context) {
+
+    }
+
+    default void configure(TaskContext context) {
+
+    }
 }
