@@ -9,6 +9,8 @@ public interface BarrierCoordinatorListener {
 
     boolean collect(BarrierData barrierData) throws Exception;
 
+    void getStateForRecovery(BarrierData barrierData);
+
     void result(boolean result, BarrierData barrierData) throws Exception;
 
 }

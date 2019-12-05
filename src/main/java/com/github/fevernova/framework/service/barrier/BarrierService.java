@@ -12,6 +12,7 @@ import com.github.fevernova.framework.service.barrier.listener.BarrierEmitListen
 import com.github.fevernova.framework.service.barrier.listener.BarrierServiceCallBack;
 import com.github.fevernova.framework.task.TaskTopology;
 import com.google.common.collect.Lists;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -44,10 +45,14 @@ public class BarrierService implements BarrierServiceCallBack {
 
     private ThreadPoolExecutor executors = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>(16));
 
+    @Getter
+    private final boolean exactlyOnce;
+
 
     public BarrierService(GlobalContext globalContext, TaskContext taskContext) {
 
         this.globalContext = globalContext;
+        this.exactlyOnce = taskContext.getBoolean("exactlyonce", false);
     }
 
 
@@ -116,16 +121,24 @@ public class BarrierService implements BarrierServiceCallBack {
     protected void notifyListeners(final BarrierData barrierData) {
 
         Thread thread = new Thread(() -> {
-            boolean coordinatorResult = true;
             if (!barrierCoordinatorListeners.isEmpty()) {
                 try {
                     List<Boolean> coordinatorCollectResult = Lists.newArrayList();
                     for (BarrierCoordinatorListener barrierCoordinatorListener : barrierCoordinatorListeners) {
                         coordinatorCollectResult.add(barrierCoordinatorListener.collect(barrierData));
                     }
-                    coordinatorResult = coordinatorCollectResult.stream().anyMatch(result -> !result);
+                    boolean coordinatorResult = coordinatorCollectResult.stream().anyMatch(result -> !result);
+                    if (coordinatorResult && this.exactlyOnce) {
+                        for (BarrierCoordinatorListener barrierCoordinatorListener : barrierCoordinatorListeners) {
+                            barrierCoordinatorListener.getStateForRecovery(barrierData);
+                        }
+                        //TODO save state
+                    }
                     for (BarrierCoordinatorListener barrierCoordinatorListener : barrierCoordinatorListeners) {
                         barrierCoordinatorListener.result(coordinatorResult, barrierData);
+                    }
+                    if (coordinatorResult && this.exactlyOnce) {
+                        //TODO delete state
                     }
                 } catch (Throwable e) {
                     this.globalContext.fatalError("BarrierService.coordinator Error", e);
@@ -134,7 +147,7 @@ public class BarrierService implements BarrierServiceCallBack {
 
             for (BarrierCompletedListener barrierCompletedListener : barrierCompletedListeners) {
                 try {
-                    barrierCompletedListener.completed(barrierData, coordinatorResult);
+                    barrierCompletedListener.completed(barrierData);
                 } catch (Throwable e) {
                     log.error("barrierCompletedListener completed error", e);
                 }
