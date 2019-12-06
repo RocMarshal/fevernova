@@ -72,7 +72,9 @@ public abstract class AbstractHDFSWriter implements Writer {
         this.codecName = hdfsContext.getString("codec", "snappy");
 
         this.basePath = hdfsContext.getString("basepath");
+        Validate.notBlank(this.basePath);
         this.baseTmpPath = hdfsContext.getString("basetmppath");
+        Validate.notBlank(this.baseTmpPath);
 
         this.partitionType = PartitionType.valueOf(hdfsContext.getString("partitiontype", PartitionType.HOUR.name()).toUpperCase());
         this.partitionRender = this.partitionType.newInstance(hdfsContext.getInteger("period", 1));
