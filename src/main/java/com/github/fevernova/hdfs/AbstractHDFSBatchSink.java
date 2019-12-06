@@ -10,9 +10,11 @@ import com.github.fevernova.framework.service.barrier.listener.BarrierCoordinato
 import com.github.fevernova.framework.service.state.StateValue;
 import com.github.fevernova.hdfs.writer.AbstractHDFSWriter;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.tuple.Pair;
+import org.mortbay.util.ajax.JSON;
 
 import java.io.IOException;
 import java.util.List;
@@ -27,7 +29,7 @@ public abstract class AbstractHDFSBatchSink extends AbstractBatchSink implements
 
     private ConcurrentHashMap<Long, List<Pair<String, String>>> toBeMovedFileMap = new ConcurrentHashMap<>();
 
-    private List<Pair<String, String>> hdfsFilePathList;
+    private List<Pair<String, String>> hdfsFilePathList = Lists.newLinkedList();
 
 
     public AbstractHDFSBatchSink(GlobalContext globalContext,
@@ -36,7 +38,6 @@ public abstract class AbstractHDFSBatchSink extends AbstractBatchSink implements
                                  int inputsNum) {
 
         super(globalContext, taskContext, index, inputsNum);
-        this.hdfsFilePathList = Lists.newLinkedList();
     }
 
 
@@ -48,20 +49,21 @@ public abstract class AbstractHDFSBatchSink extends AbstractBatchSink implements
     }
 
 
-    @Override protected void prepare(Data event) {
+    @Override protected void prepare(Data data) {
 
         try {
             this.hdfsWriter.open();
         } catch (IOException e) {
+            log.error("hdfsWriter prepare error", e);
             super.globalContext.fatalError(e.getMessage());
         }
     }
 
 
-    @Override protected int handleEventAndReturnSize(Data dataEvent) {
+    @Override protected int handleEventAndReturnSize(Data data) {
 
         try {
-            return this.hdfsWriter.writeData(dataEvent);
+            return this.hdfsWriter.writeData(data);
         } catch (IOException e) {
             log.error("hdfsWriter write data error", e);
             Validate.isTrue(false);
@@ -92,18 +94,22 @@ public abstract class AbstractHDFSBatchSink extends AbstractBatchSink implements
 
     @Override public StateValue getStateForRecovery(BarrierData barrierData) {
 
-        return null;
+        List<Pair<String, String>> filePathList = this.toBeMovedFileMap.get(barrierData.getBarrierId());
+        StateValue stateValue = new StateValue();
+        stateValue.setComponentType(super.componentType);
+        stateValue.setComponentTotalNum(super.total);
+        stateValue.setCompomentIndex(super.index);
+        stateValue.setValue(Maps.newHashMap());
+        stateValue.getValue().put("files", JSON.toString(filePathList));
+        return stateValue;
     }
 
 
     @Override public void result(boolean result, BarrierData barrierData) throws Exception {
 
-        if (barrierData == null) {
-            return;
-        }
-        long barrierId = barrierData.getBarrierId();
-        if (this.toBeMovedFileMap.containsKey(barrierId)) {
-            List<Pair<String, String>> filePathList = this.toBeMovedFileMap.get(barrierId);
+        if (result) {
+            List<Pair<String, String>> filePathList = this.toBeMovedFileMap.remove(barrierData.getBarrierId());
+            Validate.notNull(filePathList);
             if (!filePathList.isEmpty()) {
                 for (Pair<String, String> path : filePathList) {
                     boolean releaseDataFile = this.hdfsWriter.releaseDataFile(path.getLeft(), path.getRight());
@@ -115,7 +121,6 @@ public abstract class AbstractHDFSBatchSink extends AbstractBatchSink implements
                     }
                 }
             }
-            this.toBeMovedFileMap.remove(barrierId);
         }
     }
 }

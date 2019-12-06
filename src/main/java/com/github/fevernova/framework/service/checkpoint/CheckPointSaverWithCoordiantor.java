@@ -8,7 +8,7 @@ import java.util.Map;
 public class CheckPointSaverWithCoordiantor<T extends CheckPoint> extends CheckPointSaver<T> {
 
 
-    @Override public T getCheckPoint(long barrierId) {
+    @Override public T remove(long barrierId) {
 
         T checkpoint = super.checkPoints.get(barrierId);
         for (Iterator<Map.Entry<Long, T>> iterator = super.checkPoints.entrySet().iterator(); iterator.hasNext(); ) {

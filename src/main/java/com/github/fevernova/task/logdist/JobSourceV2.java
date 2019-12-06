@@ -1,16 +1,16 @@
-package com.github.fevernova.task.mirrormaker;
+package com.github.fevernova.task.logdist;
 
 
 import com.alibaba.fastjson.JSON;
-import com.github.fevernova.framework.common.Util;
 import com.github.fevernova.framework.common.context.GlobalContext;
 import com.github.fevernova.framework.common.context.TaskContext;
 import com.github.fevernova.framework.common.data.BarrierData;
 import com.github.fevernova.framework.component.channel.ChannelProxy;
 import com.github.fevernova.framework.component.source.AbstractSource;
-import com.github.fevernova.framework.service.barrier.listener.BarrierCompletedListener;
-import com.github.fevernova.framework.service.checkpoint.CheckPointSaver;
+import com.github.fevernova.framework.service.barrier.listener.BarrierCoordinatorListener;
+import com.github.fevernova.framework.service.checkpoint.CheckPointSaverWithCoordiantor;
 import com.github.fevernova.framework.service.checkpoint.ICheckPointSaver;
+import com.github.fevernova.framework.service.state.StateValue;
 import com.github.fevernova.kafka.KafkaConstants;
 import com.github.fevernova.kafka.KafkaUtil;
 import com.github.fevernova.kafka.data.KafkaCheckPoint;
@@ -18,8 +18,8 @@ import com.github.fevernova.kafka.data.KafkaData;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.kafka.clients.consumer.*;
+import org.apache.kafka.common.PartitionInfo;
 import org.apache.kafka.common.TopicPartition;
 
 import java.util.Collection;
@@ -30,7 +30,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 
 @Slf4j
-public class JobSource extends AbstractSource<byte[], KafkaData> implements ConsumerRebalanceListener, BarrierCompletedListener {
+public class JobSourceV2 extends AbstractSource<byte[], KafkaData> implements ConsumerRebalanceListener, BarrierCoordinatorListener {
 
 
     protected ICheckPointSaver<KafkaCheckPoint> checkpoints;
@@ -41,38 +41,24 @@ public class JobSource extends AbstractSource<byte[], KafkaData> implements Cons
 
     private ReentrantLock kafkaLock = new ReentrantLock();
 
-    private List<String> topics;
+    private String topic;
 
     private long pollTimeOut;
 
     private List<TopicPartition> partitions = Lists.newArrayList();
 
-    private Map<String, String> destTopics;
 
-
-    public JobSource(GlobalContext globalContext,
-                     TaskContext taskContext,
-                     int index,
-                     int inputsNum,
-                     ChannelProxy channelProxy) {
+    public JobSourceV2(GlobalContext globalContext,
+                       TaskContext taskContext,
+                       int index,
+                       int inputsNum,
+                       ChannelProxy channelProxy) {
 
         super(globalContext, taskContext, index, inputsNum, channelProxy);
-        this.topics = Util.splitStringWithFilter(super.taskContext.get(KafkaConstants.TOPICS), ",", null);
-        this.destTopics = Maps.newHashMapWithExpectedSize(this.topics.size());
+        this.topic = super.taskContext.get(KafkaConstants.TOPICS);
         this.kafkaContext = new TaskContext(KafkaConstants.KAFKA, super.taskContext.getSubProperties(KafkaConstants.KAFKA_));
         this.pollTimeOut = super.taskContext.getLong(KafkaConstants.POLLTIMEOUT, 5000L);
-        this.checkpoints = new CheckPointSaver<>();
-        this.topics.forEach(topic -> {
-            TaskContext topicContext = new TaskContext(topic, super.taskContext.getSubProperties(topic + "."));
-            String destTopic = topicContext.getString("desttopic");
-            this.destTopics.put(topic, destTopic);
-            String ptsStr = topicContext.getString(KafkaConstants.PARTITIONS);
-            if (StringUtils.isNotBlank(ptsStr)) {
-                List<String> pts = Util.splitStringWithFilter(ptsStr, ",", null);
-                pts.forEach(s -> partitions.add(new TopicPartition(topic, Integer.valueOf(s))));
-            }
-        });
-
+        this.checkpoints = new CheckPointSaverWithCoordiantor<>();
     }
 
 
@@ -81,11 +67,13 @@ public class JobSource extends AbstractSource<byte[], KafkaData> implements Cons
 
         super.onStart();
         this.kafkaConsumer = KafkaUtil.createConsumer(this.kafkaContext);
-        if (this.partitions.isEmpty()) {
-            this.kafkaConsumer.subscribe(this.topics, this);
-        } else {
-            this.kafkaConsumer.assign(this.partitions);
+        List<PartitionInfo> tmp = this.kafkaConsumer.partitionsFor(this.topic);
+        for (PartitionInfo partitionInfo : tmp) {
+            if (super.globalContext.getJobTags().getPodIndex() == partitionInfo.partition() % super.globalContext.getJobTags().getPodTotalNum()) {
+                this.partitions.add(new TopicPartition(this.topic, partitionInfo.partition()));
+            }
         }
+        this.kafkaConsumer.assign(this.partitions);
     }
 
 
@@ -104,11 +92,9 @@ public class JobSource extends AbstractSource<byte[], KafkaData> implements Cons
             Set<TopicPartition> tmpPartitions = records.partitions();
             for (TopicPartition topicPartition : tmpPartitions) {
                 List<ConsumerRecord<byte[], byte[]>> recordList = records.records(topicPartition);
-                String destTopic = this.destTopics.get(topicPartition.topic());
                 recordList.forEach(ele -> {
                     KafkaData data = feedOne(ele.key());
                     data.setTopic(ele.topic());
-                    data.setDestTopic(destTopic);
                     data.setKey(ele.key());
                     data.setValue(ele.value());
                     data.setPartitionId(ele.partition());
@@ -156,8 +142,26 @@ public class JobSource extends AbstractSource<byte[], KafkaData> implements Cons
     }
 
 
-    @Override
-    public void completed(BarrierData barrierData) throws Exception {
+    @Override public boolean collect(BarrierData barrierData) throws Exception {
+
+        return this.checkpoints.getCheckPoint(barrierData.getBarrierId()) != null;
+    }
+
+
+    @Override public StateValue getStateForRecovery(BarrierData barrierData) {
+
+        KafkaCheckPoint checkPoint = this.checkpoints.getCheckPoint(barrierData.getBarrierId());
+        StateValue stateValue = new StateValue();
+        stateValue.setComponentType(super.componentType);
+        stateValue.setComponentTotalNum(super.total);
+        stateValue.setCompomentIndex(super.index);
+        stateValue.setValue(Maps.newHashMap());
+        stateValue.getValue().put("offsets", JSON.toJSONString(checkPoint.getOffsets()));
+        return null;
+    }
+
+
+    @Override public void result(boolean result, BarrierData barrierData) throws Exception {
 
         KafkaCheckPoint checkPoint = this.checkpoints.remove(barrierData.getBarrierId());
         Map<String, Map<Integer, Long>> offsets = checkPoint.getOffsets();

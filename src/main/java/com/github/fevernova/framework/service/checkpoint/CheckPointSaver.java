@@ -22,6 +22,12 @@ public class CheckPointSaver<T extends CheckPoint> implements ICheckPointSaver<T
     @Override
     public T getCheckPoint(long barrierId) {
 
+        return this.checkPoints.get(barrierId);
+    }
+
+
+    @Override public T remove(long barrierId) {
+
         return this.checkPoints.remove(barrierId);
     }
 }
