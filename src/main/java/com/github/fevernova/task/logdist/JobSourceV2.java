@@ -26,6 +26,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
 
 
@@ -47,6 +49,12 @@ public class JobSourceV2 extends AbstractSource<byte[], KafkaData> implements Co
 
     private List<TopicPartition> partitions = Lists.newArrayList();
 
+    private boolean autoDiscovery;
+
+    private AtomicInteger partitionsTotalNum = new AtomicInteger(0);
+
+    private AtomicBoolean partitionsChanged = new AtomicBoolean(false);
+
 
     public JobSourceV2(GlobalContext globalContext,
                        TaskContext taskContext,
@@ -56,6 +64,7 @@ public class JobSourceV2 extends AbstractSource<byte[], KafkaData> implements Co
 
         super(globalContext, taskContext, index, inputsNum, channelProxy);
         this.topic = super.taskContext.get(KafkaConstants.TOPICS);
+        this.autoDiscovery = super.taskContext.getBoolean("autodiscovery", false);
         this.kafkaContext = new TaskContext(KafkaConstants.KAFKA, super.taskContext.getSubProperties(KafkaConstants.KAFKA_));
         this.pollTimeOut = super.taskContext.getLong(KafkaConstants.POLLTIMEOUT, 5000L);
         this.checkpoints = new CheckPointSaverWithCoordiantor<>();
@@ -67,7 +76,16 @@ public class JobSourceV2 extends AbstractSource<byte[], KafkaData> implements Co
 
         super.onStart();
         this.kafkaConsumer = KafkaUtil.createConsumer(this.kafkaContext);
+        assignPartition();
+    }
+
+
+    private void assignPartition() {
+
         List<PartitionInfo> tmp = this.kafkaConsumer.partitionsFor(this.topic);
+        this.partitions.clear();
+        this.partitionsTotalNum.set(tmp.size());
+        this.partitionsChanged.set(false);
         for (PartitionInfo partitionInfo : tmp) {
             if (super.globalContext.getJobTags().getPodIndex() == partitionInfo.partition() % super.globalContext.getJobTags().getPodTotalNum()) {
                 this.partitions.add(new TopicPartition(this.topic, partitionInfo.partition()));
@@ -79,6 +97,10 @@ public class JobSourceV2 extends AbstractSource<byte[], KafkaData> implements Co
 
     @Override
     public void work() {
+
+        if (this.partitionsChanged.get()) {
+            assignPartition();
+        }
 
         ConsumerRecords<byte[], byte[]> records;
         this.kafkaLock.lock();
@@ -157,7 +179,7 @@ public class JobSourceV2 extends AbstractSource<byte[], KafkaData> implements Co
         stateValue.setCompomentIndex(super.index);
         stateValue.setValue(Maps.newHashMap());
         stateValue.getValue().put("offsets", JSON.toJSONString(checkPoint.getOffsets()));
-        return null;
+        return stateValue;
     }
 
 
@@ -176,6 +198,16 @@ public class JobSourceV2 extends AbstractSource<byte[], KafkaData> implements Co
         this.kafkaLock.lock();
         try {
             this.kafkaConsumer.commitSync(params);
+            if (this.autoDiscovery) {
+                try {
+                    List<PartitionInfo> tmp = this.kafkaConsumer.partitionsFor(this.topic);
+                    if (this.partitionsTotalNum.get() != tmp.size()) {
+                        this.partitionsChanged.set(true);
+                    }
+                } catch (Exception e) {
+                    log.error("auto discovery error : ", e);
+                }
+            }
         } finally {
             this.kafkaLock.unlock();
         }
