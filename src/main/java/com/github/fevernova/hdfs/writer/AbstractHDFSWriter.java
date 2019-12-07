@@ -26,9 +26,13 @@ import java.util.List;
 public abstract class AbstractHDFSWriter implements Writer {
 
 
+    protected GlobalContext globalContext;
+
     protected Configuration configuration;
 
     protected FileSystem fileSystem;
+
+    protected String userName;
 
     protected String codecName;
 
@@ -38,25 +42,21 @@ public abstract class AbstractHDFSWriter implements Writer {
 
     protected PartitionType.PartitionRender partitionRender;
 
+    protected PartitionType partitionType;
+
     @Setter
     private int index;
 
-    private String userName;
-
-    protected PartitionType partitionType;
-
-    protected GlobalContext globalContext;
-
 
     @Override
-    public void configure(GlobalContext globalContext, TaskContext hdfsContext) {
+    public void configure(GlobalContext globalContext, TaskContext writerContext) {
 
         this.globalContext = globalContext;
-        this.userName = hdfsContext.getString("username");
+        this.userName = writerContext.getString("username");
         Validate.notBlank(this.userName);
         System.setProperty("HADOOP_USER_NAME", this.userName);
 
-        String hdfsConfigPath = hdfsContext.get("hdfsconfigpath");
+        String hdfsConfigPath = writerContext.get("hdfsconfigpath");
         Validate.notBlank(hdfsConfigPath);
 
         this.configuration = new Configuration();
@@ -69,15 +69,15 @@ public abstract class AbstractHDFSWriter implements Writer {
             Validate.isTrue(false);
         }
 
-        this.codecName = hdfsContext.getString("codec", "snappy");
+        this.codecName = writerContext.getString("codec", "snappy");
 
-        this.basePath = hdfsContext.getString("basepath");
+        this.basePath = writerContext.getString("basepath");
         Validate.notBlank(this.basePath);
-        this.baseTmpPath = hdfsContext.getString("basetmppath");
+        this.baseTmpPath = writerContext.getString("basetmppath");
         Validate.notBlank(this.baseTmpPath);
 
-        this.partitionType = PartitionType.valueOf(hdfsContext.getString("partitiontype", PartitionType.HOUR.name()).toUpperCase());
-        this.partitionRender = this.partitionType.newInstance(hdfsContext.getInteger("period", 1));
+        this.partitionType = PartitionType.valueOf(writerContext.getString("partitiontype", PartitionType.HOUR.name()).toUpperCase());
+        this.partitionRender = this.partitionType.newInstance(writerContext.getInteger("period", 1));
     }
 
 
@@ -87,8 +87,7 @@ public abstract class AbstractHDFSWriter implements Writer {
         this.partitionRender.render(pathBuilder);
         pathBuilder.append(this.globalContext.getJobTags().getJobId()).append("-")
                 .append(this.globalContext.getJobTags().getPodIndex()).append("-")
-                .append(this.index).append("-")
-                .append(Util.nowMS()).append("-")
+                .append(this.index).append("-").append(Util.nowMS())
                 .append(codecFileExtension);
         if (log.isDebugEnabled()) {
             log.debug("assemble path : {}", pathBuilder.toString());

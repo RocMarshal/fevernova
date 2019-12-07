@@ -4,7 +4,6 @@ package com.github.fevernova.hdfs.writer;
 import com.github.fevernova.framework.common.context.GlobalContext;
 import com.github.fevernova.framework.common.context.TaskContext;
 import com.github.fevernova.framework.common.data.Data;
-import com.github.fevernova.framework.common.data.DataEvent;
 import com.github.fevernova.hdfs.serialization.DataSerializer;
 import com.github.fevernova.hdfs.serialization.DataSerializerFactory;
 import lombok.extern.slf4j.Slf4j;
@@ -23,6 +22,12 @@ import java.io.IOException;
 public class HDFSCompressedDataStream extends AbstractHDFSWriter {
 
 
+    private String serializerType;
+
+    private TaskContext serializerContext;
+
+    private DataSerializer serializer;
+
     private FSDataOutputStream outputStream;
 
     private CompressionCodec codec;
@@ -33,23 +38,17 @@ public class HDFSCompressedDataStream extends AbstractHDFSWriter {
 
     private boolean isFinished = false;
 
-    private String serializerType;
-
-    private TaskContext serializerContext;
-
-    private DataSerializer serializer;
-
     private String tmpPathStr;
 
     private String targetPathStr;
 
 
     @Override
-    public void configure(GlobalContext globalContext, TaskContext context) {
+    public void configure(GlobalContext globalContext, TaskContext writerContext) {
 
-        super.configure(globalContext, context);
-        this.serializerType = context.getString("serializer", "TEXT");
-        this.serializerContext = new TaskContext(context.getSubProperties(DataSerializer.CTX_PREFIX));
+        super.configure(globalContext, writerContext);
+        this.serializerContext = new TaskContext(writerContext.getSubProperties(DataSerializer.CTX_PREFIX));
+        this.serializerType = writerContext.getString("type", "TEXT");
         this.codec = getCodec();
     }
 

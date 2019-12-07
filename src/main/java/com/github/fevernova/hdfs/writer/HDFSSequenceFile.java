@@ -21,31 +21,30 @@ import java.io.IOException;
 public class HDFSSequenceFile extends AbstractHDFSWriter {
 
 
-    private FSDataOutputStream outputStream;
-
-    private SequenceFile.Writer writer;
-
-    private String writeFormat;
+    private String serializerType;
 
     private TaskContext serializerContext;
 
     private SequenceFileSerializer serializer;
 
+    private FSDataOutputStream outputStream;
+
+    private CompressionCodec codec;
+
+    private SequenceFile.Writer writer;
+
     private String tmpPathStr;
 
     private String targetPathStr;
 
-    private CompressionCodec codec;
-
 
     @Override
-    public void configure(GlobalContext globalContext, TaskContext context) {
+    public void configure(GlobalContext globalContext, TaskContext writerContext) {
 
-        super.configure(globalContext, context);
-        this.writeFormat = context.getString("format", SequenceFileSerializerType.NullWritable.name());
-        this.serializerContext = new TaskContext(context.getSubProperties(SequenceFileSerializerFactory.CTX_PREFIX));
-        this.serializer = SequenceFileSerializerFactory.getSerializer(this.writeFormat, this.serializerContext);
-        super.codecName = context.getString("codec", "default");
+        super.configure(globalContext, writerContext);
+        this.serializerContext = new TaskContext(writerContext.getSubProperties(SequenceFileSerializerFactory.CTX_PREFIX));
+        this.serializerType = writerContext.getString("type", SequenceFileSerializerType.NullWritable.name());
+        this.serializer = SequenceFileSerializerFactory.getSerializer(this.serializerType, this.serializerContext);
         this.codec = getCodec();
     }
 

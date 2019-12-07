@@ -18,13 +18,13 @@ import java.io.IOException;
 public class HDFSDataStream extends AbstractHDFSWriter {
 
 
-    private FSDataOutputStream outputStream;
-
     private String serializerType;
 
     private TaskContext serializerContext;
 
     private DataSerializer serializer;
+
+    private FSDataOutputStream outputStream;
 
     private String tmpPathStr;
 
@@ -32,11 +32,11 @@ public class HDFSDataStream extends AbstractHDFSWriter {
 
 
     @Override
-    public void configure(GlobalContext globalContext, TaskContext context) {
+    public void configure(GlobalContext globalContext, TaskContext writerContext) {
 
-        super.configure(globalContext, context);
-        this.serializerType = context.getString("serializer", "TEXT");
-        this.serializerContext = new TaskContext(context.getSubProperties(DataSerializer.CTX_PREFIX));
+        super.configure(globalContext, writerContext);
+        this.serializerContext = new TaskContext(writerContext.getSubProperties(DataSerializer.CTX_PREFIX));
+        this.serializerType = this.serializerContext.getString("type", "TEXT");
     }
 
 

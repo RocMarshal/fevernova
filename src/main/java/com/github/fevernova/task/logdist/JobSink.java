@@ -12,15 +12,19 @@ import lombok.extern.slf4j.Slf4j;
 public class JobSink extends AbstractHDFSBatchSink {
 
 
+    private TaskContext writerContext;
+
+
     public JobSink(GlobalContext globalContext,
                    TaskContext taskContext,
                    int index,
                    int inputsNum) {
 
         super(globalContext, taskContext, index, inputsNum);
-        super.hdfsWriter = WriterFactory.getHDFSWriter(super.taskContext.getString("writertype", WriterFactory.HDFS_SEQUENCEFILETYPE));
+        this.writerContext = new TaskContext("writer", super.taskContext.getSubProperties("writer."));
+        super.hdfsWriter = WriterFactory.getHDFSWriter(this.writerContext.getString("writertype", WriterFactory.HDFS_SEQUENCEFILETYPE));
         super.hdfsWriter.setIndex(super.index);
-        super.hdfsWriter.configure(super.globalContext, super.taskContext);
+        super.hdfsWriter.configure(super.globalContext, this.writerContext);
     }
 
 }
