@@ -3,16 +3,20 @@ package com.github.fevernova.data.message;
 
 import com.google.common.collect.Maps;
 import lombok.Getter;
-import org.apache.avro.Schema;
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.nio.ByteBuffer;
 import java.util.BitSet;
 import java.util.List;
+import java.util.Map;
 
 
 public class DataContainer {
 
 
+    private final static Map<Long, Pair<byte[], Meta>> CACHE = Maps.newConcurrentMap();
+
+    @Getter
     private Meta meta;
 
     @Getter
@@ -36,32 +40,39 @@ public class DataContainer {
             this.positionRatio = 2;
         }
 
-        this.data.setStrings(createList(Schema.Type.STRING));
-        this.data.setBytes(createList(Schema.Type.BYTES));
-        this.data.setInts(createList(Schema.Type.INT));
-        this.data.setLongs(createList(Schema.Type.LONG));
-        this.data.setFloats(createList(Schema.Type.FLOAT));
-        this.data.setDoubles(createList(Schema.Type.DOUBLE));
-        this.data.setBooleans(createList(Schema.Type.BOOLEAN));
+        this.data.setLongs(createList(DataType.LONG));
+        this.data.setStrings(createList(DataType.STRING));
+        this.data.setInts(createList(DataType.INT));
+        this.data.setDoubles(createList(DataType.DOUBLE));
+        this.data.setFloats(createList(DataType.FLOAT));
+        this.data.setBytes(createList(DataType.BYTES));
+        this.data.setBooleans(createList(DataType.BOOLEAN));
+
+        if (!CACHE.containsKey(meta.getMetaId())) {
+            CACHE.put(meta.getMetaId(), Pair.of(meta.toBytes4Cache(), meta));
+        }
     }
 
 
-    private DataContainer(Meta meta, Data data) {
+    private DataContainer(Meta meta0, Data data) {
 
-        this.meta = meta;
         this.data = data;
+        if (meta0 == null) {
+            Pair<byte[], Meta> p = CACHE.get(data.getMetaId());
+            if (p != null) {
+                meta0 = p.getRight();
+            } else {
+                p = Pair.of(data.getMeta().array(), new Meta(data.getMetaId(), data.getMeta().array()));
+                CACHE.put(data.getMetaId(), p);
+            }
+        }
+        this.meta = meta0;
 
         if (Opt.UPDATE == this.data.getOpt()) {
             this.updatesBitSet = new BitSet(this.meta.columnSize());
             convertFromLongToBitSet();
             this.positionRatio = 2;
         }
-    }
-
-
-    public static DataContainer createDataContainer4Write(Meta meta, Data data, Opt opt) {
-
-        return new DataContainer(meta, data, opt);
     }
 
 
@@ -77,7 +88,7 @@ public class DataContainer {
     }
 
 
-    private List createList(Schema.Type type) {
+    private List createList(DataType type) {
 
         int size = this.meta.typeSize(type);
         return size == 0 ? null : new FixedList(size * this.positionRatio);
@@ -198,6 +209,7 @@ public class DataContainer {
             }
             this.data.setUpdatesLong(value);
         }
+        this.data.setMeta(ByteBuffer.wrap(CACHE.get(this.data.getMetaId()).getKey()));
         return this;
     }
 
@@ -236,7 +248,7 @@ public class DataContainer {
     }
 
 
-    private Object get(Schema.Type type, int indexOfType) {
+    private Object get(DataType type, int indexOfType) {
 
         switch (type) {
             case STRING:

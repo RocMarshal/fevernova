@@ -1,44 +1,37 @@
 package com.github.fevernova.data.message;
 
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.hash.Hashing;
 import lombok.Getter;
-import org.apache.avro.Schema;
+import lombok.ToString;
 import org.apache.commons.lang3.Validate;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.util.List;
 import java.util.Map;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 
 
 public class Meta {
 
 
     @Getter
+    private long metaId;
+
+    @Getter
     private final List<MetaEntity> entities;
 
     private final Map<String, MetaEntity> entityMap = Maps.newHashMap();
 
-    @Getter
-    private long metaId;
-
-    private int typeStringsCounter = 0;
-
-    private int typeBytesCounter = 0;
-
-    private int typeIntsCounter = 0;
-
-    private int typeLongsCounter = 0;
-
-    private int typeFloatsCounter = 0;
-
-    private int typeDoublesCounter = 0;
-
-    private int typeBooleansCounter = 0;
+    private int[] typeCounter = new int[DataType.values().length];
 
 
-    public Meta(long metaId, List<MetaEntity> entities) {
+    public Meta(List<MetaEntity> entities) {
 
-        this.metaId = metaId;
         Validate.notNull(entities);
         this.entities = entities;
 
@@ -46,31 +39,39 @@ public class Meta {
             MetaEntity metaEntity = this.entities.get(i);
             this.entityMap.put(metaEntity.getColumnName(), metaEntity);
             metaEntity.indexOfall = i;
-            switch (metaEntity.type) {
-                case STRING:
-                    metaEntity.indexOftype = this.typeStringsCounter++;
-                    break;
-                case BYTES:
-                    metaEntity.indexOftype = this.typeBytesCounter++;
-                    break;
-                case INT:
-                    metaEntity.indexOftype = this.typeIntsCounter++;
-                    break;
-                case LONG:
-                    metaEntity.indexOftype = this.typeLongsCounter++;
-                    break;
-                case FLOAT:
-                    metaEntity.indexOftype = this.typeFloatsCounter++;
-                    break;
-                case DOUBLE:
-                    metaEntity.indexOftype = this.typeDoublesCounter++;
-                    break;
-                case BOOLEAN:
-                    metaEntity.indexOftype = this.typeBooleansCounter++;
-                    break;
-                default:
-                    throw new RuntimeException("exchange.Meta init error : " + metaEntity.getType());
+            metaEntity.indexOftype = this.typeCounter[metaEntity.type.index]++;
+        }
+        this.metaId = Hashing.murmur3_128().hashBytes(toBytes4Cache()).asLong();
+    }
+
+
+    public Meta(long metaId, byte[] bytes) {
+
+        this.metaId = metaId;
+        this.entities = Lists.newArrayList();
+
+        try {
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            ByteArrayInputStream in = new ByteArrayInputStream(bytes);
+            GZIPInputStream ungzip = new GZIPInputStream(in);
+            byte[] buffer = new byte[256];
+            int n;
+            while ((n = ungzip.read(buffer)) >= 0) {
+                out.write(buffer, 0, n);
+                bytes = out.toByteArray();
             }
+            ungzip.close();
+        } catch (Exception e) {
+        }
+
+        String[] strs = new String(bytes).split(";");
+        for (int i = 0; i < strs.length; i++) {
+            String[] kv = strs[i].split(":");
+            MetaEntity metaEntity = new MetaEntity(kv[0], DataType.location(Integer.valueOf(kv[1])));
+            metaEntity.indexOfall = i;
+            metaEntity.indexOftype = this.typeCounter[metaEntity.type.index]++;
+            this.entities.add(metaEntity);
+            this.entityMap.put(metaEntity.getColumnName(), metaEntity);
         }
     }
 
@@ -93,43 +94,45 @@ public class Meta {
     }
 
 
-    public int typeSize(Schema.Type type) {
+    public int typeSize(DataType type) {
 
-        switch (type) {
-            case STRING:
-                return this.typeStringsCounter;
-            case BYTES:
-                return this.typeBytesCounter;
-            case INT:
-                return this.typeIntsCounter;
-            case LONG:
-                return this.typeLongsCounter;
-            case FLOAT:
-                return this.typeFloatsCounter;
-            case DOUBLE:
-                return this.typeDoublesCounter;
-            case BOOLEAN:
-                return this.typeBooleansCounter;
-            default:
-                throw new RuntimeException("exchange.Meta typeSize error : " + type);
+        return this.typeCounter[type.index];
+    }
+
+
+    public byte[] toBytes4Cache() {
+
+        StringBuilder sb = new StringBuilder();
+        for (MetaEntity entity : this.entities) {
+            sb.append(entity.getColumnName()).append(":").append(entity.getType().ordinal()).append(";");
         }
+        try {
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            GZIPOutputStream gzip = new GZIPOutputStream(out);
+            gzip.write(sb.toString().getBytes());
+            gzip.close();
+            return out.toByteArray();
+        } catch (Exception e) {
+        }
+        return null;
     }
 
 
     @Getter
+    @ToString
     public static class MetaEntity {
 
 
         private String columnName;
 
-        private Schema.Type type;
+        private DataType type;
 
         private int indexOfall;
 
         private int indexOftype;
 
 
-        public MetaEntity(String columnName, Schema.Type type) {
+        public MetaEntity(String columnName, DataType type) {
 
             this.columnName = columnName;
             this.type = type;
