@@ -16,15 +16,4 @@ public class DataEvent<T extends Data> {
 
     private T data;
 
-
-    public byte[] getBytes() {
-
-        return data.getBytes();
-    }
-
-
-    public long getTimestamp() {
-
-        return data.getTimestamp();
-    }
 }
