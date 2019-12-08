@@ -3,13 +3,18 @@ package com.github.fevernova.framework.common;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 
 
 @Slf4j
@@ -55,6 +60,45 @@ public class Util {
         } catch (UnknownHostException e) {
             throw new RuntimeException(e);
         }
+    }
+
+
+    public static byte[] zip(StringBuilder sb) {
+
+        byte[] result = null;
+        try {
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            GZIPOutputStream gzip = new GZIPOutputStream(out);
+            gzip.write(sb.toString().getBytes());
+            gzip.close();
+            result = out.toByteArray();
+        } catch (Exception e) {
+            log.error("zip error : ", e);
+            Validate.isTrue(false);
+        }
+        return result;
+    }
+
+
+    public static byte[] unzip(byte[] bytes) {
+
+        byte[] result = null;
+        try {
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            ByteArrayInputStream in = new ByteArrayInputStream(bytes);
+            GZIPInputStream ungzip = new GZIPInputStream(in);
+            byte[] buffer = new byte[256];
+            int n;
+            while ((n = ungzip.read(buffer)) >= 0) {
+                out.write(buffer, 0, n);
+            }
+            ungzip.close();
+            result = out.toByteArray();
+        } catch (Exception e) {
+            log.error("unzip error : ", e);
+            Validate.isTrue(false);
+        }
+        return result;
     }
 
 

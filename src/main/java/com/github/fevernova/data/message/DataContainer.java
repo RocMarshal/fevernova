@@ -3,7 +3,6 @@ package com.github.fevernova.data.message;
 
 import com.google.common.collect.Maps;
 import lombok.Getter;
-import org.apache.commons.lang3.tuple.Pair;
 
 import java.nio.ByteBuffer;
 import java.util.BitSet;
@@ -14,7 +13,7 @@ import java.util.Map;
 public class DataContainer {
 
 
-    private final static Map<Long, Pair<byte[], Meta>> CACHE = Maps.newConcurrentMap();
+    private final static Map<Long, Meta> CACHE = Maps.newConcurrentMap();
 
     @Getter
     private Meta meta;
@@ -49,7 +48,7 @@ public class DataContainer {
         this.data.setBooleans(createList(DataType.BOOLEAN));
 
         if (!CACHE.containsKey(meta.getMetaId())) {
-            CACHE.put(meta.getMetaId(), Pair.of(meta.toBytes4Cache(), meta));
+            CACHE.put(meta.getMetaId(), meta);
         }
     }
 
@@ -58,13 +57,12 @@ public class DataContainer {
 
         this.data = data;
         if (meta0 == null) {
-            Pair<byte[], Meta> p = CACHE.get(data.getMetaId());
-            if (p != null) {
-                meta0 = p.getRight();
-            } else {
-                p = Pair.of(data.getMeta().array(), new Meta(data.getMetaId(), data.getMeta().array()));
+            Meta p = CACHE.get(data.getMetaId());
+            if (p == null) {
+                p = new Meta(data.getMetaId(), data.getMeta().array());
                 CACHE.put(data.getMetaId(), p);
             }
+            meta0 = p;
         }
         this.meta = meta0;
 
@@ -109,9 +107,15 @@ public class DataContainer {
     }
 
 
+    public void put(String columnName, Object val) {
+
+        put(columnName, val, null, false);
+    }
+
+
     public void put(String columnName, Object val, Object oldVal) {
 
-        put(columnName, val, oldVal, false);
+        put(columnName, val, oldVal, true);
     }
 
 
@@ -122,9 +126,15 @@ public class DataContainer {
     }
 
 
+    public void put(int index, Object val) {
+
+        put(index, val, null, false);
+    }
+
+
     public void put(int index, Object val, Object oldVal) {
 
-        put(index, val, oldVal, false);
+        put(index, val, oldVal, true);
     }
 
 
@@ -135,9 +145,15 @@ public class DataContainer {
     }
 
 
+    public void put(Meta.MetaEntity metaEntity, Object val) {
+
+        put(metaEntity, val, null, false);
+    }
+
+
     public void put(Meta.MetaEntity metaEntity, Object val, Object oldVal) {
 
-        put(metaEntity, val, oldVal, false);
+        put(metaEntity, val, oldVal, true);
     }
 
 
@@ -209,7 +225,7 @@ public class DataContainer {
             }
             this.data.setUpdatesLong(value);
         }
-        this.data.setMeta(ByteBuffer.wrap(CACHE.get(this.data.getMetaId()).getKey()));
+        this.data.setMeta(ByteBuffer.wrap(CACHE.get(this.data.getMetaId()).getBytes()));
         return this;
     }
 

@@ -27,35 +27,36 @@ public class TestMsg {
         metaEntities.add(new Meta.MetaEntity("xid", DataType.LONG));
         metaEntities.add(new Meta.MetaEntity("state", DataType.BOOLEAN));
 
-        for (int x = 0; x < 20; x++) {
-            metaEntities.add(new Meta.MetaEntity("detail" + x, DataType.STRING));
+        for (int x = 0; x < 50; x++) {
+            metaEntities.add(new Meta.MetaEntity("detail" + x, DataType.LONG));
         }
 
         Meta meta = new Meta(metaEntities);
 
         DataContainer dataContainer = DataContainer.createDataContainer4Write(meta, Opt.INSERT);
-        dataContainer.put(0, 123456789L, null);
-        dataContainer.put(1, "1234567890", null);
-        dataContainer.put(2, 123, null);
-        dataContainer.put(3, 3221L, null);
-        dataContainer.put(4, 123456789L, null);
-        dataContainer.put(5, 123456789L, null);
-        dataContainer.put(6, "1234567890", null);
-        dataContainer.put(7, 123456789L, null);
-        dataContainer.put(8, true, null);
+        dataContainer.put(0, 123456789L);
+        dataContainer.put(1, "1234567890");
+        dataContainer.put(2, 123);
+        dataContainer.put(3, 3221L);
+        dataContainer.put(4, 123456789L);
+        dataContainer.put(5, 123456789L);
+        dataContainer.put(6, "1234567890");
+        dataContainer.put(7, 123456789L);
+        dataContainer.put(8, true);
 
-        for (int x = 0; x < 20; x++) {
-            dataContainer.put(x + 9, "12345678901234567890", null);
+        for (int x = 0; x < 50; x++) {
+            dataContainer.put(x + 9, 1234567890123456789L);
         }
 
         byte[] sresult = serializerHelper.serialize(null, dataContainer.writeFinished());
+        System.out.println(meta.getBytes().length);
         System.out.println(sresult.length);
 
 
         long st = System.currentTimeMillis();
         for (int i = 0; i < loop; i++) {
-            DataContainer dresult = serializerHelper.deserialize(null, sresult);
-            //            byte[] result = serializerHelper.serialize(null, dataContainer);
+            //DataContainer dresult = serializerHelper.deserialize(null, sresult);
+            byte[] result = serializerHelper.serialize(null, dataContainer);
         }
 
         long et = System.currentTimeMillis();
