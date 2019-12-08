@@ -63,13 +63,13 @@ public class Util {
     }
 
 
-    public static byte[] zip(StringBuilder sb) {
+    public static byte[] zip(byte[] bytes) {
 
         byte[] result = null;
         try {
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             GZIPOutputStream gzip = new GZIPOutputStream(out);
-            gzip.write(sb.toString().getBytes());
+            gzip.write(bytes);
             gzip.close();
             result = out.toByteArray();
         } catch (Exception e) {

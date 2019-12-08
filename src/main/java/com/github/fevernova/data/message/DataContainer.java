@@ -3,6 +3,7 @@ package com.github.fevernova.data.message;
 
 import com.google.common.collect.Maps;
 import lombok.Getter;
+import org.apache.commons.lang3.Validate;
 
 import java.nio.ByteBuffer;
 import java.util.BitSet;
@@ -61,6 +62,8 @@ public class DataContainer {
             if (p == null) {
                 p = new Meta(data.getMetaId(), data.getMeta().array());
                 CACHE.put(data.getMetaId(), p);
+            } else {
+                Validate.isTrue(p.getBytes().length == data.getMeta().array().length);
             }
             meta0 = p;
         }

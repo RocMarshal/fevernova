@@ -41,8 +41,9 @@ public class Meta {
             metaEntity.indexOftype = this.typeCounter[metaEntity.type.index]++;
             this.entityMap.put(metaEntity.getColumnName(), metaEntity);
         }
-        this.bytes = toBytes4Cache();
-        this.metaId = Hashing.murmur3_128().hashBytes(this.bytes).asLong();
+        byte[] schemaBytes = schema2String().getBytes();
+        this.metaId = Hashing.murmur3_128().hashBytes(schemaBytes).asLong();
+        this.bytes = Util.zip(schemaBytes);
     }
 
 
@@ -88,13 +89,13 @@ public class Meta {
     }
 
 
-    private byte[] toBytes4Cache() {
+    private String schema2String() {
 
         StringBuilder sb = new StringBuilder();
         for (MetaEntity entity : this.entities) {
             sb.append(entity.getColumnName()).append(":").append(entity.getType().ordinal()).append(";");
         }
-        return Util.zip(sb);
+        return sb.toString();
     }
 
 
