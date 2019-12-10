@@ -1,6 +1,8 @@
 package com.github.fevernova.hdfs;
 
 
+import org.apache.commons.lang3.Validate;
+
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -69,6 +71,7 @@ public enum PartitionType {
 
         public DayHourPartitionRender(int period) {
 
+            Validate.isTrue(Constants.HOUR_PERIOD_SET.contains(period));
             super.period = period;
         }
 
@@ -90,6 +93,7 @@ public enum PartitionType {
 
         public DayHourMinutePartitionRender(int period) {
 
+            Validate.isTrue(Constants.MINUTE_PERIOD_SET.contains(period));
             super.period = period;
         }
 

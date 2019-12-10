@@ -7,10 +7,6 @@ import java.util.TreeSet;
 public class Constants {
 
 
-    public static final String DAY_HOUR = "DayHour";
-
-    public static final String DAY_HOUR_MINUTE = "DayHourMinute";
-
     public static final TreeSet<Integer> MINUTE_PERIOD_SET = new TreeSet<>();
 
     public static final TreeSet<Integer> HOUR_PERIOD_SET = new TreeSet<>();
