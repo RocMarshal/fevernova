@@ -1,4 +1,4 @@
-package com.github.fevernova.data.message;
+package com.github.fevernova.framework.common.structure.list;
 
 
 import java.util.*;

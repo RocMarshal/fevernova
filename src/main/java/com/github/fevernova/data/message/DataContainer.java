@@ -1,6 +1,7 @@
 package com.github.fevernova.data.message;
 
 
+import com.github.fevernova.framework.common.structure.list.FixedList;
 import com.google.common.collect.Maps;
 import lombok.Getter;
 import org.apache.commons.lang3.Validate;

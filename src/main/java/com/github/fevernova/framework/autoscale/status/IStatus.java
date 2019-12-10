@@ -3,6 +3,7 @@ package com.github.fevernova.framework.autoscale.status;
 
 import com.github.fevernova.framework.autoscale.ActionTags;
 import com.github.fevernova.framework.autoscale.Tendency;
+import com.github.fevernova.framework.common.structure.list.AnnularArray;
 import com.github.fevernova.framework.component.ComponentType;
 import lombok.Getter;
 import org.apache.commons.lang3.tuple.Pair;

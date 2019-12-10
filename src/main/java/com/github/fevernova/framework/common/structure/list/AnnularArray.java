@@ -1,4 +1,4 @@
-package com.github.fevernova.framework.autoscale.status;
+package com.github.fevernova.framework.common.structure.list;
 
 
 import org.apache.commons.lang3.Validate;
