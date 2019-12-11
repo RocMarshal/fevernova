@@ -274,7 +274,8 @@ public class DataContainer {
             case STRING:
                 return this.data.getStrings().get(indexOfType);
             case BYTES:
-                return this.data.getBytes().get(indexOfType);
+                ByteBuffer bb = this.data.getBytes().get(indexOfType);
+                return bb == null ? null : bb.array();
             case INT:
                 return this.data.getInts().get(indexOfType);
             case LONG:

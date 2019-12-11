@@ -85,6 +85,7 @@ public class JobParser extends AbstractParser<byte[], ListData> {
                 Meta.MetaEntity entity = data.getMeta().getEntity(columnInfo.getSourceColumnName());
                 handlers.add(Pair.of(columnInfo, entity));
             });
+            this.currentMetaId = data.getMeta().getMetaId();
         }
         this.handlers.forEach(handler -> data.get(handler.getValue(), (metaEntity, change, val, oldVal) -> listData.getValues().add(val)));
         push();
