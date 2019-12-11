@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSON;
 import com.github.fevernova.framework.common.context.GlobalContext;
 import com.github.fevernova.framework.common.context.TaskContext;
 import com.github.fevernova.framework.common.data.BarrierData;
+import com.github.fevernova.framework.common.data.broadcast.GlobalOnceData;
 import com.github.fevernova.framework.component.channel.ChannelProxy;
 import com.github.fevernova.framework.component.source.AbstractSource;
 import com.github.fevernova.framework.service.barrier.listener.BarrierCoordinatorListener;
@@ -55,6 +56,8 @@ public class JobSourceV2 extends AbstractSource<byte[], KafkaData> implements Co
 
     private AtomicBoolean partitionsChanged = new AtomicBoolean(false);
 
+    private boolean broadCastOnStart;
+
 
     public JobSourceV2(GlobalContext globalContext,
                        TaskContext taskContext,
@@ -68,6 +71,7 @@ public class JobSourceV2 extends AbstractSource<byte[], KafkaData> implements Co
         this.kafkaContext = new TaskContext(KafkaConstants.KAFKA, super.taskContext.getSubProperties(KafkaConstants.KAFKA_));
         this.pollTimeOut = super.taskContext.getLong(KafkaConstants.POLLTIMEOUT, 5000L);
         this.checkpoints = new CheckPointSaverWithCoordiantor<>();
+        this.broadCastOnStart = super.taskContext.getBoolean("broadcastonstart", false);
     }
 
 
@@ -77,6 +81,9 @@ public class JobSourceV2 extends AbstractSource<byte[], KafkaData> implements Co
         super.onStart();
         this.kafkaConsumer = KafkaUtil.createConsumer(this.kafkaContext);
         assignPartition();
+        if (this.broadCastOnStart) {
+            onBroadcastData(new GlobalOnceData());
+        }
     }
 
 

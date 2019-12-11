@@ -6,6 +6,7 @@ import com.github.fevernova.framework.common.Util;
 import com.github.fevernova.framework.common.context.GlobalContext;
 import com.github.fevernova.framework.common.context.TaskContext;
 import com.github.fevernova.framework.common.data.BarrierData;
+import com.github.fevernova.framework.common.data.broadcast.GlobalOnceData;
 import com.github.fevernova.framework.component.channel.ChannelProxy;
 import com.github.fevernova.framework.component.source.AbstractSource;
 import com.github.fevernova.framework.service.barrier.listener.BarrierCompletedListener;
@@ -47,6 +48,8 @@ public class JobSource extends AbstractSource<byte[], KafkaData> implements Cons
 
     private List<TopicPartition> partitions = Lists.newArrayList();
 
+    private boolean broadCastOnStart;
+
 
     public JobSource(GlobalContext globalContext,
                      TaskContext taskContext,
@@ -67,7 +70,7 @@ public class JobSource extends AbstractSource<byte[], KafkaData> implements Cons
                 pts.forEach(s -> partitions.add(new TopicPartition(topic, Integer.valueOf(s))));
             }
         });
-
+        this.broadCastOnStart = super.taskContext.getBoolean("broadcastonstart", false);
     }
 
 
@@ -80,6 +83,9 @@ public class JobSource extends AbstractSource<byte[], KafkaData> implements Cons
             this.kafkaConsumer.subscribe(this.topics, this);
         } else {
             this.kafkaConsumer.assign(this.partitions);
+        }
+        if (this.broadCastOnStart) {
+            onBroadcastData(new GlobalOnceData());
         }
     }
 

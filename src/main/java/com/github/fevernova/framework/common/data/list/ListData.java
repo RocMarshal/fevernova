@@ -1,6 +1,7 @@
-package com.github.fevernova.framework.common.data;
+package com.github.fevernova.framework.common.data.list;
 
 
+import com.github.fevernova.framework.common.data.Data;
 import lombok.Getter;
 import lombok.Setter;
 

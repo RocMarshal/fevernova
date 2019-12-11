@@ -1,8 +1,7 @@
-package com.github.fevernova.hdfs;
+package com.github.fevernova.framework.schema;
 
 
 import com.github.fevernova.framework.common.data.broadcast.BroadcastData;
-import com.github.fevernova.framework.schema.ColumnInfo;
 import lombok.Getter;
 
 import java.util.List;
