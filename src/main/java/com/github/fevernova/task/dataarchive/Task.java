@@ -40,7 +40,7 @@ public class Task extends BaseTask {
         super.manager = Manager.getInstance(this.globalContext, this.context);
         TaskConfig taskConfig = TaskConfig.builder()
                 .sourceClass(JobSource.class)
-                .parserClass(null)
+                .parserClass(JobParser.class)
                 .sinkClass(JobSink.class)
                 .inputDataFactoryClass(KafkaDataFactory.class)
                 .outputDataFactoryClass(ListDataFactory.class)

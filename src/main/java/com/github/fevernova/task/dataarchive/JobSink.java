@@ -25,7 +25,7 @@ public class JobSink extends AbstractHDFSBatchSink {
         this.writerContext = new TaskContext("writer", super.taskContext.getSubProperties("writer."));
         super.hdfsWriter = WriterFactory.getHDFSWriter(super.taskContext.getString("writertype", WriterFactory.HDFS_ORCFILETYPE));
         super.hdfsWriter.setIndex(super.index);
-        super.hdfsWriter.configure(super.taskContext);
+        super.hdfsWriter.configure(super.globalContext, this.writerContext);
     }
 
 

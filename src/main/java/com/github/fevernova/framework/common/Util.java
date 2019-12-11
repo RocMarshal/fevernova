@@ -118,4 +118,16 @@ public class Util {
             return true;
         }).collect(Collectors.toList());
     }
+
+
+    public static Class findClass(String classname) {
+
+        try {
+            return Class.forName(classname);
+        } catch (ClassNotFoundException e) {
+            log.error("find class error : ", e);
+            Validate.isTrue(false);
+        }
+        return null;
+    }
 }

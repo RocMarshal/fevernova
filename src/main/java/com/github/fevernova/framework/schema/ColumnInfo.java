@@ -24,6 +24,4 @@ public class ColumnInfo {
 
     private String targetTypeEnum;
 
-    private MethodType toType;
-
 }

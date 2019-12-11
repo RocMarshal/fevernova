@@ -1,7 +1,6 @@
 package com.github.fevernova.hdfs.orc;
 
 
-import com.github.fevernova.data.type.MethodType;
 import com.github.fevernova.data.type.UData;
 import org.apache.hadoop.hive.ql.exec.vector.ColumnVector;
 import org.apache.orc.TypeDescription;

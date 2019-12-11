@@ -139,7 +139,6 @@ public class HDFSOrcFile extends AbstractHDFSWriter {
                                             .fromType(columnInfo.getFromType())
                                             .targetColumnName(columnInfo.getTargetColumnName())
                                             .targetTypeEnum(columnInfo.getTargetTypeEnum())
-                                            .toType(columnInfo.getToType())
                                             .build());
                 }
             } catch (Exception e) {
