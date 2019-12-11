@@ -2,7 +2,10 @@ package com.github.fevernova.task.dataarchive;
 
 
 import com.alibaba.fastjson.JSON;
+import com.github.fevernova.data.Mapping;
 import com.github.fevernova.data.message.DataContainer;
+import com.github.fevernova.data.message.DataType;
+import com.github.fevernova.data.message.Meta;
 import com.github.fevernova.data.message.SerializerHelper;
 import com.github.fevernova.framework.common.Util;
 import com.github.fevernova.framework.common.context.GlobalContext;
@@ -17,6 +20,7 @@ import com.github.fevernova.framework.schema.SchemaData;
 import com.github.fevernova.kafka.data.KafkaData;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.List;
 
@@ -25,9 +29,13 @@ import java.util.List;
 public class JobParser extends AbstractParser<byte[], ListData> {
 
 
-    private SerializerHelper serializer;
+    private final SerializerHelper serializer;
 
-    private List<ColumnInfo> columnInfos = Lists.newArrayList();
+    private final List<ColumnInfo> columnInfos = Lists.newArrayList();
+
+    private final List<Pair<ColumnInfo, Meta.MetaEntity>> handlers = Lists.newArrayList();
+
+    private long currentMetaId = -1;
 
 
     public JobParser(GlobalContext globalContext, TaskContext taskContext, int index, int inputsNum, ChannelProxy channelProxy) {
@@ -38,9 +46,9 @@ public class JobParser extends AbstractParser<byte[], ListData> {
         columns.forEach(s -> {
             TaskContext columnContext = new TaskContext("column-" + s, mappingContext.getSubProperties(s + "."));
             ColumnInfo columnInfo = ColumnInfo.builder()
-                    .clazz(Util.findClass(columnContext.getString("class")))
+                    .clazz(Util.findClass(columnContext.getString("udataclass")))
                     .sourceColumnName(columnContext.getString("sourcecolumnname"))
-                    //TODO .fromType(columnContext.getString("mysqltype"))
+                    .fromType(Mapping.convert(DataType.valueOf(columnContext.getString("datatype"))))
                     .targetColumnName(columnContext.getString("targetcolumnname"))
                     .targetTypeEnum(columnContext.getString("targettypeenum"))
                     .build();
@@ -64,14 +72,21 @@ public class JobParser extends AbstractParser<byte[], ListData> {
 
         KafkaData kafkaData = (KafkaData) event;
         byte[] bizKey = kafkaData.getKey();
-        DataContainer data = this.serializer.deserialize(null, kafkaData.getBytes());
-        ListData listData = feedOne(bizKey);
-        List<Object> result = listData.getValues();
-        if (result == null) {
-            result = Lists.newArrayListWithExpectedSize(this.columnInfos.size());
-            listData.setValues(result);
+        final DataContainer data = this.serializer.deserialize(null, kafkaData.getBytes());
+        final ListData listData = feedOne(bizKey);
+        if (listData.getValues() == null) {
+            listData.setValues(Lists.newArrayListWithExpectedSize(this.columnInfos.size()));
         }
-        this.columnInfos.forEach(columnInfo -> data.get(columnInfo.getSourceColumnName(), null));
+
+        if (this.currentMetaId != data.getMeta().getMetaId()) {
+            this.handlers.clear();
+            this.columnInfos.forEach(columnInfo -> {
+
+                Meta.MetaEntity entity = data.getMeta().getEntity(columnInfo.getSourceColumnName());
+                handlers.add(Pair.of(columnInfo, entity));
+            });
+        }
+        this.handlers.forEach(handler -> data.get(handler.getValue(), (metaEntity, change, val, oldVal) -> listData.getValues().add(val)));
         push();
     }
 

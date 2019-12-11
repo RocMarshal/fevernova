@@ -259,7 +259,7 @@ public class DataContainer {
     }
 
 
-    private void get(Meta.MetaEntity metaEntity, Callback callback) {
+    public void get(Meta.MetaEntity metaEntity, Callback callback) {
 
         boolean change = (this.data.getOpt() == Opt.UPDATE && this.updatesBitSet.get(metaEntity.getIndexOfall()));
         Object val = get(metaEntity.getType(), metaEntity.getIndexOftype());
@@ -327,7 +327,7 @@ public class DataContainer {
     }
 
 
-    interface Callback {
+    public interface Callback {
 
 
         void feed(Meta.MetaEntity metaEntity, boolean change, Object val, Object oldVal);
