@@ -1,4 +1,4 @@
-package com.github.fevernova.task.binlog;
+package com.github.fevernova.task.binlog.data;
 
 
 import com.github.fevernova.data.message.DataContainer;

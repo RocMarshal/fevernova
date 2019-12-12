@@ -1,4 +1,4 @@
-package com.github.fevernova.task.binlog;
+package com.github.fevernova.task.binlog.util;
 
 
 import com.alibaba.druid.pool.DruidDataSource;

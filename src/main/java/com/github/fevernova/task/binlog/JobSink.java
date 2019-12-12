@@ -9,6 +9,7 @@ import com.github.fevernova.framework.common.data.Data;
 import com.github.fevernova.framework.component.sink.AbstractSink;
 import com.github.fevernova.kafka.KafkaConstants;
 import com.github.fevernova.kafka.KafkaUtil;
+import com.github.fevernova.task.binlog.data.MessageData;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.Callback;
 import org.apache.kafka.clients.producer.KafkaProducer;
