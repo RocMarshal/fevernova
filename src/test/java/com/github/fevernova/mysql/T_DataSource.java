@@ -3,7 +3,7 @@ package com.github.fevernova.mysql;
 
 import com.github.fevernova.framework.common.context.TaskContext;
 import com.github.fevernova.task.binlog.util.MysqlDataSource;
-import com.github.fevernova.task.binlog.util.Table;
+import com.github.fevernova.task.binlog.util.schema.Table;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.junit.Before;

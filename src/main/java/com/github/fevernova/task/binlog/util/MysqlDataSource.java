@@ -3,8 +3,11 @@ package com.github.fevernova.task.binlog.util;
 
 import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.druid.pool.DruidDataSourceFactory;
+import com.github.fevernova.data.message.Meta;
 import com.github.fevernova.framework.common.Util;
 import com.github.fevernova.framework.common.context.TaskContext;
+import com.github.fevernova.task.binlog.util.schema.Column;
+import com.github.fevernova.task.binlog.util.schema.Table;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -128,7 +131,7 @@ public class MysqlDataSource {
 
         String sql = "SELECT COLUMN_NAME,ORDINAL_POSITION,DATA_TYPE,CHARACTER_SET_NAME,"
                      + "NUMERIC_PRECISION,NUMERIC_SCALE,DATETIME_PRECISION,COLUMN_TYPE,COLUMN_KEY"
-                + " FROM `information_schema`.`COLUMNS` WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ? ORDER BY ORDINAL_POSITION";
+                     + " FROM `information_schema`.`COLUMNS` WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ? ORDER BY ORDINAL_POSITION";
         executeQuery(sql, new ICallable<Object>() {
 
 
@@ -142,16 +145,19 @@ public class MysqlDataSource {
             @Override public Object handleResultSet(ResultSet r) throws Exception {
 
                 while (r.next()) {
-                    if (table.getIgnoreColumnName().contains(r.getString("COLUMN_NAME"))) {
-                        continue;
-                    }
+                    boolean ignore = table.getIgnoreColumnName().contains(r.getString("COLUMN_NAME"));
                     table.getColumns().add(Column.builder().name(r.getString("COLUMN_NAME"))
                                                    .seq(r.getInt("ORDINAL_POSITION"))
                                                    .type(r.getString("DATA_TYPE"))
+                                                   .typeEnum(MysqlType.convert(r.getString("DATA_TYPE")))
                                                    .primaryKey("PRI".equals(r.getString("COLUMN_KEY")))
                                                    .charset(_matchCharset(r.getString("CHARACTER_SET_NAME")))
+                                                   .ignore(ignore)
                                                    .build());
                 }
+                List<Meta.MetaEntity> entityList = Lists.newArrayList();
+                table.getColumns().forEach(column -> entityList.add(new Meta.MetaEntity(column.getName(), column.getTypeEnum().getMiddle())));
+                table.setMeta(new Meta(entityList));
                 return null;
             }
         });
