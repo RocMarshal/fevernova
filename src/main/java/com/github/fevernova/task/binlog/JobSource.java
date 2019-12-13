@@ -172,6 +172,9 @@ public class JobSource extends AbstractSource<String, BinlogData> implements Bin
         if (columns == null || !Arrays.equals(columns, tmed.getColumnTypes())) {
             binlogData.setReloadSchemaCache(true);
         }
+        if (log.isDebugEnabled()) {
+            log.debug(binlogData.toString());
+        }
         push();
 
     }

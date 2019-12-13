@@ -60,7 +60,7 @@ public class MysqlDataSource {
 
     public MysqlDataSource(TaskContext mysqlContext) {
 
-        this.host = mysqlContext.get("host");
+        this.host = mysqlContext.getString("host","127.0.0.1");
         this.port = mysqlContext.getInteger("port", 3306);
         this.slaveId = mysqlContext.getLong("slaveid");
         this.username = mysqlContext.get("username");

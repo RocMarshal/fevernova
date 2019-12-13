@@ -5,10 +5,12 @@ import com.github.fevernova.framework.common.data.Data;
 import com.github.shyiko.mysql.binlog.event.Event;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 
 @Setter
 @Getter
+@ToString
 public class BinlogData implements Data {
 
 

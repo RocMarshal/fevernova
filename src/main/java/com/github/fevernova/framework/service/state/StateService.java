@@ -17,7 +17,7 @@ public class StateService {
 
     private TaskContext taskContext;
 
-    private IStorage storage;
+    private IStorage storage;//TODO 需要实现一个持久化的state存储
 
 
     public StateService(GlobalContext globalContext, TaskContext taskContext) {

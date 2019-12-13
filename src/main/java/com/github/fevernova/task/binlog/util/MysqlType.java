@@ -5,6 +5,7 @@ import com.github.fevernova.data.message.DataType;
 import com.github.fevernova.data.type.MethodType;
 import com.github.fevernova.data.type.UData;
 import com.github.fevernova.data.type.impl.*;
+import com.github.fevernova.data.type.impl.date.UDate;
 import org.apache.commons.lang3.tuple.Triple;
 
 
@@ -47,10 +48,11 @@ public class MysqlType {
                 return Triple.of(MethodType.STRING, new UString(lazy), DataType.STRING);
             case "date":
             case "datetime":
-            case "timestamp":
             case "time":
             case "year":
-                return Triple.of(MethodType.DATE, new UString(lazy), DataType.LONG);
+                return Triple.of(MethodType.STRING, new UDate(lazy), DataType.LONG);
+            case "timestamp":
+                return Triple.of(MethodType.DATE, new UDate(lazy), DataType.LONG);
             case "enum":
             case "set":
             case "bit":
