@@ -19,6 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.tuple.Pair;
 
+import java.util.Arrays;
 import java.util.Map;
 import java.util.Optional;
 
@@ -33,10 +34,12 @@ public class JobSource extends AbstractSource<String, BinlogData> implements Bin
 
     private final BinaryLogClient mysqlClient;
 
-    private final IRingBuffer<Pair<String, Event>> iRingBuffer;
+    private final IRingBuffer<Pair<String, Event>> iRingBuffer = new SimpleRingBuffer<>(128);
 
     //cache
     private Event tableMapEvent = null;
+
+    private Map<String, byte[]> cacheColumnTypes = Maps.newHashMap();
 
     private Map<Long, Event> cacheTableMapEvent4Transaction = Maps.newHashMap();
 
@@ -53,26 +56,26 @@ public class JobSource extends AbstractSource<String, BinlogData> implements Bin
         super(globalContext, taskContext, index, inputsNum, channelProxy);
         this.dataSourceContext = new TaskContext("mysql", super.taskContext.getSubProperties("mysql."));
         this.mysqlDataSource = new MysqlDataSource(this.dataSourceContext);
-        this.mysqlClient = new BinaryLogClient(this.mysqlDataSource.getHost(), this.mysqlDataSource.getPort(), this.mysqlDataSource.getUsername(),
-                                               this.mysqlDataSource.getPassword());
-        this.iRingBuffer = new SimpleRingBuffer<>(128);
-    }
-
-
-    @Override public void init() {
-
-        super.init();
         try {
             this.mysqlDataSource.initJDBC();
         } catch (Exception e) {
             log.error("source init error : ", e);
         }
+        this.mysqlClient = new BinaryLogClient(this.mysqlDataSource.getHost(), this.mysqlDataSource.getPort(), this.mysqlDataSource.getUsername(),
+                                               this.mysqlDataSource.getPassword());
         this.mysqlClient.setServerId(this.mysqlDataSource.getSlaveId());
         this.mysqlClient.registerLifecycleListener(this);
         this.mysqlClient.registerEventListener(this);
         Pair<EventDeserializer, Map<Long, TableMapEventData>> ps = DeserializationHelper.create();
         this.mysqlClient.setEventDeserializer(ps.getKey());
         this.cacheTableMap4BinlogClient = ps.getValue();
+        super.globalContext.getCustomContext().put(MysqlDataSource.class.getSimpleName(), this.mysqlDataSource);
+    }
+
+
+    @Override public void init() {
+
+        super.init();
 
         //TODO checkpoint
 
@@ -160,9 +163,15 @@ public class JobSource extends AbstractSource<String, BinlogData> implements Bin
         String dbTableName = tmed.getDatabase() + "." + tmed.getTable();
 
         BinlogData binlogData = feedOne(dbTableName);
+        binlogData.setDbTableName(dbTableName);
         binlogData.setTablemap(currentTableMapEvent);
         binlogData.setEvent(event);
         binlogData.setTimestamp(currentTableMapEvent.getHeader().getTimestamp());
+
+        byte[] columns = this.cacheColumnTypes.put(dbTableName, tmed.getColumnTypes());
+        if (columns == null || !Arrays.equals(columns, tmed.getColumnTypes())) {
+            binlogData.setReloadSchemaCache(true);
+        }
         push();
 
     }
@@ -187,16 +196,14 @@ public class JobSource extends AbstractSource<String, BinlogData> implements Bin
     @Override
     public void onCommunicationFailure(BinaryLogClient client, Exception ex) {
 
-        log.error("Mysql Communication Failure ", ex);
-        Validate.isTrue(false);
+        super.globalContext.fatalError("Mysql Communication Failure ", ex);
     }
 
 
     @Override
     public void onEventDeserializationFailure(BinaryLogClient client, Exception ex) {
 
-        log.error("Mysql Deserialization Failure ", ex);
-        Validate.isTrue(false);
+        super.globalContext.fatalError("Mysql Deserialization Failure ", ex);
     }
 
 

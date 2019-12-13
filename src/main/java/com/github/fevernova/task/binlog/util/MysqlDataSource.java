@@ -3,18 +3,25 @@ package com.github.fevernova.task.binlog.util;
 
 import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.druid.pool.DruidDataSourceFactory;
+import com.github.fevernova.framework.common.Util;
 import com.github.fevernova.framework.common.context.TaskContext;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 
 import javax.sql.DataSource;
+import java.nio.charset.Charset;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 
 @Getter
@@ -39,6 +46,8 @@ public class MysqlDataSource {
     private DataSource dataSource;
 
     private String mysqlVersion;
+
+    private Map<String, Table> schema = Maps.newConcurrentMap();
 
 
     public MysqlDataSource(TaskContext mysqlContext) {
@@ -74,12 +83,133 @@ public class MysqlDataSource {
         config.put("removeAbandonedTimeout", "1200");
         config.put("logAbandoned", "true");
         this.dataSource = DruidDataSourceFactory.createDataSource(config);
-        this.serverId = getServerId();
-        this.mysqlVersion = getMysqlVersion();
+        this.serverId = _getServerId();
+        this.mysqlVersion = _getMysqlVersion();
     }
 
 
-    public long getServerId() {
+    public void config(Set<String> whiteList, Map<String, String> mapping) {
+
+
+        for (String item : whiteList) {
+            String topic = mapping.get(item + ".topic");
+            Set<String> ignoreColumnNames = Sets.newHashSet();
+            String sensitiveColumns = mapping.get(item + ".sensitiveColumns");
+            if (!StringUtils.isEmpty(sensitiveColumns)) {
+                List<String> columnNames = Util.splitStringWithFilter(sensitiveColumns, "\\s|,", null);
+                ignoreColumnNames.addAll(columnNames);
+            }
+            String dbName = item.split("\\.")[0];
+            String tableName = item.split("\\.")[1];
+            Table table = Table.builder().dbTableName(item).db(dbName).table(tableName).topic(topic).columns(
+                    Lists.newArrayList()).ignoreColumnName(ignoreColumnNames).build();
+            this.schema.put(item, table);
+        }
+    }
+
+
+    public Table getTable(String dbTableName) {
+
+        return this.schema.get(dbTableName);
+    }
+
+
+    public Table reloadSchema(String dbTableName) {
+
+        Table table = this.schema.get(dbTableName);
+        table.getColumns().clear();
+        _getColumns(table);
+
+        return table;
+    }
+
+
+    private void _getColumns(final Table table) {
+
+        String sql = "SELECT COLUMN_NAME,ORDINAL_POSITION,DATA_TYPE,CHARACTER_SET_NAME,"
+                     + "NUMERIC_PRECISION,NUMERIC_SCALE,DATETIME_PRECISION,COLUMN_TYPE,COLUMN_KEY"
+                + " FROM `information_schema`.`COLUMNS` WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ? ORDER BY ORDINAL_POSITION";
+        executeQuery(sql, new ICallable<Object>() {
+
+
+            @Override public void handleParams(PreparedStatement p) throws Exception {
+
+                p.setString(1, table.getDb());
+                p.setString(2, table.getTable());
+            }
+
+
+            @Override public Object handleResultSet(ResultSet r) throws Exception {
+
+                while (r.next()) {
+                    if (table.getIgnoreColumnName().contains(r.getString("COLUMN_NAME"))) {
+                        continue;
+                    }
+                    table.getColumns().add(Column.builder().name(r.getString("COLUMN_NAME"))
+                                                   .seq(r.getInt("ORDINAL_POSITION"))
+                                                   .type(r.getString("DATA_TYPE"))
+                                                   .primaryKey("PRI".equals(r.getString("COLUMN_KEY")))
+                                                   .charset(_matchCharset(r.getString("CHARACTER_SET_NAME")))
+                                                   .build());
+                }
+                return null;
+            }
+        });
+    }
+
+
+    private Charset _matchCharset(String charset) {
+
+        if (charset == null) {
+            return null;
+        }
+        switch (charset.toLowerCase()) {
+            case "utf8":
+            case "utf8mb4":
+                return Charset.forName("UTF-8");
+            case "latin1":
+            case "ascii":
+                return Charset.forName("Windows-1252");
+            case "ucs2":
+                return Charset.forName("UTF-16");
+            case "ujis":
+                return Charset.forName("EUC-JP");
+            default:
+                try {
+                    return Charset.forName(charset.toLowerCase());
+                } catch (java.nio.charset.UnsupportedCharsetException e) {
+                    throw new RuntimeException("error: unhandled character set '" + charset + "'");
+                }
+        }
+    }
+
+
+    private Charset _getCharset(final Table table) {
+
+        String sql =
+                "SELECT CCSA.CHARACTER_SET_NAME FROM INFORMATION_SCHEMA.TABLES JOIN information_schema.COLLATION_CHARACTER_SET_APPLICABILITY AS "
+                + "CCSA ON TABLES.TABLE_COLLATION = CCSA.COLLATION_NAME WHERE TABLES.TABLE_SCHEMA = ? AND TABLES.TABLE_NAME = ? ";
+
+        String result = executeQuery(sql, new ICallable<String>() {
+
+
+            @Override public void handleParams(PreparedStatement p) throws Exception {
+
+                p.setString(1, table.getDb());
+                p.setString(2, table.getTable());
+            }
+
+
+            @Override public String handleResultSet(ResultSet r) throws Exception {
+
+                return r.next() ? r.getString(1) : null;
+            }
+        });
+        return _matchCharset(result);
+    }
+
+
+    private long _getServerId() {
 
         String sql = "show variables like 'server_id';";
         Long result = executeQuery(sql, new ResultSetICallable<Long>() {
@@ -88,15 +218,14 @@ public class MysqlDataSource {
             @Override
             public Long handleResultSet(ResultSet r) throws Exception {
 
-                r.next();
-                return r.getLong(2);
+                return r.next() ? r.getLong(2) : null;
             }
         });
         return result;
     }
 
 
-    public String getMysqlVersion() {
+    private String _getMysqlVersion() {
 
         String sql = "select version();";
         String result = executeQuery(sql, new ResultSetICallable<String>() {
@@ -105,17 +234,10 @@ public class MysqlDataSource {
             @Override
             public String handleResultSet(ResultSet r) throws Exception {
 
-                r.next();
-                return r.getString(1);
+                return r.next() ? r.getString(1) : null;
             }
         });
         return result;
-    }
-
-
-    private String wrap(String str) {
-
-        return "`" + str + "`";
     }
 
 
@@ -152,6 +274,7 @@ public class MysqlDataSource {
 
     public void close() {
 
+        this.schema.clear();
         if (this.dataSource != null) {
             ((DruidDataSource) this.dataSource).close();
         }
