@@ -4,9 +4,9 @@ package com.github.fevernova.task.dataarchive;
 import com.alibaba.fastjson.JSON;
 import com.github.fevernova.data.Mapping;
 import com.github.fevernova.data.message.DataContainer;
-import com.github.fevernova.data.message.DataType;
 import com.github.fevernova.data.message.Meta;
 import com.github.fevernova.data.message.SerializerHelper;
+import com.github.fevernova.data.type.MethodType;
 import com.github.fevernova.framework.common.Util;
 import com.github.fevernova.framework.common.context.GlobalContext;
 import com.github.fevernova.framework.common.context.TaskContext;
@@ -15,14 +15,17 @@ import com.github.fevernova.framework.common.data.broadcast.BroadcastData;
 import com.github.fevernova.framework.common.data.list.ListData;
 import com.github.fevernova.framework.component.channel.ChannelProxy;
 import com.github.fevernova.framework.component.parser.AbstractParser;
-import com.github.fevernova.framework.schema.ColumnInfo;
-import com.github.fevernova.framework.schema.SchemaData;
 import com.github.fevernova.kafka.data.KafkaData;
+import com.github.fevernova.task.dataarchive.schema.ColumnInfo;
+import com.github.fevernova.task.dataarchive.schema.SchemaData;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.commons.lang3.tuple.Triple;
 
 import java.util.List;
+import java.util.Map;
 
 
 @Slf4j
@@ -33,9 +36,11 @@ public class JobParser extends AbstractParser<byte[], ListData> {
 
     private final List<ColumnInfo> columnInfos = Lists.newArrayList();
 
-    private final List<Pair<ColumnInfo, Meta.MetaEntity>> handlers = Lists.newArrayList();
-
     private long currentMetaId = -1;
+
+    private List<Triple<ColumnInfo, Meta.MetaEntity, MethodType>> handlers = Lists.newArrayList();
+
+    private final Map<Long, List<Triple<ColumnInfo, Meta.MetaEntity, MethodType>>> cachedHandlers = Maps.newHashMap();
 
 
     public JobParser(GlobalContext globalContext, TaskContext taskContext, int index, int inputsNum, ChannelProxy channelProxy) {
@@ -48,7 +53,6 @@ public class JobParser extends AbstractParser<byte[], ListData> {
             ColumnInfo columnInfo = ColumnInfo.builder()
                     .clazz(Util.findClass(columnContext.getString("udataclass")))
                     .sourceColumnName(columnContext.getString("sourcecolumnname"))
-                    .fromType(Mapping.convert(DataType.valueOf(columnContext.getString("datatype"))))
                     .targetColumnName(columnContext.getString("targetcolumnname"))
                     .targetTypeEnum(columnContext.getString("targettypeenum"))
                     .build();
@@ -79,15 +83,21 @@ public class JobParser extends AbstractParser<byte[], ListData> {
         }
 
         if (this.currentMetaId != data.getMeta().getMetaId()) {
-            this.handlers.clear();
-            this.columnInfos.forEach(columnInfo -> {
+            this.handlers = this.cachedHandlers.get(data.getMeta().getMetaId());
+            if (this.handlers == null) {
+                this.handlers = Lists.newArrayList();
+                this.columnInfos.forEach(columnInfo -> {
 
-                Meta.MetaEntity entity = data.getMeta().getEntity(columnInfo.getSourceColumnName());
-                handlers.add(Pair.of(columnInfo, entity));
-            });
-            this.currentMetaId = data.getMeta().getMetaId();
+                    Meta.MetaEntity entity = data.getMeta().getEntity(columnInfo.getSourceColumnName());
+                    handlers.add(Triple.of(columnInfo, entity, Mapping.convert(entity.getType())));
+                });
+                this.currentMetaId = data.getMeta().getMetaId();
+                this.cachedHandlers.put(this.currentMetaId, this.handlers);
+            }
         }
-        this.handlers.forEach(handler -> data.get(handler.getValue(), (metaEntity, change, val, oldVal) -> listData.getValues().add(val)));
+        for (Triple<ColumnInfo, Meta.MetaEntity, MethodType> triple : this.handlers) {
+            data.get(triple.getMiddle(), (metaEntity, change, val, oldVal) -> listData.getValues().add(Pair.of(triple.getRight(), val)));
+        }
         push();
     }
 

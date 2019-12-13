@@ -1,13 +1,14 @@
 package com.github.fevernova.hdfs.writer;
 
 
+import com.github.fevernova.data.type.MethodType;
 import com.github.fevernova.framework.common.context.GlobalContext;
 import com.github.fevernova.framework.common.context.TaskContext;
 import com.github.fevernova.framework.common.data.Data;
 import com.github.fevernova.framework.common.data.list.ListData;
-import com.github.fevernova.framework.schema.ColumnInfo;
-import com.github.fevernova.framework.schema.SchemaData;
 import com.github.fevernova.hdfs.orc.OrcTypeEnum;
+import com.github.fevernova.task.dataarchive.schema.ColumnInfo;
+import com.github.fevernova.task.dataarchive.schema.SchemaData;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.Validate;
@@ -75,7 +76,7 @@ public class HDFSOrcFile extends AbstractHDFSWriter {
 
         TypeDescription _schema = TypeDescription.createStruct();
         this.columnInfos.forEach(columnInfo -> {
-            TypeDescription orcType = OrcTypeEnum.findType(columnInfo.getTargetTypeEnum()).toOrcTypeDescption();
+            TypeDescription orcType = columnInfo.getOrcTypeEnum().toOrcTypeDescption();
             _schema.addField(columnInfo.getTargetColumnName(), orcType);
         });
         return _schema;
@@ -87,12 +88,12 @@ public class HDFSOrcFile extends AbstractHDFSWriter {
         ListData listData = (ListData) event;
         int row = this.batch.size++;
         ColumnInfo col = null;
-        List<Object> values = listData.getValues();
+        List<Pair<MethodType, Object>> values = listData.getValues();
         try {
             for (int i = 0; i < values.size(); i++) {
                 col = this.columnInfos.get(i);
-                col.getUData().from(values.get(i), col.getFromType());
-                OrcTypeEnum.findType(col.getTargetTypeEnum()).setValue(this.batch.cols[i], row, col.getUData());
+                col.getUData().from(values.get(i).getValue(), values.get(i).getKey());
+                col.getOrcTypeEnum().setValue(this.batch.cols[i], row, col.getUData());
             }
         } catch (Exception e) {
             log.error("data type convert error. hive col name : " + col.getTargetColumnName(), e);
@@ -134,11 +135,11 @@ public class HDFSOrcFile extends AbstractHDFSWriter {
             try {
                 for (ColumnInfo columnInfo : tmp) {
                     columnInfos.add(ColumnInfo.builder().clazz(columnInfo.getClazz())
-                                            .uData(columnInfo.getClazz().getConstructor(boolean.class).newInstance(false))
+                                            .uData(columnInfo.getClazz().getConstructor(boolean.class).newInstance(true))
                                             .sourceColumnName(columnInfo.getSourceColumnName())
-                                            .fromType(columnInfo.getFromType())
                                             .targetColumnName(columnInfo.getTargetColumnName())
                                             .targetTypeEnum(columnInfo.getTargetTypeEnum())
+                                            .orcTypeEnum(OrcTypeEnum.findType(columnInfo.getTargetTypeEnum()))
                                             .build());
                 }
             } catch (Exception e) {

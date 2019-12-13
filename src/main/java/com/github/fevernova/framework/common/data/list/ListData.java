@@ -1,9 +1,11 @@
 package com.github.fevernova.framework.common.data.list;
 
 
+import com.github.fevernova.data.type.MethodType;
 import com.github.fevernova.framework.common.data.Data;
 import lombok.Getter;
 import lombok.Setter;
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.List;
 
@@ -13,7 +15,7 @@ import java.util.List;
 public class ListData implements Data {
 
 
-    private List<Object> values;
+    private List<Pair<MethodType, Object>> values;
 
 
     @Override public void clearData() {

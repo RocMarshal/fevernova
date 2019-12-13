@@ -96,7 +96,8 @@ public class JobParser extends AbstractParser<String, MessageData> {
                 Column column = table.getColumns().get(i);
                 Meta.MetaEntity metaEntity = table.getMeta().getEntity(i);
                 if (!column.isIgnore()) {
-                    container.put(metaEntity, row[i]);
+                    column.getUData().from(row[i], column.getFrom());
+                    container.put(metaEntity, column.getUData().to(column.getTo()));
                     if (column.isPrimaryKey()) {
                         if (bizKey.length() > 0) {
                             bizKey.append("\u0001");
@@ -119,10 +120,13 @@ public class JobParser extends AbstractParser<String, MessageData> {
                 Column column = table.getColumns().get(i);
                 Meta.MetaEntity metaEntity = table.getMeta().getEntity(i);
                 if (!column.isIgnore()) {
+                    column.getUData().from(row.getValue()[i], column.getFrom());
+                    Object cur = column.getUData().to(column.getTo());
                     if (event.getIncludedColumnsBeforeUpdate().get(i)) {
-                        container.put(metaEntity, row.getValue()[i], row.getKey()[i]);
+                        column.getUData().from(row.getKey()[i], column.getFrom());
+                        container.put(metaEntity, cur, column.getUData().to(column.getTo()));
                     } else {
-                        container.put(metaEntity, row.getValue()[i]);
+                        container.put(metaEntity, cur);
                     }
                     if (column.isPrimaryKey()) {
                         if (bizKey.length() > 0) {
@@ -146,7 +150,8 @@ public class JobParser extends AbstractParser<String, MessageData> {
                 Column column = table.getColumns().get(i);
                 Meta.MetaEntity metaEntity = table.getMeta().getEntity(i);
                 if (!column.isIgnore()) {
-                    container.put(metaEntity, row[i]);
+                    column.getUData().from(row[i], column.getFrom());
+                    container.put(metaEntity, column.getUData().to(column.getTo()));
                     if (column.isPrimaryKey()) {
                         if (bizKey.length() > 0) {
                             bizKey.append("\u0001");

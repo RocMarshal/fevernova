@@ -1,4 +1,4 @@
-package com.github.fevernova.framework.schema;
+package com.github.fevernova.task.dataarchive.schema;
 
 
 import com.github.fevernova.framework.common.data.broadcast.BroadcastData;

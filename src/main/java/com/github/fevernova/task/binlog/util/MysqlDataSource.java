@@ -3,7 +3,11 @@ package com.github.fevernova.task.binlog.util;
 
 import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.druid.pool.DruidDataSourceFactory;
+import com.github.fevernova.data.Mapping;
+import com.github.fevernova.data.message.DataType;
 import com.github.fevernova.data.message.Meta;
+import com.github.fevernova.data.type.MethodType;
+import com.github.fevernova.data.type.UData;
 import com.github.fevernova.framework.common.Util;
 import com.github.fevernova.framework.common.context.TaskContext;
 import com.github.fevernova.task.binlog.util.schema.Column;
@@ -15,6 +19,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
+import org.apache.commons.lang3.tuple.Triple;
 
 import javax.sql.DataSource;
 import java.nio.charset.Charset;
@@ -104,8 +109,8 @@ public class MysqlDataSource {
             }
             String dbName = item.split("\\.")[0];
             String tableName = item.split("\\.")[1];
-            Table table = Table.builder().dbTableName(item).db(dbName).table(tableName).topic(topic).columns(
-                    Lists.newArrayList()).ignoreColumnName(ignoreColumnNames).build();
+            Table table = Table.builder().dbTableName(item).db(dbName).table(tableName).topic(topic).columns(Lists.newArrayList()).
+                    ignoreColumnName(ignoreColumnNames).build();
             this.schema.put(item, table);
         }
     }
@@ -122,7 +127,9 @@ public class MysqlDataSource {
         Table table = this.schema.get(dbTableName);
         table.getColumns().clear();
         _getColumns(table);
-
+        List<Meta.MetaEntity> entityList = Lists.newArrayList();
+        table.getColumns().forEach(column -> entityList.add(new Meta.MetaEntity(column.getName(), column.getTargetType())));
+        table.setMeta(new Meta(entityList));
         return table;
     }
 
@@ -146,18 +153,20 @@ public class MysqlDataSource {
 
                 while (r.next()) {
                     boolean ignore = table.getIgnoreColumnName().contains(r.getString("COLUMN_NAME"));
+                    Triple<MethodType, UData, DataType> typeTriple = MysqlType.convert(r.getString("DATA_TYPE"));
+
                     table.getColumns().add(Column.builder().name(r.getString("COLUMN_NAME"))
                                                    .seq(r.getInt("ORDINAL_POSITION"))
                                                    .type(r.getString("DATA_TYPE"))
-                                                   .typeEnum(MysqlType.convert(r.getString("DATA_TYPE")))
                                                    .primaryKey("PRI".equals(r.getString("COLUMN_KEY")))
                                                    .charset(_matchCharset(r.getString("CHARACTER_SET_NAME")))
                                                    .ignore(ignore)
+                                                   .uData(typeTriple.getMiddle())
+                                                   .from(typeTriple.getLeft())
+                                                   .to(Mapping.convert(typeTriple.getRight()))
+                                                   .targetType(typeTriple.getRight())
                                                    .build());
                 }
-                List<Meta.MetaEntity> entityList = Lists.newArrayList();
-                table.getColumns().forEach(column -> entityList.add(new Meta.MetaEntity(column.getName(), column.getTypeEnum().getMiddle())));
-                table.setMeta(new Meta(entityList));
                 return null;
             }
         });

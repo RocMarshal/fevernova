@@ -1,8 +1,8 @@
-package com.github.fevernova.framework.schema;
+package com.github.fevernova.task.dataarchive.schema;
 
 
-import com.github.fevernova.data.type.MethodType;
 import com.github.fevernova.data.type.UData;
+import com.github.fevernova.hdfs.orc.OrcTypeEnum;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -14,14 +14,15 @@ public class ColumnInfo {
 
     private Class<? extends UData> clazz;
 
-    private UData uData;
-
     private String sourceColumnName;
-
-    private MethodType fromType;
 
     private String targetColumnName;
 
     private String targetTypeEnum;
+
+
+    private UData uData;
+
+    private OrcTypeEnum orcTypeEnum;
 
 }

@@ -1,51 +1,56 @@
 package com.github.fevernova.task.binlog.util;
 
 
-import com.github.fevernova.data.Mapping;
 import com.github.fevernova.data.message.DataType;
 import com.github.fevernova.data.type.MethodType;
+import com.github.fevernova.data.type.UData;
+import com.github.fevernova.data.type.impl.*;
 import org.apache.commons.lang3.tuple.Triple;
 
 
 public class MysqlType {
 
+    //TODO 需要调整
 
-    public static Triple<MethodType, DataType, MethodType> convert(String mysqlType) {
+    public static boolean lazy = false;
+
+
+    public static Triple<MethodType, UData, DataType> convert(String mysqlType) {
 
         switch (mysqlType) {
             case "tinyint":
             case "smallint":
             case "mediumint":
             case "int":
-                return Triple.of(MethodType.INT, DataType.INT, Mapping.convert(DataType.INT));
+                return Triple.of(MethodType.INT, new UInteger(lazy), DataType.INT);
             case "bigint":
-                return Triple.of(MethodType.LONG, DataType.LONG, Mapping.convert(DataType.LONG));
+                return Triple.of(MethodType.LONG, new ULong(lazy), DataType.LONG);
             case "float":
-                return Triple.of(MethodType.FLOAT, DataType.FLOAT, Mapping.convert(DataType.FLOAT));
+                return Triple.of(MethodType.FLOAT, new UFloat(lazy), DataType.FLOAT);
             case "double":
-                return Triple.of(MethodType.DOUBLE, DataType.DOUBLE, Mapping.convert(DataType.DOUBLE));
+                return Triple.of(MethodType.DOUBLE, new UDouble(lazy), DataType.DOUBLE);
             case "decimal":
-                return Triple.of(MethodType.STRING, DataType.STRING, Mapping.convert(DataType.STRING));
+                return Triple.of(MethodType.STRING, new UString(lazy), DataType.STRING);
             case "tinytext":
             case "text":
             case "mediumtext":
             case "longtext":
             case "varchar":
             case "char":
-                return Triple.of(MethodType.STRING, DataType.STRING, Mapping.convert(DataType.STRING));
+                return Triple.of(MethodType.STRING, new UString(lazy), DataType.STRING);
             case "tinyblob":
             case "blob":
             case "mediumblob":
             case "longblob":
             case "binary":
             case "varbinary":
-                return Triple.of(MethodType.STRING, DataType.STRING, Mapping.convert(DataType.STRING));
+                return Triple.of(MethodType.STRING, new UString(lazy), DataType.STRING);
             case "date":
             case "datetime":
             case "timestamp":
             case "time":
             case "year":
-                return Triple.of(MethodType.DATE, DataType.LONG, Mapping.convert(DataType.LONG));
+                return Triple.of(MethodType.DATE, new UString(lazy), DataType.LONG);
             case "enum":
             case "set":
             case "bit":
