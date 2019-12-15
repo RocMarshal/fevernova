@@ -20,31 +20,31 @@ import org.slf4j.LoggerFactory;
 public class Start {
 
 
-    static Option JOBTYPE = Option.builder().longOpt("jobtype").hasArg(true).required(true).desc("Job类型").build();
+    final static Option JOBTYPE = Option.builder().longOpt("jobtype").hasArg(true).required(true).desc("Job类型").build();
 
-    static Option JOBID = Option.builder().longOpt("jobid").hasArg(true).required(true).desc("JobId").build();
+    final static Option JOBID = Option.builder().longOpt("jobid").hasArg(true).required(true).desc("JobId").build();
 
-    static Option CLUSTER = Option.builder().longOpt("cluster").hasArg(true).required(true).desc("集群").build();
+    final static Option CLUSTER = Option.builder().longOpt("cluster").hasArg(true).required(true).desc("集群").build();
 
-    static Option UNIT = Option.builder().longOpt("unit").hasArg(true).required(true).desc("资源规格").build();
+    final static Option UNIT = Option.builder().longOpt("unit").hasArg(true).required(true).desc("资源规格").build();
 
-    static Option LEVEL = Option.builder().longOpt("level").hasArg(true).required(true).desc("任务级别").build();
+    final static Option LEVEL = Option.builder().longOpt("level").hasArg(true).required(true).desc("任务级别").build();
 
-    static Option LOGCONFIG = Option.builder().longOpt("logconfig").hasArg(true).required(true).desc("日志配置文件的路径").build();
+    final static Option LOGCONFIG = Option.builder().longOpt("logconfig").hasArg(true).required(true).desc("日志配置文件的路径").build();
 
-    static Option CONFIGURL = Option.builder().longOpt("configurl").hasArg(true).required(false).desc("配置的URL").build();
+    final static Option CONFIGURL = Option.builder().longOpt("configurl").hasArg(true).required(false).desc("配置的URL").build();
 
-    static Option CONFIGPATH = Option.builder().longOpt("configpath").hasArg(true).required(false).desc("配置文件路径").build();
+    final static Option CONFIGPATH = Option.builder().longOpt("configpath").hasArg(true).required(false).desc("配置文件路径").build();
 
-    static Option DEPLOYMENTNAME = Option.builder().longOpt("deploymentname").hasArg(true).required(true).desc("deployment名字").build();
+    final static Option DEPLOYMENTNAME = Option.builder().longOpt("deploymentname").hasArg(true).required(true).desc("deployment名字").build();
 
-    static Option PODNAME = Option.builder().longOpt("podname").hasArg(true).required(true).desc("pod名字").build();
+    final static Option PODNAME = Option.builder().longOpt("podname").hasArg(true).required(true).desc("pod名字").build();
 
-    static Option PODTOTALNUM = Option.builder().longOpt("podtotalnum").hasArg(true).required(true).desc("pod名字").build();
+    final static Option PODTOTALNUM = Option.builder().longOpt("podtotalnum").hasArg(true).required(true).desc("pod名字").build();
 
-    static Option PODINDEX = Option.builder().longOpt("podindex").hasArg(true).required(true).desc("pod名字").build();
+    final static Option PODINDEX = Option.builder().longOpt("podindex").hasArg(true).required(true).desc("pod名字").build();
 
-    static Options OPTIONS = new Options();
+    final static Options OPTIONS = new Options();
 
     static {
         OPTIONS.addOption(JOBTYPE).addOption(JOBID).addOption(CLUSTER).addOption(UNIT).addOption(LEVEL).addOption(LOGCONFIG).addOption(CONFIGPATH)

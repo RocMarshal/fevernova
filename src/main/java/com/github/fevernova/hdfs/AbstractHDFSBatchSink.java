@@ -54,7 +54,7 @@ public abstract class AbstractHDFSBatchSink extends AbstractBatchSink implements
         try {
             this.hdfsWriter.open();
         } catch (IOException e) {
-            log.error("hdfsWriter prepare error", e);
+            log.error("hdfsWriter prepare error : ", e);
             super.globalContext.fatalError(e.getMessage());
         }
     }
@@ -65,7 +65,7 @@ public abstract class AbstractHDFSBatchSink extends AbstractBatchSink implements
         try {
             return this.hdfsWriter.writeData(data);
         } catch (IOException e) {
-            log.error("hdfsWriter write data error", e);
+            log.error("hdfsWriter write data error : ", e);
             Validate.isTrue(false);
         }
         return 1;
@@ -114,7 +114,7 @@ public abstract class AbstractHDFSBatchSink extends AbstractBatchSink implements
                 for (Pair<String, String> path : filePathList) {
                     boolean releaseDataFile = this.hdfsWriter.releaseDataFile(path.getLeft(), path.getRight());
                     if (releaseDataFile) {
-                        log.info(" mv tmp file to target path :" + path.getRight());
+                        log.info(" mv tmp file to target path : " + path.getRight());
                     } else {
                         log.error(" failed to mv file from {} to {} ", path.getLeft(), path.getRight());
                         Validate.isTrue(false);

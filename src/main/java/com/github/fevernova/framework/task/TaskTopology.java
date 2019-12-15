@@ -116,7 +116,7 @@ import java.util.concurrent.TimeUnit;
         try {
             this.metricEvaluate = this.taskConfig.getMetricEvaluateClass().newInstance();
         } catch (Exception e) {
-            log.error("TaskTopology metricEvaluate Error", e);
+            log.error("TaskTopology metricEvaluate Error : ", e);
             Validate.isTrue(false);
         }
     }
@@ -151,7 +151,7 @@ import java.util.concurrent.TimeUnit;
             this.components.add(source);
             this.inputProxys.add(channelProxy);
         } catch (Exception e) {
-            log.error("TaskTopology AddSource Error", e);
+            log.error("TaskTopology AddSource Error : ", e);
             Validate.isTrue(false);
         }
     }
@@ -174,7 +174,7 @@ import java.util.concurrent.TimeUnit;
             this.components.add(parser);
             this.outputProxys.add(channelProxy);
         } catch (Exception e) {
-            log.error("TaskTopology AddParser Error", e);
+            log.error("TaskTopology AddParser Error : ", e);
             Validate.isTrue(false);
         }
     }
@@ -191,7 +191,7 @@ import java.util.concurrent.TimeUnit;
             this.sinks.add(channel.integrate(sink));
             this.components.add(sink);
         } catch (Exception e) {
-            log.error("TaskTopology AddSink Error", e);
+            log.error("TaskTopology AddSink Error : ", e);
             Validate.isTrue(false);
         }
     }
@@ -226,14 +226,14 @@ import java.util.concurrent.TimeUnit;
 
     public void sourcePause() {
 
-        log.info("TaskTopology Source Pause");
+        log.info("TaskTopology Source Pause . ");
         this.sources.forEach(source -> source.onPause());
     }
 
 
     public void sourceResume() {
 
-        log.info("TaskTopology Source Resume");
+        log.info("TaskTopology Source Resume . ");
         this.sources.forEach(source -> source.onResume());
     }
 
@@ -266,22 +266,4 @@ import java.util.concurrent.TimeUnit;
             changeSinkAvailableNum(change);
         }
     }
-
-
-    public boolean needChange(ComponentType component, ComponentChangeMode change) {
-
-        Validate.isTrue(ComponentType.SOURCE != component);
-        int maxParallelism = (ComponentType.PARSER == component ? this.taskConfig.getParserParallelism() : this.taskConfig.getSinkParallelism());
-        int currentParallelism =
-                (ComponentType.PARSER == component ? this.taskConfig.getParserAvailbleNum().get() : this.taskConfig.getSinkAvailbleNum().get());
-
-        if (ComponentChangeMode.INCREMENT == change) {
-            return maxParallelism > currentParallelism;
-        } else if (ComponentChangeMode.DECREMENT == change) {
-            return currentParallelism > 1;
-        } else {
-            return false;
-        }
-    }
-
 }

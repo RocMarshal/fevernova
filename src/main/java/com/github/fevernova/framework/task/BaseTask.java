@@ -38,18 +38,25 @@ public abstract class BaseTask {
         this.globalContext = GlobalContext.builder().eventBus(eventBus).customContext(Maps.newConcurrentMap()).jobTags(tags).build();
         this.createTime = Util.nowMS();
         Validate.isTrue(this.globalContext.getJobTags().getUnit() >= 1 && this.globalContext.getJobTags().getUnit() <= 5);
+        log.info("Task Context : " + context.toString());
+        log.info("Task Tags : " + tags.toString());
     }
 
 
-    public abstract BaseTask init() throws Exception;
+    public BaseTask init() throws Exception {
+
+        log.info("Task Init .");
+        return this;
+    }
 
 
     public BaseTask start() throws Exception {
 
+        log.info("Task Start .");
         try {
             this.manager.execute();
         } catch (Exception e) {
-            log.error(e.getMessage(), e);
+            log.error("Task start error : ", e);
             Validate.isTrue(false);
         }
         return this;
@@ -58,6 +65,7 @@ public abstract class BaseTask {
 
     public synchronized void close() {
 
+        log.info("Task Close .");
         Thread thread = new Thread() {
 
 
@@ -67,7 +75,7 @@ public abstract class BaseTask {
                 try {
                     Thread.sleep(15 * 1000);
                 } catch (Exception e) {
-                    log.error(e.getMessage(), e);
+                    log.error("Task close error : ", e);
                 } finally {
                     System.exit(0);
                 }
@@ -78,7 +86,7 @@ public abstract class BaseTask {
             this.globalContext.getEventBus().unregister(this);
             this.manager.close();
         } catch (Throwable e) {
-            log.error(e.getMessage(), e);
+            log.error("Task close error : ", e);
             Validate.isTrue(false);
         } finally {
             System.exit(1);

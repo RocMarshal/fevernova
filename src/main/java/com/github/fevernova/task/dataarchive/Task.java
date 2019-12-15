@@ -4,7 +4,7 @@ package com.github.fevernova.task.dataarchive;
 import com.github.fevernova.framework.common.Constants;
 import com.github.fevernova.framework.common.context.JobTags;
 import com.github.fevernova.framework.common.context.TaskContext;
-import com.github.fevernova.framework.common.data.list.ListDataFactory;
+import com.github.fevernova.task.dataarchive.data.ListDataFactory;
 import com.github.fevernova.framework.component.channel.selector.BytesSelector;
 import com.github.fevernova.framework.metric.evaluate.NoMetricEvaluate;
 import com.github.fevernova.framework.service.config.TaskConfig;

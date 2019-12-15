@@ -31,6 +31,13 @@ import java.util.concurrent.atomic.AtomicLong;
 public class BarrierService implements BarrierServiceCallBack {
 
 
+    private final GlobalContext globalContext;
+
+    private final TaskContext taskContext;
+
+    @Getter
+    private final boolean exactlyOnce;
+
     private final AtomicLong barrierSequence = new AtomicLong(0);
 
     private final ConcurrentSkipListMap<Long, Pair<BarrierData, AtomicInteger>> unCompletedBarriers = new ConcurrentSkipListMap();
@@ -41,12 +48,7 @@ public class BarrierService implements BarrierServiceCallBack {
 
     private final List<BarrierCompletedListener> barrierCompletedListeners = Lists.newArrayList();
 
-    private final GlobalContext globalContext;
-
     private final ThreadPoolExecutor executors = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>(16));
-
-    @Getter
-    private final boolean exactlyOnce;
 
     private int componentsNum = 0;
 
@@ -54,6 +56,7 @@ public class BarrierService implements BarrierServiceCallBack {
     public BarrierService(GlobalContext globalContext, TaskContext taskContext) {
 
         this.globalContext = globalContext;
+        this.taskContext = taskContext;
         this.exactlyOnce = taskContext.getBoolean("exactlyonce", false);
     }
 
@@ -99,10 +102,12 @@ public class BarrierService implements BarrierServiceCallBack {
     @Override
     public void ackBarrier(String key, BarrierData barrierData) {
 
-        log.debug("AckBarrier " + barrierData.getBarrierId() + " by " + key);
+        if (log.isDebugEnabled()) {
+            log.debug("AckBarrier {} by {}", barrierData.getBarrierId(), key);
+        }
         Pair<BarrierData, AtomicInteger> pair = this.unCompletedBarriers.get(barrierData.getBarrierId());
         if (pair == null) {
-            this.globalContext.fatalError("Barrier Missing1 :" + barrierData.toString());
+            this.globalContext.fatalError("Barrier Missing1 : " + barrierData.toString());
         }
         int s = pair.getRight().decrementAndGet();
         if (s > 0) {
@@ -115,7 +120,7 @@ public class BarrierService implements BarrierServiceCallBack {
                 this.globalContext.fatalError("Barrier Missing2 :" + barrierData.toString());
             }
         } else {
-            this.globalContext.fatalError("Barrier Missing3 :" + barrierData.toString());
+            this.globalContext.fatalError("Barrier Missing3 : " + barrierData.toString());
         }
     }
 
@@ -146,7 +151,7 @@ public class BarrierService implements BarrierServiceCallBack {
                         }
                     }
                 } catch (Throwable e) {
-                    this.globalContext.fatalError("BarrierService.coordinator Error", e);
+                    this.globalContext.fatalError("BarrierService.coordinator error : ", e);
                 }
             }
 
@@ -154,14 +159,14 @@ public class BarrierService implements BarrierServiceCallBack {
                 try {
                     barrierCompletedListener.completed(barrierData);
                 } catch (Throwable e) {
-                    log.error("barrierCompletedListener completed error", e);
+                    log.error("barrierCompletedListener error : ", e);
                 }
             }
         });
         try {
             this.executors.submit(thread);
         } catch (Throwable e) {
-            this.globalContext.fatalError("BarrierService.notifyListeners", e);
+            this.globalContext.fatalError("BarrierService.notifyListeners error : ", e);
         }
     }
 

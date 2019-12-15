@@ -1,4 +1,4 @@
-package com.github.fevernova.framework.common.data.list;
+package com.github.fevernova.task.dataarchive.data;
 
 
 import com.github.fevernova.data.type.MethodType;

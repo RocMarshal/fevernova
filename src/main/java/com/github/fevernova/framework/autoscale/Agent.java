@@ -56,7 +56,6 @@ public class Agent extends IStatus {
             for (IStatus status : this.statesRules) {
                 IStatus result = status.matchStatus(super.upperBound, super.lowerBound, ct);
                 if (result != null) {
-                    log.info("TraverseRules " + super.componentType + " : " + ct + " Match " + result.getClass());
                     r++;
                 }
             }

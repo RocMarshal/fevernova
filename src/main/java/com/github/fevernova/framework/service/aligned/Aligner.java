@@ -29,7 +29,7 @@ public class Aligner {
             try {
                 this.cyclicBarrier.await();
             } catch (Exception e) {
-                log.error("align error.", e);
+                log.error("align error : ", e);
                 Validate.isTrue(false);
             }
         }

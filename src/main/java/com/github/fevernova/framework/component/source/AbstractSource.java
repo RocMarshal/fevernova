@@ -60,7 +60,7 @@ public abstract class AbstractSource<K, V extends Data> extends Component implem
                 }
             }
         } catch (Throwable e) {
-            super.globalContext.fatalError("Source Fatal Error ", e);
+            super.globalContext.fatalError("Source Fatal Error : ", e);
         }
     }
 
@@ -87,7 +87,7 @@ public abstract class AbstractSource<K, V extends Data> extends Component implem
             this.barriersQueue.put(barrierData);
             this.barriersNum.incrementAndGet();
         } catch (InterruptedException e) {
-            super.globalContext.fatalError("Source cache barrier error .", e);
+            super.globalContext.fatalError("Source cache barrier error : ", e);
         }
     }
 

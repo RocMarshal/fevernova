@@ -89,8 +89,6 @@ public class CustomWaitStrategy implements WaitStrategy {
     @Override
     public String toString() {
 
-        return "LiteTimeoutBlockingWaitStrategy{" +
-               "processorNotifyCondition=" + processorNotifyCondition +
-               '}';
+        return "LiteTimeoutBlockingWaitStrategy{processorNotifyCondition=" + processorNotifyCondition + '}';
     }
 }

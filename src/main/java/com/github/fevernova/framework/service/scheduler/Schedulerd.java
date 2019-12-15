@@ -19,6 +19,10 @@ import java.util.Properties;
 public class Schedulerd implements AutoCloseable {
 
 
+    private GlobalContext globalContext;
+
+    private TaskContext taskContext;
+
     public static final String SCHEDULER_BARRIER = "scheduler.barrier";
 
     public static final String SCHEDULER_MONITOR = "scheduler.monitor";
@@ -28,6 +32,8 @@ public class Schedulerd implements AutoCloseable {
 
     public Schedulerd(GlobalContext globalContext, TaskContext taskContext) {
 
+        this.globalContext = globalContext;
+        this.taskContext = taskContext;
         try {
             Properties properties = new Properties();
             InputStream in = Thread.currentThread().getContextClassLoader().getResourceAsStream("quartz.properties");

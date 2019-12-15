@@ -8,7 +8,10 @@ import com.github.fevernova.framework.common.structure.rb.IRingBuffer;
 import com.github.fevernova.framework.common.structure.rb.SimpleRingBuffer;
 import com.github.fevernova.framework.component.channel.ChannelProxy;
 import com.github.fevernova.framework.component.source.AbstractSource;
+import com.github.fevernova.framework.service.checkpoint.CheckPointSaver;
+import com.github.fevernova.framework.service.checkpoint.ICheckPointSaver;
 import com.github.fevernova.task.binlog.data.BinlogData;
+import com.github.fevernova.task.binlog.data.MysqlCheckPoint;
 import com.github.fevernova.task.binlog.util.MysqlDataSource;
 import com.github.shyiko.mysql.binlog.BinaryLogClient;
 import com.github.shyiko.mysql.binlog.event.*;
@@ -27,6 +30,8 @@ import java.util.Optional;
 @Slf4j
 public class JobSource extends AbstractSource<String, BinlogData> implements BinaryLogClient.EventListener, BinaryLogClient.LifecycleListener {
 
+
+    private final ICheckPointSaver<MysqlCheckPoint> checkpoints;
 
     private final TaskContext dataSourceContext;
 
@@ -54,6 +59,7 @@ public class JobSource extends AbstractSource<String, BinlogData> implements Bin
     public JobSource(GlobalContext globalContext, TaskContext taskContext, int index, int inputsNum, ChannelProxy channelProxy) {
 
         super(globalContext, taskContext, index, inputsNum, channelProxy);
+        this.checkpoints = new CheckPointSaver<>();
         this.dataSourceContext = new TaskContext("mysql", super.taskContext.getSubProperties("mysql."));
         this.mysqlDataSource = new MysqlDataSource(this.dataSourceContext);
         try {

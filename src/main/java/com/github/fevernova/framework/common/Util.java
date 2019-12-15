@@ -1,12 +1,15 @@
 package com.github.fevernova.framework.common;
 
 
+import com.google.common.io.Files;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Arrays;
@@ -104,10 +107,7 @@ public class Util {
 
     public static List<String> splitStringWithFilter(String originalStr, String splitRegex, String filterRegex) {
 
-        if (originalStr == null || splitRegex == null) {
-            throw new RuntimeException(Util.class.getName() + "'s splitStringWithFilter method , originalStr or splitRegex is "
-                                       + "null!");
-        }
+        Validate.notNull(originalStr);
         return Arrays.stream(originalStr.split(splitRegex)).filter(str -> {
             if (StringUtils.isEmpty(str)) {
                 return false;
@@ -117,6 +117,17 @@ public class Util {
             }
             return true;
         }).collect(Collectors.toList());
+    }
+
+
+    public static void writeBeatFile() {
+
+        try {
+            File file = new File("/tmp/fevernova");
+            Files.write(String.valueOf(Util.nowSec()).getBytes(), file);
+        } catch (IOException e) {
+            log.error("write heart beat file error : ", e);
+        }
     }
 
 

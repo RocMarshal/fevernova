@@ -102,7 +102,7 @@ public class MysqlDataSource {
         for (String item : whiteList) {
             String topic = mapping.get(item + ".topic");
             Set<String> ignoreColumnNames = Sets.newHashSet();
-            String sensitiveColumns = mapping.get(item + ".sensitiveColumns");
+            String sensitiveColumns = mapping.get(item + ".sensitivecolumns");
             if (!StringUtils.isEmpty(sensitiveColumns)) {
                 List<String> columnNames = Util.splitStringWithFilter(sensitiveColumns, "\\s|,", null);
                 ignoreColumnNames.addAll(columnNames);

@@ -42,6 +42,7 @@ public class Manager {
     @Getter
     protected final StateService stateService;
 
+    @Getter
     protected final Schedulerd scheduler;
 
     protected TaskTopology taskTopology;
@@ -51,11 +52,10 @@ public class Manager {
 
         this.globalContext = globalContext;
         this.taskContext = taskContext;
-        this.barrierService = new BarrierService(globalContext, taskContext);
-        this.alignService = new AlignService(globalContext, taskContext);
-        this.stateService = new StateService(globalContext, taskContext);
-        this.monitorService =
-                new MonitorService(globalContext, new TaskContext(Constants.MONITOR, taskContext.getSubProperties(Constants.MONITOR_)));
+        this.barrierService = new BarrierService(globalContext, new TaskContext(Constants.BARRIER, taskContext.getSubProperties(Constants.BARRIER_)));
+        this.alignService = new AlignService(globalContext, new TaskContext(Constants.ALIGN, taskContext.getSubProperties(Constants.ALIGN_)));
+        this.stateService = new StateService(globalContext, new TaskContext(Constants.STATE, taskContext.getSubProperties(Constants.STATE_)));
+        this.monitorService = new MonitorService(globalContext, new TaskContext(Constants.MONITOR, taskContext.getSubProperties(Constants.MONITOR_)));
         this.scheduler = new Schedulerd(globalContext, new TaskContext(Constants.TIMER, taskContext.getSubProperties(Constants.TIMER_)));
     }
 
@@ -80,6 +80,7 @@ public class Manager {
 
     public void register(TaskTopology taskTopology) {
 
+        log.info("Manager register . ");
         this.taskTopology = taskTopology;
         this.barrierService.register(taskTopology);
         this.monitorService.register(taskTopology);
@@ -88,7 +89,7 @@ public class Manager {
 
     public void execute() throws Exception {
 
-        log.info("Manager execute");
+        log.info("Manager execute . ");
         this.taskTopology.execute();
         this.scheduler.createJob(BarrierGeneratorJob.class, Schedulerd.SCHEDULER_BARRIER, 20, Maps.newHashMap());
         this.scheduler.createJob(MonitorJob.class, Schedulerd.SCHEDULER_MONITOR, 60, Maps.newHashMap());
@@ -98,7 +99,7 @@ public class Manager {
 
     public void close() throws Exception {
 
-        log.info("Manager close");
+        log.info("Manager close . ");
         this.scheduler.close();
         this.taskTopology.close();
     }
@@ -106,23 +107,20 @@ public class Manager {
 
     public void updateTaskTopology(ComponentType component, ComponentChangeMode change) {
 
-        log.info("Manager updateTaskTopology");
+        log.info("Manager updateTaskTopology : {} will be {}" + component, change);
         try {
-            if (!this.taskTopology.needChange(component, change)) {
-                return;
-            }
             this.scheduler.pauseJob(Schedulerd.SCHEDULER_BARRIER);
             this.taskTopology.sourcePause();
             //通过发送barrier的方式，等待下游消费完毕所有数据
             BarrierData barrierData = barrierService.generateBarrier();
             while (barrierService.isBarrierRunning(barrierData)) {
-                Util.sleepMS(10);
+                Util.sleepMS(1);
             }
             this.taskTopology.change(component, change);
             this.taskTopology.sourceResume();
             this.scheduler.resumeJob(Schedulerd.SCHEDULER_BARRIER);
         } catch (Exception e) {
-            this.globalContext.fatalError("Manager updateTaskTopology error", e);
+            this.globalContext.fatalError("Manager updateTaskTopology error : ", e);
         }
     }
 

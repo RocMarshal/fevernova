@@ -11,11 +11,17 @@ import java.util.Map;
 public class AlignService {
 
 
+    private final GlobalContext globalContext;
+
+    private final TaskContext taskContext;
+
     private final Map<String, Aligner> map = Maps.newHashMap();
 
 
     public AlignService(GlobalContext globalContext, TaskContext taskContext) {
 
+        this.globalContext = globalContext;
+        this.taskContext = taskContext;
     }
 
 

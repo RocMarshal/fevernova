@@ -93,7 +93,7 @@ public class ChannelProxy<K, V extends Data> {
             try {
                 this.aligner.align();
             } catch (Exception e) {
-                this.globalContext.fatalError("alignment waiting error ,", e);
+                this.globalContext.fatalError("alignment waiting error : ", e);
             }
         }
     }

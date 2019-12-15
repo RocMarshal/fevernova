@@ -27,7 +27,7 @@ public class JobSink extends AbstractSink implements Callback {
 
     private KafkaProducer<byte[], byte[]> kafka;
 
-    private String destTopic;
+    private String defaultTopic;
 
     private AtomicInteger errorCounter;
 
@@ -38,7 +38,7 @@ public class JobSink extends AbstractSink implements Callback {
 
         super(globalContext, taskContext, index, inputsNum);
         this.kafkaContext = new TaskContext(KafkaConstants.KAFKA, taskContext.getSubProperties(KafkaConstants.KAFKA_));
-        this.destTopic = taskContext.getString("topic");
+        this.defaultTopic = taskContext.getString("defaulttopic");
         this.errorCounter = new AtomicInteger(0);
         this.serializerHelper = new SerializerHelper();
     }
@@ -59,7 +59,7 @@ public class JobSink extends AbstractSink implements Callback {
         if (data.getDataContainer() == null) {
             return;
         }
-        String targetTopic = (data.getDestTopic() != null ? data.getDestTopic() : this.destTopic);
+        String targetTopic = (data.getDestTopic() != null ? data.getDestTopic() : this.defaultTopic);
         ProducerRecord<byte[], byte[]> record = new ProducerRecord<>(targetTopic, null, data.getTimestamp(), data.getKey(),
                                                                      this.serializerHelper.serialize(null, data.getDataContainer()));
         this.kafka.send(record, this);
