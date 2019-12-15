@@ -38,22 +38,6 @@
         </layout>
     </appender>
 
-    <appender name="config" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <Encoding>UTF-8</Encoding>
-        <file>${LOG_HOME}/fevernova-config.log</file>
-        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <FileNamePattern>${LOG_HOME}/fevernova-config.log-%d{yyyy-MM-dd}</FileNamePattern>
-            <MaxHistory>30</MaxHistory>
-        </rollingPolicy>
-        <layout class="ch.qos.logback.classic.PatternLayout">
-            <pattern>%msg%n</pattern>
-        </layout>
-    </appender>
-
-    <logger name="fevernova-config" level="INFO" additivity="false">
-        <appender-ref ref="config"/>
-    </logger>
-
     <logger name="fevernova-data" level="INFO" additivity="false">
         <appender-ref ref="data"/>
     </logger>

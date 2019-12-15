@@ -83,7 +83,9 @@ public class JobSource extends AbstractSource<String, BinlogData> implements Bin
 
         super.init();
 
-        //TODO checkpoint
+        //TODO read checkpoint
+
+        //TODO auto redirect when db changed
 
         new Thread(() -> {
 
@@ -227,7 +229,7 @@ public class JobSource extends AbstractSource<String, BinlogData> implements Bin
                 this.mysqlClient.disconnect();
             }
         } catch (Exception e) {
-            log.error("Source shutdown error :", e);
+            log.error("Source shutdown error : ", e);
         }
     }
 }

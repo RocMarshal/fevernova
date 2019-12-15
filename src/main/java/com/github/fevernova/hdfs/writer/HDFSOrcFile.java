@@ -5,8 +5,8 @@ import com.github.fevernova.data.type.MethodType;
 import com.github.fevernova.framework.common.context.GlobalContext;
 import com.github.fevernova.framework.common.context.TaskContext;
 import com.github.fevernova.framework.common.data.Data;
-import com.github.fevernova.task.dataarchive.data.ListData;
 import com.github.fevernova.hdfs.orc.OrcTypeEnum;
+import com.github.fevernova.task.dataarchive.data.ListData;
 import com.github.fevernova.task.dataarchive.schema.ColumnInfo;
 import com.github.fevernova.task.dataarchive.schema.SchemaData;
 import com.google.common.collect.Lists;
@@ -59,7 +59,7 @@ public class HDFSOrcFile extends AbstractHDFSWriter {
 
         this.tmpPathStr = assemblePath(this.baseTmpPath, ".orc");
         if (log.isInfoEnabled()) {
-            log.info("ORC_WRITER : create or open tmp file path :" + this.tmpPathStr);
+            log.info("ORC_WRITER : create or open tmp file path : " + this.tmpPathStr);
         }
         this.targetPathStr = assemblePath(this.basePath, ".orc");
         this.schema = initSchema();
@@ -131,16 +131,15 @@ public class HDFSOrcFile extends AbstractHDFSWriter {
 
         if (this.columnInfos == null) {
             this.columnInfos = Lists.newArrayList();
-            List<ColumnInfo> tmp = schemaData.getColumnInfos();
             try {
-                for (ColumnInfo columnInfo : tmp) {
-                    columnInfos.add(ColumnInfo.builder().clazz(columnInfo.getClazz())
-                                            .uData(columnInfo.getClazz().getConstructor(boolean.class).newInstance(true))
-                                            .sourceColumnName(columnInfo.getSourceColumnName())
-                                            .targetColumnName(columnInfo.getTargetColumnName())
-                                            .targetTypeEnum(columnInfo.getTargetTypeEnum())
-                                            .orcTypeEnum(OrcTypeEnum.findType(columnInfo.getTargetTypeEnum()))
-                                            .build());
+                for (ColumnInfo columnInfo : schemaData.getColumnInfos()) {
+                    this.columnInfos.add(ColumnInfo.builder().clazz(columnInfo.getClazz())
+                                                 .uData(columnInfo.getClazz().getConstructor(boolean.class).newInstance(true))
+                                                 .sourceColumnName(columnInfo.getSourceColumnName())
+                                                 .targetColumnName(columnInfo.getTargetColumnName())
+                                                 .targetTypeEnum(columnInfo.getTargetTypeEnum())
+                                                 .orcTypeEnum(OrcTypeEnum.findType(columnInfo.getTargetTypeEnum()))
+                                                 .build());
                 }
             } catch (Exception e) {
                 log.error("Init ColumnInfo Error : ", e);

@@ -38,6 +38,7 @@ public class Task extends BaseTask {
 
     @Override public BaseTask init() throws Exception {
 
+        super.init();
         super.manager = Manager.getInstance(this.globalContext, this.context);
         TaskConfig taskConfig = TaskConfig.builder()
                 .sourceClass(JobSource.class)

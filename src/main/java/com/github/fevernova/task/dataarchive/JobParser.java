@@ -12,10 +12,10 @@ import com.github.fevernova.framework.common.context.GlobalContext;
 import com.github.fevernova.framework.common.context.TaskContext;
 import com.github.fevernova.framework.common.data.Data;
 import com.github.fevernova.framework.common.data.broadcast.BroadcastData;
-import com.github.fevernova.task.dataarchive.data.ListData;
 import com.github.fevernova.framework.component.channel.ChannelProxy;
 import com.github.fevernova.framework.component.parser.AbstractParser;
 import com.github.fevernova.kafka.data.KafkaData;
+import com.github.fevernova.task.dataarchive.data.ListData;
 import com.github.fevernova.task.dataarchive.schema.ColumnInfo;
 import com.github.fevernova.task.dataarchive.schema.SchemaData;
 import com.google.common.collect.Lists;
@@ -61,7 +61,7 @@ public class JobParser extends AbstractParser<byte[], ListData> {
 
         this.serializer = new SerializerHelper();
         if (log.isInfoEnabled()) {
-            log.info("column infos : " + JSON.toJSONString(this.columnInfos, true));
+            log.info("column infos : " + JSON.toJSONString(this.columnInfos));
         }
     }
 
@@ -83,6 +83,7 @@ public class JobParser extends AbstractParser<byte[], ListData> {
         }
 
         if (this.currentMetaId != data.getMeta().getMetaId()) {
+            this.currentMetaId = data.getMeta().getMetaId();
             this.handlers = this.cachedHandlers.get(data.getMeta().getMetaId());
             if (this.handlers == null) {
                 this.handlers = Lists.newArrayList();
@@ -91,7 +92,6 @@ public class JobParser extends AbstractParser<byte[], ListData> {
                     Meta.MetaEntity entity = data.getMeta().getEntity(columnInfo.getSourceColumnName());
                     handlers.add(Triple.of(columnInfo, entity, Mapping.convert(entity.getType())));
                 });
-                this.currentMetaId = data.getMeta().getMetaId();
                 this.cachedHandlers.put(this.currentMetaId, this.handlers);
             }
         }

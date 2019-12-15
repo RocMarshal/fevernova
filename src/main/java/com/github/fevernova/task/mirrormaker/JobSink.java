@@ -92,7 +92,7 @@ public class JobSink extends AbstractSink implements Callback {
     public void onCompletion(RecordMetadata metadata, Exception exception) {
 
         if (exception != null) {
-            log.error("Kafka Error :", exception);
+            log.error("Kafka Error : ", exception);
             this.errorCounter.incrementAndGet();
         }
     }
