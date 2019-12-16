@@ -4,10 +4,12 @@ package com.github.fevernova.task.binlog;
 import com.github.fevernova.framework.common.Util;
 import com.github.fevernova.framework.common.context.GlobalContext;
 import com.github.fevernova.framework.common.context.TaskContext;
+import com.github.fevernova.framework.common.data.BarrierData;
 import com.github.fevernova.framework.common.structure.rb.IRingBuffer;
 import com.github.fevernova.framework.common.structure.rb.SimpleRingBuffer;
 import com.github.fevernova.framework.component.channel.ChannelProxy;
 import com.github.fevernova.framework.component.source.AbstractSource;
+import com.github.fevernova.framework.service.barrier.listener.BarrierCompletedListener;
 import com.github.fevernova.framework.service.checkpoint.CheckPointSaver;
 import com.github.fevernova.framework.service.checkpoint.ICheckPointSaver;
 import com.github.fevernova.task.binlog.data.BinlogData;
@@ -19,6 +21,7 @@ import com.github.shyiko.mysql.binlog.event.deserialization.DeserializationHelpe
 import com.github.shyiko.mysql.binlog.event.deserialization.EventDeserializer;
 import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -28,7 +31,8 @@ import java.util.Optional;
 
 
 @Slf4j
-public class JobSource extends AbstractSource<String, BinlogData> implements BinaryLogClient.EventListener, BinaryLogClient.LifecycleListener {
+public class JobSource extends AbstractSource<String, BinlogData>
+        implements BinaryLogClient.EventListener, BinaryLogClient.LifecycleListener, BarrierCompletedListener {
 
 
     private final ICheckPointSaver<MysqlCheckPoint> checkpoints;
@@ -215,7 +219,35 @@ public class JobSource extends AbstractSource<String, BinlogData> implements Bin
             log.debug(binlogData.toString());
         }
         push();
+    }
 
+
+    @Override protected void snapshotWhenBarrier(BarrierData barrierData) {
+
+        MysqlCheckPoint mysqlCheckPoint = MysqlCheckPoint.builder()
+                .host(this.mysqlDataSource.getHost())
+                .port(this.mysqlDataSource.getPort())
+                .serverId(this.mysqlDataSource.getServerId())
+                .username(this.mysqlDataSource.getUsername())
+                .password(this.mysqlDataSource.getPassword())
+                .mysqlVersion(this.mysqlDataSource.getMysqlVersion())
+                .binlogFileName(this.binlogFileName)
+                .binlogPosition(this.binlogPosition)
+                .build();
+        this.checkpoints.put(barrierData.getBarrierId(), mysqlCheckPoint);
+    }
+
+
+    @Override public void completed(BarrierData barrierData) throws Exception {
+
+        MysqlCheckPoint mysqlCheckPoint = this.checkpoints.remove(barrierData.getBarrierId());
+        if (log.isInfoEnabled()) {
+            log.info("commit checkpoint : " + mysqlCheckPoint.toString());
+        }
+        if (StringUtils.isBlank(mysqlCheckPoint.getBinlogFileName())) {
+            return;
+        }
+        //TODO 持久化checkpoint
     }
 
 
