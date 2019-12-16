@@ -156,7 +156,7 @@ public class MysqlDataSource {
 
                 while (r.next()) {
                     boolean ignore = table.getIgnoreColumnName().contains(r.getString("COLUMN_NAME"));
-                    Charset charset = _matchCharset(r.getString("CHARACTER_SET_NAME"));
+                    String charset = r.getString("CHARACTER_SET_NAME");
                     TypeRouter typeRouter = MysqlType.convert(r.getString("DATA_TYPE"), charset);
                     table.getColumns().add(Column.builder().name(r.getString("COLUMN_NAME"))
                                                    .seq(r.getInt("ORDINAL_POSITION"))
@@ -173,7 +173,7 @@ public class MysqlDataSource {
     }
 
 
-    private Charset _matchCharset(String charset) {
+    public static Charset matchCharset(String charset) {
 
         if (charset == null) {
             return null;
@@ -199,7 +199,7 @@ public class MysqlDataSource {
     }
 
 
-    private Charset _getCharset(final Table table) {
+    private String _getCharset(final Table table) {
 
         String sql =
                 "SELECT CCSA.CHARACTER_SET_NAME FROM INFORMATION_SCHEMA.TABLES JOIN information_schema.COLLATION_CHARACTER_SET_APPLICABILITY AS "
@@ -220,7 +220,7 @@ public class MysqlDataSource {
                 return r.next() ? r.getString(1) : null;
             }
         });
-        return _matchCharset(result);
+        return result;
     }
 
 

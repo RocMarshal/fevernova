@@ -23,7 +23,7 @@ public class Column {
 
     private boolean primaryKey;
 
-    private Charset charset;
+    private String charset;
 
     private boolean ignore;
 

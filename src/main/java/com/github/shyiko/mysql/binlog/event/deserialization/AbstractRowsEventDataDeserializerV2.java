@@ -7,6 +7,7 @@ import com.github.shyiko.mysql.binlog.io.ByteArrayInputStream;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.BitSet;
 import java.util.Map;
 
 
@@ -23,6 +24,23 @@ public abstract class AbstractRowsEventDataDeserializerV2<T extends EventData> e
     public AbstractRowsEventDataDeserializerV2(Map<Long, TableMapEventData> tableMapEventByTableId) {
 
         super(tableMapEventByTableId);
+    }
+
+
+    @Override protected Serializable deserializeBit(int meta, ByteArrayInputStream inputStream) throws IOException {
+
+        BitSet bs = (BitSet) super.deserializeBit(meta, inputStream);
+        Long value = 0L;
+        for (int i = 0; i < bs.length(); ++i) {
+            value += bs.get(i) ? (1L << i) : 0L;
+        }
+        return value;
+    }
+
+
+    @Override protected Serializable deserializeNewDecimal(int meta, ByteArrayInputStream inputStream) throws IOException {
+
+        return super.deserializeNewDecimal(meta, inputStream).toString();
     }
 
 
