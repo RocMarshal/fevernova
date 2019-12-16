@@ -53,7 +53,7 @@ public class MysqlType {
                 return TypeRouter.builder().uData(new UString(lazy, charset)).from(MethodType.BYTES).to(MethodType.STRING)
                         .targetType(DataType.STRING).build();
             case "year":
-                return TypeRouter.builder().uData(new UYear(true)).from(MethodType.INT).to(MethodType.INT).targetType(DataType.LONG).build();
+                return TypeRouter.builder().uData(new UYear(lazy)).from(MethodType.INT).to(MethodType.LONG).targetType(DataType.LONG).build();
             case "date":
                 return TypeRouter.builder().uData(new UDate(lazy)).from(MethodType.STRING).to(MethodType.LONG).targetType(DataType.LONG).build();
             case "datetime":
@@ -69,7 +69,7 @@ public class MysqlType {
                 return TypeRouter.builder().uData(new UInteger(lazy)).from(MethodType.INT).to(MethodType.INT).targetType(DataType.INT).build();
 
             case "json":
-                return TypeRouter.builder().uData(new UBytes(true, charset)).from(MethodType.BYTES).to(MethodType.BYTES).targetType(DataType.BYTES)
+                return TypeRouter.builder().uData(new UBytes(lazy, charset)).from(MethodType.BYTES).to(MethodType.BYTES).targetType(DataType.BYTES)
                         .build();
 
             case "geometry":

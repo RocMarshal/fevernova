@@ -7,6 +7,7 @@ import com.github.shyiko.mysql.binlog.io.ByteArrayInputStream;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.BitSet;
 import java.util.Map;
 
@@ -40,7 +41,7 @@ public abstract class AbstractRowsEventDataDeserializerV2<T extends EventData> e
 
     @Override protected Serializable deserializeNewDecimal(int meta, ByteArrayInputStream inputStream) throws IOException {
 
-        return super.deserializeNewDecimal(meta, inputStream).toString();
+        return ((BigDecimal) super.deserializeNewDecimal(meta, inputStream)).toEngineeringString();
     }
 
 
