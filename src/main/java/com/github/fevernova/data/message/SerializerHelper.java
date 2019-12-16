@@ -1,6 +1,8 @@
 package com.github.fevernova.data.message;
 
 
+import com.alibaba.fastjson.JSONObject;
+import com.google.common.collect.Maps;
 import org.apache.avro.io.*;
 import org.apache.avro.specific.SpecificDatumReader;
 import org.apache.avro.specific.SpecificDatumWriter;
@@ -61,6 +63,26 @@ public class SerializerHelper implements Deserializer<DataContainer>, Serializer
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+
+    public byte[] serializeJSON(String s, DataContainer data) {
+
+        JSONObject json = new JSONObject();
+        json.put("opt", data.getData().getOpt().name());
+        json.put("timestamp", data.getData().getTimestamp());
+        json.put("tags", data.getData().getTags());
+        final Map<String, Object> cur = Maps.newHashMapWithExpectedSize(data.getMeta().columnSize());
+        final Map<String, Object> pre = Maps.newHashMap();
+        data.iterate((metaEntity, change, val, oldVal) -> {
+            cur.put(metaEntity.getColumnName(), val);
+            if (change) {
+                pre.put(metaEntity.getColumnName(), oldVal);
+            }
+        });
+        json.put("cur", cur);
+        json.put("pre", pre);
+        return json.toJSONString().getBytes();
     }
 
 

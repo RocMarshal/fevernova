@@ -33,12 +33,15 @@ public class JobSink extends AbstractSink implements Callback {
 
     private SerializerHelper serializerHelper;
 
+    private boolean convert2json;
+
 
     public JobSink(GlobalContext globalContext, TaskContext taskContext, int index, int inputsNum) {
 
         super(globalContext, taskContext, index, inputsNum);
         this.kafkaContext = new TaskContext(KafkaConstants.KAFKA, taskContext.getSubProperties(KafkaConstants.KAFKA_));
         this.defaultTopic = taskContext.getString("defaulttopic");
+        this.convert2json = taskContext.getBoolean("json", false);
         this.errorCounter = new AtomicInteger(0);
         this.serializerHelper = new SerializerHelper();
     }
@@ -60,8 +63,13 @@ public class JobSink extends AbstractSink implements Callback {
             return;
         }
         String targetTopic = (data.getDestTopic() != null ? data.getDestTopic() : this.defaultTopic);
-        ProducerRecord<byte[], byte[]> record = new ProducerRecord<>(targetTopic, null, data.getTimestamp(), data.getKey(),
-                                                                     this.serializerHelper.serialize(null, data.getDataContainer()));
+        byte[] value;
+        if (this.convert2json) {
+            value = this.serializerHelper.serializeJSON(null, data.getDataContainer());
+        } else {
+            value = this.serializerHelper.serialize(null, data.getDataContainer());
+        }
+        ProducerRecord<byte[], byte[]> record = new ProducerRecord<>(targetTopic, null, data.getTimestamp(), data.getKey(), value);
         this.kafka.send(record, this);
     }
 

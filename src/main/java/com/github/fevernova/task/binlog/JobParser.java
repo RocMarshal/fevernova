@@ -81,6 +81,7 @@ public class JobParser extends AbstractParser<String, MessageData> {
             } else {
                 Validate.isTrue(false, "Event Type Error : " + eventHeader.getEventType());
             }
+            messageData.getDataContainer().writeFinished();
             messageData.setKey(bizKey.toString().getBytes());
             push();
         }
