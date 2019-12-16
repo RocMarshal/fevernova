@@ -1,9 +1,7 @@
 package com.github.fevernova.task.binlog.util.schema;
 
 
-import com.github.fevernova.data.message.DataType;
-import com.github.fevernova.data.type.MethodType;
-import com.github.fevernova.data.type.UData;
+import com.github.fevernova.data.TypeRouter;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.ToString;
@@ -29,12 +27,6 @@ public class Column {
 
     private boolean ignore;
 
-    // 类型处理
-    private UData uData;
+    private TypeRouter typeRouter;
 
-    private MethodType from;
-
-    private MethodType to;
-
-    private DataType targetType;
 }

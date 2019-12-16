@@ -17,12 +17,19 @@ public class UString extends UData<String> {
 
     private final SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
-    private Charset charset = Charset.forName("UTF-8");
+    private Charset charset;
 
 
     public UString(boolean lazy) {
 
+        this(lazy, "UTF-8");
+    }
+
+
+    public UString(boolean lazy, String charsetName) {
+
         super(lazy);
+        this.charset = Charset.forName(charsetName);
         configure(new UGeneralFrom<String>(MethodType.STRING) {
 
 

@@ -37,7 +37,7 @@ public abstract class UData<U> implements UFrom, UTo {
     }
 
 
-    public void from(final Object o, final MethodType type) {
+    public UData<U> from(final Object o, final MethodType type) {
 
         switch (type) {
             case BOOLEAN:
@@ -67,6 +67,7 @@ public abstract class UData<U> implements UFrom, UTo {
             default:
                 this.from.unsupport();
         }
+        return this;
     }
 
 

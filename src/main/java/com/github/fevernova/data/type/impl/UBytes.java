@@ -13,12 +13,19 @@ import java.util.Date;
 public class UBytes extends UData<byte[]> {
 
 
-    private Charset charset = Charset.forName("UTF-8");
+    private Charset charset;
 
 
     public UBytes(boolean lazy) {
 
+        this(lazy, "UTF-8");
+    }
+
+
+    public UBytes(boolean lazy, String charsetName) {
+
         super(lazy);
+        this.charset = Charset.forName(charsetName);
         configure(new UAbstFrom<byte[]>(MethodType.BYTES) {
 
 

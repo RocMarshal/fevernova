@@ -173,9 +173,9 @@ public class DataContainer {
                 }
                 break;
             case BYTES:
-                this.data.getBytes().set(pos, (ByteBuffer) val);
+                this.data.getBytes().set(pos, ByteBuffer.wrap((byte[]) val));
                 if (change) {
-                    this.data.getBytes().set(pos + 1, (ByteBuffer) oldVal);
+                    this.data.getBytes().set(pos + 1, ByteBuffer.wrap((byte[]) val));
                     this.updatesBitSet.set(metaEntity.getIndexOfall());
                 }
                 break;

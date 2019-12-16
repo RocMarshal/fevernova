@@ -1,6 +1,7 @@
 package com.github.fevernova.task.binlog;
 
 
+import com.github.fevernova.data.TypeRouter;
 import com.github.fevernova.data.message.DataContainer;
 import com.github.fevernova.data.message.Meta;
 import com.github.fevernova.data.message.Opt;
@@ -56,9 +57,7 @@ public class JobParser extends AbstractParser<String, MessageData> {
             return;
         }
 
-        Table table = binlogData.isReloadSchemaCache() ? this.mysql.reloadSchema(binlogData.getDbTableName()) :
-                this.mysql.getTable(binlogData.getDbTableName());
-
+        Table table = this.mysql.getTable(binlogData.getDbTableName(), binlogData.isReloadSchemaCache());
 
         boolean theEnd = false;
         EventHeader eventHeader = binlogData.getEvent().getHeader();
@@ -96,8 +95,8 @@ public class JobParser extends AbstractParser<String, MessageData> {
                 Column column = table.getColumns().get(i);
                 Meta.MetaEntity metaEntity = table.getMeta().getEntity(i);
                 if (!column.isIgnore()) {
-                    column.getUData().from(row[i], column.getFrom());
-                    container.put(metaEntity, column.getUData().to(column.getTo()));
+                    TypeRouter typeRouter = column.getTypeRouter();
+                    container.put(metaEntity, typeRouter.getUData().from(row[i], typeRouter.getFrom()).to(typeRouter.getTo()));
                     if (column.isPrimaryKey()) {
                         if (bizKey.length() > 0) {
                             bizKey.append("\u0001");
@@ -118,13 +117,13 @@ public class JobParser extends AbstractParser<String, MessageData> {
         for (int i = 0; i < colSize; i++) {
             if (event.getIncludedColumns().get(i)) {
                 Column column = table.getColumns().get(i);
-                Meta.MetaEntity metaEntity = table.getMeta().getEntity(i);
                 if (!column.isIgnore()) {
-                    column.getUData().from(row.getValue()[i], column.getFrom());
-                    Object cur = column.getUData().to(column.getTo());
+                    Meta.MetaEntity metaEntity = table.getMeta().getEntity(i);
+                    TypeRouter typeRouter = column.getTypeRouter();
+                    Object cur = typeRouter.getUData().from(row.getValue()[i], typeRouter.getFrom()).to(typeRouter.getTo());
                     if (event.getIncludedColumnsBeforeUpdate().get(i)) {
-                        column.getUData().from(row.getKey()[i], column.getFrom());
-                        container.put(metaEntity, cur, column.getUData().to(column.getTo()));
+                        Object old = typeRouter.getUData().from(row.getKey()[i], typeRouter.getFrom()).to(typeRouter.getTo());
+                        container.put(metaEntity, cur, old);
                     } else {
                         container.put(metaEntity, cur);
                     }
@@ -150,8 +149,8 @@ public class JobParser extends AbstractParser<String, MessageData> {
                 Column column = table.getColumns().get(i);
                 Meta.MetaEntity metaEntity = table.getMeta().getEntity(i);
                 if (!column.isIgnore()) {
-                    column.getUData().from(row[i], column.getFrom());
-                    container.put(metaEntity, column.getUData().to(column.getTo()));
+                    TypeRouter typeRouter = column.getTypeRouter();
+                    container.put(metaEntity, typeRouter.getUData().from(row[i], typeRouter.getFrom()).to(typeRouter.getTo()));
                     if (column.isPrimaryKey()) {
                         if (bizKey.length() > 0) {
                             bizKey.append("\u0001");

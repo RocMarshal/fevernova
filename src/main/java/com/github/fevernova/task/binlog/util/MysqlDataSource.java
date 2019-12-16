@@ -3,11 +3,8 @@ package com.github.fevernova.task.binlog.util;
 
 import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.druid.pool.DruidDataSourceFactory;
-import com.github.fevernova.data.Mapping;
-import com.github.fevernova.data.message.DataType;
+import com.github.fevernova.data.TypeRouter;
 import com.github.fevernova.data.message.Meta;
-import com.github.fevernova.data.type.MethodType;
-import com.github.fevernova.data.type.UData;
 import com.github.fevernova.framework.common.Util;
 import com.github.fevernova.framework.common.context.TaskContext;
 import com.github.fevernova.task.binlog.util.schema.Column;
@@ -19,7 +16,6 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
-import org.apache.commons.lang3.tuple.Triple;
 
 import javax.sql.DataSource;
 import java.nio.charset.Charset;
@@ -60,7 +56,7 @@ public class MysqlDataSource {
 
     public MysqlDataSource(TaskContext mysqlContext) {
 
-        this.host = mysqlContext.getString("host","127.0.0.1");
+        this.host = mysqlContext.getString("host", "127.0.0.1");
         this.port = mysqlContext.getInteger("port", 3306);
         this.slaveId = mysqlContext.getLong("slaveid");
         this.username = mysqlContext.get("username");
@@ -116,19 +112,26 @@ public class MysqlDataSource {
     }
 
 
-    public Table getTable(String dbTableName) {
+    public Table getTable(String dbTableName, boolean forceReload) {
 
-        return this.schema.get(dbTableName);
+        if (forceReload) {
+            return reloadSchema(dbTableName);
+        }
+        Table table = this.schema.get(dbTableName);
+        if (table.getColumns().isEmpty()) {
+            return reloadSchema(dbTableName);
+        }
+        return table;
     }
 
 
-    public Table reloadSchema(String dbTableName) {
+    private Table reloadSchema(String dbTableName) {
 
         Table table = this.schema.get(dbTableName);
         table.getColumns().clear();
         _getColumns(table);
         List<Meta.MetaEntity> entityList = Lists.newArrayList();
-        table.getColumns().forEach(column -> entityList.add(new Meta.MetaEntity(column.getName(), column.getTargetType())));
+        table.getColumns().forEach(column -> entityList.add(new Meta.MetaEntity(column.getName(), column.getTypeRouter().getTargetType())));
         table.setMeta(new Meta(entityList));
         return table;
     }
@@ -153,18 +156,15 @@ public class MysqlDataSource {
 
                 while (r.next()) {
                     boolean ignore = table.getIgnoreColumnName().contains(r.getString("COLUMN_NAME"));
-                    Triple<MethodType, UData, DataType> typeTriple = MysqlType.convert(r.getString("DATA_TYPE"));
-
+                    Charset charset = _matchCharset(r.getString("CHARACTER_SET_NAME"));
+                    TypeRouter typeRouter = MysqlType.convert(r.getString("DATA_TYPE"), charset);
                     table.getColumns().add(Column.builder().name(r.getString("COLUMN_NAME"))
                                                    .seq(r.getInt("ORDINAL_POSITION"))
                                                    .type(r.getString("DATA_TYPE"))
                                                    .primaryKey("PRI".equals(r.getString("COLUMN_KEY")))
-                                                   .charset(_matchCharset(r.getString("CHARACTER_SET_NAME")))
+                                                   .charset(charset)
                                                    .ignore(ignore)
-                                                   .uData(typeTriple.getMiddle())
-                                                   .from(typeTriple.getLeft())
-                                                   .to(Mapping.convert(typeTriple.getRight()))
-                                                   .targetType(typeTriple.getRight())
+                                                   .typeRouter(typeRouter)
                                                    .build());
                 }
                 return null;

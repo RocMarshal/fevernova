@@ -129,6 +129,7 @@ public class JobSource extends AbstractSource<String, BinlogData> implements Bin
             case EXT_DELETE_ROWS:
                 dataTableId = ((DeleteRowsEventData) event.getData()).getTableId();
                 break;
+
             case TABLE_MAP:
                 dataTableId = ((TableMapEventData) event.getData()).getTableId();
                 if (this.tableMapEvent == null) {
@@ -139,21 +140,51 @@ public class JobSource extends AbstractSource<String, BinlogData> implements Bin
                     this.cacheTableMapEvent4Transaction.put(dataTableId, event);
                 }
                 return;
+
             case XID:
                 this.tableMapEvent = null;
                 this.cacheTableMapEvent4Transaction.clear();
                 if (this.cacheTableMap4BinlogClient.size() >= 1024) {
                     this.cacheTableMap4BinlogClient.clear();
                 }
+                this.binlogFileName = tmpFileName;
+                this.binlogPosition = ((EventHeaderV4) event.getHeader()).getNextPosition();
                 return;
+
+            case ROTATE:
+            case HEARTBEAT:
+                return;
+
+            case QUERY:
+            case ROWS_QUERY:
+                //TODO DDL处理
+                this.binlogFileName = tmpFileName;
+                this.binlogPosition = ((EventHeaderV4) event.getHeader()).getNextPosition();
+                return;
+
+            case FORMAT_DESCRIPTION:
+                this.binlogFileName = tmpFileName;
+                this.binlogPosition = ((EventHeaderV4) event.getHeader()).getNextPosition();
+                return;
+
             case USER_VAR:
             case INTVAR:
             case RAND:
+                log.error("Illegal event : " + event.toString());
+                this.binlogFileName = tmpFileName;
+                this.binlogPosition = ((EventHeaderV4) event.getHeader()).getNextPosition();
+                return;
+
             case GTID:
             case PREVIOUS_GTIDS:
             case ANONYMOUS_GTID:
-            case HEARTBEAT:
+            case TRANSACTION_CONTEXT:
+            case VIEW_CHANGE:
+                //TODO 处理GTID
+                this.binlogFileName = tmpFileName;
+                this.binlogPosition = ((EventHeaderV4) event.getHeader()).getNextPosition();
                 return;
+
             default:
                 return;
         }

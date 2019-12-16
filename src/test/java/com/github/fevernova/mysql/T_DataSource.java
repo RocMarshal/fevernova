@@ -4,11 +4,14 @@ package com.github.fevernova.mysql;
 import com.github.fevernova.framework.common.context.TaskContext;
 import com.github.fevernova.task.binlog.util.MysqlDataSource;
 import com.github.fevernova.task.binlog.util.schema.Table;
+import com.github.shyiko.mysql.binlog.BinaryLogClient;
+import com.github.shyiko.mysql.binlog.event.Event;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.IOException;
 import java.util.Set;
 
 
@@ -47,6 +50,21 @@ public class T_DataSource {
 
         Table table = this.mysql.reloadSchema("test.tb1");
         table.getColumns().forEach(column -> System.out.println(column));
+    }
+
+
+    @Test
+    public void T_binlog() {
+
+        BinaryLogClient client = new BinaryLogClient(this.mysql.getHost(), this.mysql.getPort(), this.mysql.getUsername(), this.mysql.getPassword());
+        client.setBinlogFilename("mysql-bin.000017");
+        client.setBinlogPosition(4);
+        client.registerEventListener((Event event) -> System.out.println(event.toString()));
+        try {
+            client.connect();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
 }
