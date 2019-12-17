@@ -50,8 +50,8 @@ public class MysqlType {
             case "longtext":
             case "varchar":
             case "char":
-                return TypeRouter.builder().uData(new UString(lazy, charset)).from(MethodType.BYTES).to(MethodType.STRING)
-                        .targetType(DataType.STRING).build();
+                return TypeRouter.builder().uData(new UString(lazy, MysqlDataSource.matchCharset(charset))).from(MethodType.BYTES)
+                        .to(MethodType.STRING).targetType(DataType.STRING).build();
             case "year":
                 return TypeRouter.builder().uData(new UYear(lazy)).from(MethodType.INT).to(MethodType.LONG).targetType(DataType.LONG).build();
             case "date":

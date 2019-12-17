@@ -18,7 +18,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 
 import javax.sql.DataSource;
-import java.nio.charset.Charset;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -89,6 +88,13 @@ public class MysqlDataSource {
         this.dataSource = DruidDataSourceFactory.createDataSource(config);
         this.serverId = _getServerId();
         this.mysqlVersion = _getMysqlVersion();
+        _checkVar("log_bin", "ON");
+        _checkVar("binlog_format", "ROW");
+        _checkVar("binlog_row_image", "FULL");
+        //_checkVar("gtid_mode", "ON");
+        //_checkVar("log_slave_updates", "ON");
+        //_checkVar("enforce_gtid_consistency", "ON");
+
     }
 
 
@@ -173,29 +179,23 @@ public class MysqlDataSource {
     }
 
 
-    public static Charset matchCharset(String charset) {
+    private void _checkVar(String var, String expect) {
 
-        if (charset == null) {
-            return null;
-        }
-        switch (charset.toLowerCase()) {
-            case "utf8":
-            case "utf8mb4":
-                return Charset.forName("UTF-8");
-            case "latin1":
-            case "ascii":
-                return Charset.forName("Windows-1252");
-            case "ucs2":
-                return Charset.forName("UTF-16");
-            case "ujis":
-                return Charset.forName("EUC-JP");
-            default:
-                try {
-                    return Charset.forName(charset.toLowerCase());
-                } catch (java.nio.charset.UnsupportedCharsetException e) {
-                    throw new RuntimeException("error: unhandled character set '" + charset + "'");
+        String sql = "show variables like '" + var + "';";
+        executeQuery(sql, new ResultSetICallable<Long>() {
+
+
+            @Override
+            public Long handleResultSet(ResultSet r) throws Exception {
+
+                if (!r.next()) {
+                    Validate.isTrue(false, var + " is null");
                 }
-        }
+                String s = r.getString("Value");
+                Validate.isTrue(expect.equals(s));
+                return null;
+            }
+        });
     }
 
 
@@ -253,6 +253,28 @@ public class MysqlDataSource {
             }
         });
         return result;
+    }
+
+
+    public static String matchCharset(String charset) {
+
+        if (charset == null) {
+            return null;
+        }
+        switch (charset.toLowerCase()) {
+            case "utf8":
+            case "utf8mb4":
+                return "UTF-8";
+            case "latin1":
+            case "ascii":
+                return "Windows-1252";
+            case "ucs2":
+                return "UTF-16";
+            case "ujis":
+                return "EUC-JP";
+            default:
+                return charset;
+        }
     }
 
 
