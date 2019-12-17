@@ -253,7 +253,14 @@ public class JobSource extends AbstractSource<String, BinlogData>
 
     @Override public void onEvent(Event event) {
 
-        this.iRingBuffer.add(Pair.of(this.mysqlClient.getBinlogFilename(), event), 1);
+        Pair<String, Event> x = Pair.of(this.mysqlClient.getBinlogFilename(), event);
+        int k = 0;
+        while (!this.iRingBuffer.add(x, 1)) {
+            if (k++ > 10) {
+                Util.sleepMS(1);
+                k = 0;
+            }
+        }
     }
 
 
