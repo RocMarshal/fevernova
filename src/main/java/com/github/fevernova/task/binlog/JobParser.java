@@ -44,7 +44,7 @@ public class JobParser extends AbstractParser<String, MessageData> {
 
         super.init();
         this.mysql = (MysqlDataSource) super.globalContext.getCustomContext().get(MysqlDataSource.class.getSimpleName());
-        if (super.index == 0) {
+        if (isFirst()) {
             this.mysql.config(this.whiteList, super.taskContext.getSubProperties("mapping."));
         }
     }
@@ -81,6 +81,7 @@ public class JobParser extends AbstractParser<String, MessageData> {
                 Validate.isTrue(false, "Event Type Error : " + eventHeader.getEventType());
             }
             messageData.getDataContainer().putTag("dbtable", table.getDbTableName());
+            messageData.getDataContainer().setTimestamp(eventHeader.getTimestamp());
             messageData.getDataContainer().writeFinished();
             messageData.setKey(bizKey.toString().getBytes());
             push();

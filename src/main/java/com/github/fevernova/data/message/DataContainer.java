@@ -328,6 +328,18 @@ public class DataContainer {
     }
 
 
+    public void setTimestamp(long ts) {
+
+        this.data.setTimestamp(ts);
+    }
+
+
+    public long getTimestamp() {
+
+        return this.data.getTimestamp();
+    }
+
+
     public interface Callback {
 
 

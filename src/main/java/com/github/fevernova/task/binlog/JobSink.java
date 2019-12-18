@@ -67,10 +67,16 @@ public class JobSink extends AbstractSink implements Callback {
         if (data.getDataContainer() == null) {
             return;
         }
+        if (log.isDebugEnabled()) {
+            log.debug(data.getDataContainer().getData().toString());
+        }
         String targetTopic = (data.getDestTopic() != null ? data.getDestTopic() : this.defaultTopic);
         byte[] value;
         if (this.convert2json) {
             value = this.serializerHelper.serializeJSON(null, data.getDataContainer());
+            if (log.isDebugEnabled()) {
+                log.debug(new String(value));
+            }
         } else {
             value = this.serializerHelper.serialize(null, data.getDataContainer());
         }

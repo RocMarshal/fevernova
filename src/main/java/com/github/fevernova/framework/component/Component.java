@@ -144,6 +144,12 @@ public abstract class Component extends LifecycleAwareExtension {
     }
 
 
+    protected boolean isFirst() {
+
+        return this.index == 0;
+    }
+
+
     protected abstract void snapshotWhenBarrier(BarrierData barrierData);
 
     protected abstract void distributeBarrier(BarrierData barrierData);

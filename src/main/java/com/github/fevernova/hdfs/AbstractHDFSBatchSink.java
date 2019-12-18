@@ -114,7 +114,7 @@ public abstract class AbstractHDFSBatchSink extends AbstractBatchSink implements
     @Override public void onRecovery() {
 
         super.onRecovery();
-        if (super.index == 0) {
+        if (isFirst()) {
             List<StateValue> history = Manager.getInstance().getStateService().recovery();
             if (CollectionUtils.isEmpty(history)) {
                 return;
