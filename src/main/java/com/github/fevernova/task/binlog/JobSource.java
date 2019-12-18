@@ -43,7 +43,7 @@ public class JobSource extends AbstractSource<String, BinlogData>
 
     private final BinaryLogClient mysqlClient;
 
-    private final IRingBuffer<Pair<String, Event>> iRingBuffer = new SimpleRingBuffer<>(128);
+    private final IRingBuffer<Pair<String, Event>> iRingBuffer;
 
     //cache
     private Event tableMapEvent = null;
@@ -79,6 +79,7 @@ public class JobSource extends AbstractSource<String, BinlogData>
         Pair<EventDeserializer, Map<Long, TableMapEventData>> ps = DeserializationHelper.create();
         this.mysqlClient.setEventDeserializer(ps.getKey());
         this.cacheTableMap4BinlogClient = ps.getValue();
+        this.iRingBuffer = new SimpleRingBuffer<>(this.taskContext.getInteger("buffersize"), 128);
         super.globalContext.getCustomContext().put(MysqlDataSource.class.getSimpleName(), this.mysqlDataSource);
     }
 
@@ -91,6 +92,12 @@ public class JobSource extends AbstractSource<String, BinlogData>
 
         //TODO auto redirect when db changed
 
+    }
+
+
+    @Override public void onStart() {
+
+        super.onStart();
         new Thread(() -> {
 
             try {
@@ -99,7 +106,6 @@ public class JobSource extends AbstractSource<String, BinlogData>
                 super.globalContext.fatalError("mysql client connect error : ", e);
             }
         }).start();
-
     }
 
 

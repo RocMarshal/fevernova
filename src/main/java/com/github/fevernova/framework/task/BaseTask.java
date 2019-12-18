@@ -50,6 +50,14 @@ public abstract class BaseTask {
     }
 
 
+    public BaseTask recovery() {
+
+        log.info("Task Recovery .");
+        manager.recovery();
+        return this;
+    }
+
+
     public BaseTask start() throws Exception {
 
         log.info("Task Start .");

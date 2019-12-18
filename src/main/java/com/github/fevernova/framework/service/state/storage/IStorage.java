@@ -1,13 +1,36 @@
 package com.github.fevernova.framework.service.state.storage;
 
 
-public interface IStorage {
+import com.github.fevernova.framework.common.context.GlobalContext;
+import com.github.fevernova.framework.common.context.TaskContext;
+import com.github.fevernova.framework.common.data.BarrierData;
+import com.github.fevernova.framework.service.state.AchieveClean;
+import com.github.fevernova.framework.service.state.StateValue;
+
+import java.util.List;
 
 
-    void save();
+public abstract class IStorage {
 
-    void achieve();
 
-    void recovery();
+    private GlobalContext globalContext;
+
+    private TaskContext taskContext;
+
+
+    public IStorage(GlobalContext globalContext, TaskContext taskContext) {
+
+        this.globalContext = globalContext;
+        this.taskContext = taskContext;
+    }
+
+
+    public abstract void save(BarrierData barrierData, List<StateValue> stateValueList);
+
+
+    public abstract void achieve(BarrierData barrierData, AchieveClean achieveClean);
+
+
+    public abstract List<StateValue> recovery();
 
 }

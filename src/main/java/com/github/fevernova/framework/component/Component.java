@@ -13,6 +13,7 @@ import com.github.fevernova.framework.metric.UnitCounter;
 import com.github.fevernova.framework.service.barrier.listener.BarrierServiceCallBack;
 import com.github.fevernova.framework.task.Manager;
 import com.google.common.collect.Maps;
+import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -31,8 +32,10 @@ public abstract class Component extends LifecycleAwareExtension {
 
     protected final Named named;
 
+    @Getter
     protected final ComponentType componentType;
 
+    @Getter
     protected final int index;
 
     protected final int total;
@@ -83,6 +86,12 @@ public abstract class Component extends LifecycleAwareExtension {
 
         this.status = ComponentStatus.RUNNING;
         log.info(this.named.render(true) + " starting at " + LocalDateTime.now());
+    }
+
+
+    @Override public void onRecovery() {
+
+        log.info(this.named.render(true) + " recovery at " + LocalDateTime.now());
     }
 
 

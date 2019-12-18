@@ -76,11 +76,17 @@ public class JobSource extends AbstractSource<byte[], KafkaData> implements Cons
     }
 
 
+    @Override public void init() {
+
+        super.init();
+        this.kafkaConsumer = KafkaUtil.createConsumer(this.kafkaContext);
+    }
+
+
     @Override
     public void onStart() {
 
         super.onStart();
-        this.kafkaConsumer = KafkaUtil.createConsumer(this.kafkaContext);
         if (this.partitions.isEmpty()) {
             this.kafkaConsumer.subscribe(this.topics, this);
         } else {

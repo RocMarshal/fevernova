@@ -87,6 +87,14 @@ public class Manager {
     }
 
 
+    public void recovery() {
+
+        if (this.stateService.isSupportRecovery()) {
+            this.taskTopology.recovery();
+        }
+    }
+
+
     public void execute() throws Exception {
 
         log.info("Manager execute . ");

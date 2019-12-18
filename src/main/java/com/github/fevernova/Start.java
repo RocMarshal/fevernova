@@ -85,7 +85,7 @@ public class Start {
             String clazzName = "com.github.fevernova.task." + jobTags.getJobType() + ".Task";
             Class<? extends BaseTask> clazz = (Class<? extends BaseTask>) Class.forName(clazzName);
             BaseTask task = clazz.getConstructor(TaskContext.class, JobTags.class).newInstance(context, jobTags);
-            task.init().start();
+            task.init().recovery().start();
         } catch (Throwable e) {
             log.error("Job Start Error :", e);
             e.printStackTrace();

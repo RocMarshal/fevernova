@@ -15,6 +15,11 @@ public abstract class LifecycleAwareExtension implements LifecycleAware {
     }
 
 
+    public void onRecovery() {
+
+    }
+    
+
     public abstract void onPause();
 
     public abstract void onResume();

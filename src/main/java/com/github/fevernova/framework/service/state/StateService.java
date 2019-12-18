@@ -5,11 +5,14 @@ import com.github.fevernova.framework.common.context.GlobalContext;
 import com.github.fevernova.framework.common.context.TaskContext;
 import com.github.fevernova.framework.common.data.BarrierData;
 import com.github.fevernova.framework.service.state.storage.IStorage;
-import com.github.fevernova.framework.service.state.storage.IgnoreStorage;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.Validate;
 
 import java.util.List;
 
 
+@Slf4j
 public class StateService {
 
 
@@ -17,32 +20,42 @@ public class StateService {
 
     private TaskContext taskContext;
 
-    private IStorage storage;//TODO 需要实现一个持久化的state存储
+    private IStorage storage;
+
+    @Getter
+    private boolean supportRecovery;
 
 
     public StateService(GlobalContext globalContext, TaskContext taskContext) {
 
         this.globalContext = globalContext;
         this.taskContext = taskContext;
-        this.storage = new IgnoreStorage();
+        this.supportRecovery = taskContext.getBoolean("recovery", false);
+        String type = taskContext.getString("storagetype", "Ignore");
+        try {
+            this.storage = (IStorage) Class.forName("com.github.fevernova.framework.service.state.storage." + type + "Storage")
+                    .getConstructor(GlobalContext.class, TaskContext.class).newInstance(globalContext, taskContext);
+        } catch (Exception e) {
+            log.error("StateService error : ", e);
+            Validate.isTrue(false);
+        }
     }
 
 
     public void saveStateValues(BarrierData barrierData, List<StateValue> stateValueList) {
 
-        this.storage.save();
+        this.storage.save(barrierData, stateValueList);
     }
 
 
     public void achieveStateValues(BarrierData barrierData) {
 
-        this.storage.achieve();
+        this.storage.achieve(barrierData, AchieveClean.BEFORE);
     }
 
 
-    public void scanStatesForRecovery() {
+    public List<StateValue> recovery() {
 
-        this.storage.recovery();
+        return this.storage.recovery();
     }
-
 }

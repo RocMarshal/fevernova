@@ -103,6 +103,7 @@ import java.util.concurrent.TimeUnit;
 
         generateTaskTopology();
         generateAgent();
+        initChannelProxyAndComponent();
     }
 
 
@@ -197,20 +198,25 @@ import java.util.concurrent.TimeUnit;
     }
 
 
-    public void execute() {
-
-        initChannelProxyAndComponent();
-        this.sinks.forEach(sink -> this.executors.submit(sink));
-        this.parsers.forEach(parser -> this.executors.submit(parser));
-        this.sources.forEach(source -> this.executors.submit(source));
-    }
-
-
     private void initChannelProxyAndComponent() {
 
         this.inputProxys.forEach(channelProxy -> channelProxy.init());
         this.outputProxys.forEach(channelProxy -> channelProxy.init());
         this.components.forEach(component -> component.init());
+    }
+
+
+    public void recovery() {
+
+        this.components.forEach(component -> component.onRecovery());
+    }
+
+
+    public void execute() {
+
+        this.sinks.forEach(sink -> this.executors.submit(sink));
+        this.parsers.forEach(parser -> this.executors.submit(parser));
+        this.sources.forEach(source -> this.executors.submit(source));
     }
 
 

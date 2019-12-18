@@ -2,6 +2,7 @@ package com.github.fevernova.framework.common;
 
 
 import com.google.common.io.Files;
+import com.google.common.io.LineProcessor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -12,6 +13,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -120,13 +122,51 @@ public class Util {
     }
 
 
-    public static void writeBeatFile() {
+    public static void writeFile(String path, byte[] content) {
 
         try {
-            File file = new File("/tmp/fevernova");
-            Files.write(String.valueOf(Util.nowSec()).getBytes(), file);
+            File file = new File(path);
+            Files.write(content, file);
         } catch (IOException e) {
-            log.error("write heart beat file error : ", e);
+            log.error("write file error : ", e);
+        }
+    }
+
+
+    public static String readFile(final File file) {
+
+        try {
+            return Files.readLines(file, Charset.defaultCharset(), new LineProcessor<String>() {
+
+
+                StringBuffer sb = new StringBuffer();
+
+
+                @Override public boolean processLine(String line) throws IOException {
+
+                    sb.append(line);
+                    return true;
+                }
+
+
+                @Override public String getResult() {
+
+                    return sb.toString();
+                }
+            });
+        } catch (Exception e) {
+            log.error("read file error : ", e);
+            Validate.isTrue(false);
+        }
+        return null;
+    }
+
+
+    public static void mkDir(File file) {
+
+        if (!file.exists()) {
+            mkDir(file.getParentFile());
+            file.mkdir();
         }
     }
 
