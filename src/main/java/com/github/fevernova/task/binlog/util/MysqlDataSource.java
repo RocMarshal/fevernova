@@ -139,6 +139,7 @@ public class MysqlDataSource {
         List<Meta.MetaEntity> entityList = Lists.newArrayList();
         table.getColumns().forEach(column -> entityList.add(new Meta.MetaEntity(column.getName(), column.getTypeRouter().getTargetType())));
         table.setMeta(new Meta(entityList));
+        this.schema.put(dbTableName, table);
         return table;
     }
 

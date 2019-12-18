@@ -67,7 +67,6 @@ public class JobParser extends AbstractParser<String, MessageData> {
             MessageData messageData = feedOne(binlogData.getDbTableName());
             messageData.setDestTopic(table.getTopic());
             messageData.setTimestamp(eventHeader.getTimestamp());
-            messageData.getDataContainer().putTag("dbtable", table.getDbTableName());
             StringBuilder bizKey = new StringBuilder(128);
             if (EventType.isWrite(eventHeader.getEventType())) {
                 messageData.setDataContainer(DataContainer.createDataContainer4Write(table.getMeta(), Opt.INSERT));
@@ -81,6 +80,7 @@ public class JobParser extends AbstractParser<String, MessageData> {
             } else {
                 Validate.isTrue(false, "Event Type Error : " + eventHeader.getEventType());
             }
+            messageData.getDataContainer().putTag("dbtable", table.getDbTableName());
             messageData.getDataContainer().writeFinished();
             messageData.setKey(bizKey.toString().getBytes());
             push();

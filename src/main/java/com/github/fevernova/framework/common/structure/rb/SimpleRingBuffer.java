@@ -18,8 +18,10 @@ public class SimpleRingBuffer<E> implements IRingBuffer<E> {
 
     private long mask;
 
+    //将要写入该位置
     private AtomicLong WP;
 
+    //即将读取该位置
     private AtomicLong RP;
 
     private long flushSize;
@@ -55,7 +57,7 @@ public class SimpleRingBuffer<E> implements IRingBuffer<E> {
 
         for (; ; ) {
             long cur = WP.get();
-            if (cur - RP.get() == this.size) {
+            if (cur - RP.get() == this.size - 1) {
                 return false;
             } else {
                 if (WP.compareAndSet(cur, cur + 1)) {

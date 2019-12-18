@@ -62,9 +62,6 @@ public class SimpleBinlogClient {
     private String binlogFileName;
 
     @Getter
-    private String binlogFileName4Monitor;
-
-    @Getter
     private long binlogPosition = 4;
 
     @Getter

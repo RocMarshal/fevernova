@@ -86,8 +86,13 @@ public class JobSource extends AbstractSource<String, BinlogData>
         Pair<EventDeserializer, Map<Long, TableMapEventData>> ps = DeserializationHelper.create();
         this.mysqlClient.setEventDeserializer(ps.getKey());
         this.cacheTableMap4BinlogClient = ps.getValue();
-        this.iRingBuffer = new SimpleRingBuffer<>(this.taskContext.getInteger("buffersize"), 128);
+        this.iRingBuffer = new SimpleRingBuffer<>(taskContext.getInteger("buffersize", 128));
         super.globalContext.getCustomContext().put(MysqlDataSource.class.getSimpleName(), this.mysqlDataSource);
+
+        this.binlogFileName = taskContext.get("binlogfilename");
+        this.binlogPosition = taskContext.getLong("binlogposition", 0L);
+        this.mysqlClient.setBinlogFilename(this.binlogFileName);
+        this.mysqlClient.setBinlogPosition(this.binlogPosition);
     }
 
 
@@ -113,6 +118,8 @@ public class JobSource extends AbstractSource<String, BinlogData>
             waitTime(1_000_000l);
             return;
         }
+
+
         String tmpFileName = oe.get().getLeft();
         Event event = oe.get().getRight();
         Validate.notNull(event);
@@ -161,17 +168,12 @@ public class JobSource extends AbstractSource<String, BinlogData>
 
             case ROTATE:
             case HEARTBEAT:
+            case FORMAT_DESCRIPTION:
                 return;
 
             case QUERY:
             case ROWS_QUERY:
                 //TODO DDL处理
-                this.binlogFileName = tmpFileName;
-                this.binlogPosition = ((EventHeaderV4) event.getHeader()).getNextPosition();
-                this.binlogTimestamp = ((EventHeaderV4) event.getHeader()).getTimestamp();
-                return;
-
-            case FORMAT_DESCRIPTION:
                 this.binlogFileName = tmpFileName;
                 this.binlogPosition = ((EventHeaderV4) event.getHeader()).getNextPosition();
                 this.binlogTimestamp = ((EventHeaderV4) event.getHeader()).getTimestamp();

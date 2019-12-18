@@ -16,6 +16,9 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.Map;
 import java.util.Set;
 
@@ -37,7 +40,7 @@ public class T_DataSource {
         mysqlContext.put("password", "root");
 
         Set<String> whiteList = Sets.newHashSet();
-        whiteList.add("test.tb1");
+        whiteList.add("test.persons");
 
         this.mysql = new MysqlDataSource(mysqlContext);
         this.mysql.config(whiteList, Maps.newHashMap());
@@ -53,7 +56,7 @@ public class T_DataSource {
     @Test
     public void T_reloadSchema() {
 
-        Table table = this.mysql.getTable("test.tb1", true);
+        Table table = this.mysql.getTable("test.persons", true);
         table.getColumns().forEach(column -> System.out.println(column));
     }
 
@@ -72,6 +75,24 @@ public class T_DataSource {
             client.connect();
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+
+    @Test
+    public void T_loadData() throws SQLException {
+
+        for (int i = 0; i < 1000; i++) {
+            Connection c = this.mysql.getDataSource().getConnection();
+            c.setAutoCommit(true);
+            PreparedStatement p = c.prepareStatement("insert into test.persons(name,age,address,city) values(?,?,?,?)");
+            p.setString(1, "n_" + i);
+            p.setInt(2, i);
+            p.setString(3, "addr_" + i);
+            p.setString(4, "ct_" + i);
+            int r = p.executeUpdate();
+            p.close();
+            c.close();
         }
     }
 

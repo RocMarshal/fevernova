@@ -35,6 +35,8 @@ public class JobSink extends AbstractSink implements Callback {
 
     private boolean convert2json;
 
+    private boolean test = false;
+
 
     public JobSink(GlobalContext globalContext, TaskContext taskContext, int index, int inputsNum) {
 
@@ -42,6 +44,7 @@ public class JobSink extends AbstractSink implements Callback {
         this.kafkaContext = new TaskContext(KafkaConstants.KAFKA, taskContext.getSubProperties(KafkaConstants.KAFKA_));
         this.defaultTopic = taskContext.getString("defaulttopic");
         this.convert2json = taskContext.getBoolean("json", false);
+        this.test = taskContext.getBoolean("test", false);
         this.errorCounter = new AtomicInteger(0);
         this.serializerHelper = new SerializerHelper();
     }
@@ -51,7 +54,9 @@ public class JobSink extends AbstractSink implements Callback {
     public void onStart() {
 
         super.onStart();
-        this.kafka = KafkaUtil.createProducer(this.kafkaContext);
+        if (!this.test) {
+            this.kafka = KafkaUtil.createProducer(this.kafkaContext);
+        }
     }
 
 
@@ -69,8 +74,10 @@ public class JobSink extends AbstractSink implements Callback {
         } else {
             value = this.serializerHelper.serialize(null, data.getDataContainer());
         }
-        ProducerRecord<byte[], byte[]> record = new ProducerRecord<>(targetTopic, null, data.getTimestamp(), data.getKey(), value);
-        this.kafka.send(record, this);
+        if (!this.test) {
+            ProducerRecord<byte[], byte[]> record = new ProducerRecord<>(targetTopic, null, data.getTimestamp(), data.getKey(), value);
+            this.kafka.send(record, this);
+        }
     }
 
 
@@ -90,7 +97,9 @@ public class JobSink extends AbstractSink implements Callback {
 
     private void flush() {
 
-        this.kafka.flush();
+        if (!this.test) {
+            this.kafka.flush();
+        }
         if (this.errorCounter.get() > 0) {
             super.globalContext.fatalError("flush kafka error");
         }
