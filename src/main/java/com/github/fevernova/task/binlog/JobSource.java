@@ -1,6 +1,7 @@
 package com.github.fevernova.task.binlog;
 
 
+import com.alibaba.fastjson.JSON;
 import com.github.fevernova.framework.common.Util;
 import com.github.fevernova.framework.common.context.GlobalContext;
 import com.github.fevernova.framework.common.context.TaskContext;
@@ -9,9 +10,11 @@ import com.github.fevernova.framework.common.structure.rb.IRingBuffer;
 import com.github.fevernova.framework.common.structure.rb.SimpleRingBuffer;
 import com.github.fevernova.framework.component.channel.ChannelProxy;
 import com.github.fevernova.framework.component.source.AbstractSource;
-import com.github.fevernova.framework.service.barrier.listener.BarrierCompletedListener;
+import com.github.fevernova.framework.service.barrier.listener.BarrierCoordinatorListener;
 import com.github.fevernova.framework.service.checkpoint.CheckPointSaver;
 import com.github.fevernova.framework.service.checkpoint.ICheckPointSaver;
+import com.github.fevernova.framework.service.state.StateValue;
+import com.github.fevernova.framework.task.Manager;
 import com.github.fevernova.task.binlog.data.BinlogData;
 import com.github.fevernova.task.binlog.data.MysqlCheckPoint;
 import com.github.fevernova.task.binlog.util.MysqlDataSource;
@@ -21,18 +24,19 @@ import com.github.shyiko.mysql.binlog.event.deserialization.DeserializationHelpe
 import com.github.shyiko.mysql.binlog.event.deserialization.EventDeserializer;
 import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
 
 @Slf4j
 public class JobSource extends AbstractSource<String, BinlogData>
-        implements BinaryLogClient.EventListener, BinaryLogClient.LifecycleListener, BarrierCompletedListener {
+        implements BinaryLogClient.EventListener, BinaryLogClient.LifecycleListener, BarrierCoordinatorListener {
 
 
     private final ICheckPointSaver<MysqlCheckPoint> checkpoints;
@@ -81,17 +85,6 @@ public class JobSource extends AbstractSource<String, BinlogData>
         this.cacheTableMap4BinlogClient = ps.getValue();
         this.iRingBuffer = new SimpleRingBuffer<>(this.taskContext.getInteger("buffersize"), 128);
         super.globalContext.getCustomContext().put(MysqlDataSource.class.getSimpleName(), this.mysqlDataSource);
-    }
-
-
-    @Override public void init() {
-
-        super.init();
-
-        //TODO read checkpoint
-
-        //TODO auto redirect when db changed
-
     }
 
 
@@ -244,19 +237,6 @@ public class JobSource extends AbstractSource<String, BinlogData>
     }
 
 
-    @Override public void completed(BarrierData barrierData) throws Exception {
-
-        MysqlCheckPoint mysqlCheckPoint = this.checkpoints.remove(barrierData.getBarrierId());
-        if (log.isInfoEnabled()) {
-            log.info("commit checkpoint : " + mysqlCheckPoint.toString());
-        }
-        if (StringUtils.isBlank(mysqlCheckPoint.getBinlogFileName())) {
-            return;
-        }
-        //TODO 持久化checkpoint
-    }
-
-
     @Override public void onEvent(Event event) {
 
         Pair<String, Event> x = Pair.of(this.mysqlClient.getBinlogFilename(), event);
@@ -306,6 +286,50 @@ public class JobSource extends AbstractSource<String, BinlogData>
             }
         } catch (Exception e) {
             log.error("Source shutdown error : ", e);
+        }
+    }
+
+
+    @Override public boolean collect(BarrierData barrierData) throws Exception {
+
+        return this.checkpoints.getCheckPoint(barrierData.getBarrierId()) != null;
+    }
+
+
+    @Override public StateValue getStateForRecovery(BarrierData barrierData) {
+
+        MysqlCheckPoint mysqlCheckPoint = this.checkpoints.getCheckPoint(barrierData.getBarrierId());
+        StateValue stateValue = new StateValue();
+        stateValue.setComponentType(super.componentType);
+        stateValue.setComponentTotalNum(super.total);
+        stateValue.setCompomentIndex(super.index);
+        stateValue.setValue(Maps.newHashMap());
+        stateValue.getValue().put("mysql", JSON.toJSONString(mysqlCheckPoint));
+        return stateValue;
+    }
+
+
+    @Override public void result(boolean result, BarrierData barrierData) throws Exception {
+
+        MysqlCheckPoint mysqlCheckPoint = this.checkpoints.remove(barrierData.getBarrierId());
+        if (log.isInfoEnabled()) {
+            log.info("commit checkpoint : " + mysqlCheckPoint.toString());
+        }
+    }
+
+
+    @Override public void onRecovery() {
+
+        super.onRecovery();
+        List<StateValue> history = Manager.getInstance().getStateService().recovery();
+        if (CollectionUtils.isEmpty(history)) {
+            return;
+        }
+        for (StateValue stateValue : history) {
+            if (stateValue.getComponentType() == super.componentType) {
+                MysqlCheckPoint cp = JSON.parseObject(stateValue.getValue().get("mysql"), MysqlCheckPoint.class);
+                //TODO apply checkpoint or redirect position by heartbeat
+            }
         }
     }
 }

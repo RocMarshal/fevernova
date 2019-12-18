@@ -25,6 +25,8 @@ public class StateService {
     @Getter
     private boolean supportRecovery;
 
+    private AchieveClean achieveClean;
+
 
     public StateService(GlobalContext globalContext, TaskContext taskContext) {
 
@@ -39,6 +41,7 @@ public class StateService {
             log.error("StateService error : ", e);
             Validate.isTrue(false);
         }
+        this.achieveClean = AchieveClean.valueOf(taskContext.getString("achieveclean", "all").toUpperCase());
     }
 
 
@@ -50,7 +53,7 @@ public class StateService {
 
     public void achieveStateValues(BarrierData barrierData) {
 
-        this.storage.achieve(barrierData, AchieveClean.BEFORE);
+        this.storage.achieve(barrierData, this.achieveClean);
     }
 
 
