@@ -18,6 +18,7 @@ import com.github.fevernova.framework.task.Manager;
 import com.github.fevernova.task.binlog.data.BinlogData;
 import com.github.fevernova.task.binlog.data.MysqlCheckPoint;
 import com.github.fevernova.task.binlog.util.MysqlDataSource;
+import com.github.fevernova.task.binlog.util.SimpleBinlogClient;
 import com.github.shyiko.mysql.binlog.BinaryLogClient;
 import com.github.shyiko.mysql.binlog.event.*;
 import com.github.shyiko.mysql.binlog.event.deserialization.DeserializationHelper;
@@ -62,6 +63,8 @@ public class JobSource extends AbstractSource<String, BinlogData>
     private String binlogFileName;
 
     private long binlogPosition;
+
+    private long binlogTimestamp;
 
 
     public JobSource(GlobalContext globalContext, TaskContext taskContext, int index, int inputsNum, ChannelProxy channelProxy) {
@@ -139,6 +142,7 @@ public class JobSource extends AbstractSource<String, BinlogData>
                     this.tableMapEvent = event;
                     this.binlogFileName = tmpFileName;
                     this.binlogPosition = ((EventHeaderV4) this.tableMapEvent.getHeader()).getPosition();
+                    this.binlogTimestamp = ((EventHeaderV4) this.tableMapEvent.getHeader()).getTimestamp();
                 } else if (dataTableId != ((TableMapEventData) this.tableMapEvent.getData()).getTableId()) {
                     this.cacheTableMapEvent4Transaction.put(dataTableId, event);
                 }
@@ -152,6 +156,7 @@ public class JobSource extends AbstractSource<String, BinlogData>
                 }
                 this.binlogFileName = tmpFileName;
                 this.binlogPosition = ((EventHeaderV4) event.getHeader()).getNextPosition();
+                this.binlogTimestamp = ((EventHeaderV4) event.getHeader()).getTimestamp();
                 return;
 
             case ROTATE:
@@ -163,11 +168,13 @@ public class JobSource extends AbstractSource<String, BinlogData>
                 //TODO DDL处理
                 this.binlogFileName = tmpFileName;
                 this.binlogPosition = ((EventHeaderV4) event.getHeader()).getNextPosition();
+                this.binlogTimestamp = ((EventHeaderV4) event.getHeader()).getTimestamp();
                 return;
 
             case FORMAT_DESCRIPTION:
                 this.binlogFileName = tmpFileName;
                 this.binlogPosition = ((EventHeaderV4) event.getHeader()).getNextPosition();
+                this.binlogTimestamp = ((EventHeaderV4) event.getHeader()).getTimestamp();
                 return;
 
             case USER_VAR:
@@ -176,6 +183,7 @@ public class JobSource extends AbstractSource<String, BinlogData>
                 log.error("Illegal event : " + event.toString());
                 this.binlogFileName = tmpFileName;
                 this.binlogPosition = ((EventHeaderV4) event.getHeader()).getNextPosition();
+                this.binlogTimestamp = ((EventHeaderV4) event.getHeader()).getTimestamp();
                 return;
 
             case GTID:
@@ -186,6 +194,7 @@ public class JobSource extends AbstractSource<String, BinlogData>
                 //TODO 处理GTID
                 this.binlogFileName = tmpFileName;
                 this.binlogPosition = ((EventHeaderV4) event.getHeader()).getNextPosition();
+                this.binlogTimestamp = ((EventHeaderV4) event.getHeader()).getTimestamp();
                 return;
 
             default:
@@ -232,6 +241,7 @@ public class JobSource extends AbstractSource<String, BinlogData>
                 .mysqlVersion(this.mysqlDataSource.getMysqlVersion())
                 .binlogFileName(this.binlogFileName)
                 .binlogPosition(this.binlogPosition)
+                .binlogTimestamp(this.binlogTimestamp)
                 .build();
         this.checkpoints.put(barrierData.getBarrierId(), mysqlCheckPoint);
     }
@@ -328,7 +338,31 @@ public class JobSource extends AbstractSource<String, BinlogData>
         for (StateValue stateValue : history) {
             if (stateValue.getComponentType() == super.componentType) {
                 MysqlCheckPoint cp = JSON.parseObject(stateValue.getValue().get("mysql"), MysqlCheckPoint.class);
-                //TODO apply checkpoint or redirect position by heartbeat
+
+                if (this.mysqlDataSource.getServerId() == cp.getServerId()) {
+                    this.mysqlClient.setBinlogFilename(cp.getBinlogFileName());
+                    this.mysqlClient.setBinlogPosition(cp.getBinlogPosition());
+                } else {
+                    log.warn("Sid is diff (old:" + cp.getServerId() + " new: " + this.mysqlDataSource.getServerId() + ")");
+                    SimpleBinlogClient sbc = new SimpleBinlogClient(this.mysqlDataSource.getHost(),
+                                                                    this.mysqlDataSource.getPort(),
+                                                                    this.mysqlDataSource.getUsername(),
+                                                                    this.mysqlDataSource.getPassword(),
+                                                                    this.mysqlDataSource.getSlaveId(),
+                                                                    cp.getBinlogTimestamp() - super.taskContext.getLong("rollback", 60000L));
+                    try {
+                        sbc.connect();
+                        Validate.isTrue(sbc.getBinlogFileName() != null, "auto fetch failed : not found");
+                        Validate.isTrue(cp.getBinlogTimestamp() - sbc.getLastDBTime() < super.taskContext.getLong("tolerate", 5 * 60000L),
+                                        "auto fetch failed by delay : " + (cp.getBinlogTimestamp() - sbc.getLastDBTime()));
+                        this.mysqlClient.setBinlogFilename(sbc.getBinlogFileName());
+                        this.mysqlClient.setBinlogPosition(sbc.getBinlogPosition());
+                        log.warn("auto fetch result : " + sbc.getBinlogFileName() + "/" + sbc.getBinlogPosition());
+                    } catch (Exception e) {
+                        log.error("auto fetch failed :", e);
+                        Validate.isTrue(false);
+                    }
+                }
             }
         }
     }
