@@ -96,8 +96,6 @@ public abstract class BaseTask {
         } catch (Throwable e) {
             log.error("Task close error : ", e);
             Validate.isTrue(false);
-        } finally {
-            System.exit(1);
         }
     }
 

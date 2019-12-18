@@ -8,6 +8,7 @@ import com.github.fevernova.framework.common.context.TaskContext;
 import com.github.fevernova.framework.common.data.BarrierData;
 import com.github.fevernova.framework.common.structure.rb.IRingBuffer;
 import com.github.fevernova.framework.common.structure.rb.SimpleRingBuffer;
+import com.github.fevernova.framework.component.ComponentStatus;
 import com.github.fevernova.framework.component.channel.ChannelProxy;
 import com.github.fevernova.framework.component.source.AbstractSource;
 import com.github.fevernova.framework.service.barrier.listener.BarrierCoordinatorListener;
@@ -254,6 +255,9 @@ public class JobSource extends AbstractSource<String, BinlogData>
         Pair<String, Event> x = Pair.of(this.mysqlClient.getBinlogFilename(), event);
         int k = 0;
         while (!this.iRingBuffer.add(x, 1)) {
+            if (super.status == ComponentStatus.CLOSING) {
+                return;
+            }
             if (k++ > 10) {
                 Util.sleepMS(1);
                 k = 0;
@@ -295,6 +299,7 @@ public class JobSource extends AbstractSource<String, BinlogData>
                 this.mysqlClient.unregisterLifecycleListener(this);
                 this.mysqlClient.unregisterEventListener(this);
                 this.mysqlClient.disconnect();
+                log.error("mysql client closed .");
             }
         } catch (Exception e) {
             log.error("Source shutdown error : ", e);
