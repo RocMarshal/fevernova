@@ -24,6 +24,10 @@ public class BinlogData implements Data {
 
     private boolean reloadSchemaCache;
 
+    private long globalId;
+
+    private int rowsNum;
+
 
     @Override public void clearData() {
 
@@ -32,6 +36,8 @@ public class BinlogData implements Data {
         this.event = null;
         this.timestamp = 0;
         this.reloadSchemaCache = false;
+        this.globalId = 0;
+        this.rowsNum = 0;
     }
 
 

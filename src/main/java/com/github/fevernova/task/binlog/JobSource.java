@@ -66,6 +66,8 @@ public class JobSource extends AbstractSource<String, BinlogData>
 
     private long binlogTimestamp;
 
+    private long globalId = 0;
+
 
     public JobSource(GlobalContext globalContext, TaskContext taskContext, int index, int inputsNum, ChannelProxy channelProxy) {
 
@@ -126,21 +128,25 @@ public class JobSource extends AbstractSource<String, BinlogData>
 
         EventType eventType = event.getHeader().getEventType();
         long dataTableId;
+        int rowsNum = 0;
         switch (eventType) {
             case PRE_GA_WRITE_ROWS:
             case WRITE_ROWS:
             case EXT_WRITE_ROWS:
                 dataTableId = ((WriteRowsEventData) event.getData()).getTableId();
+                rowsNum = ((WriteRowsEventData) event.getData()).getRows().size();
                 break;
             case PRE_GA_UPDATE_ROWS:
             case UPDATE_ROWS:
             case EXT_UPDATE_ROWS:
                 dataTableId = ((UpdateRowsEventData) event.getData()).getTableId();
+                rowsNum = ((UpdateRowsEventData) event.getData()).getRows().size();
                 break;
             case PRE_GA_DELETE_ROWS:
             case DELETE_ROWS:
             case EXT_DELETE_ROWS:
                 dataTableId = ((DeleteRowsEventData) event.getData()).getTableId();
+                rowsNum = ((DeleteRowsEventData) event.getData()).getRows().size();
                 break;
 
             case TABLE_MAP:
@@ -149,7 +155,7 @@ public class JobSource extends AbstractSource<String, BinlogData>
                     this.tableMapEvent = event;
                     this.binlogFileName = tmpFileName;
                     this.binlogPosition = ((EventHeaderV4) this.tableMapEvent.getHeader()).getPosition();
-                    this.binlogTimestamp = ((EventHeaderV4) this.tableMapEvent.getHeader()).getTimestamp();
+                    this.binlogTimestamp = this.tableMapEvent.getHeader().getTimestamp();
                 } else if (dataTableId != ((TableMapEventData) this.tableMapEvent.getData()).getTableId()) {
                     this.cacheTableMapEvent4Transaction.put(dataTableId, event);
                 }
@@ -163,7 +169,7 @@ public class JobSource extends AbstractSource<String, BinlogData>
                 }
                 this.binlogFileName = tmpFileName;
                 this.binlogPosition = ((EventHeaderV4) event.getHeader()).getNextPosition();
-                this.binlogTimestamp = ((EventHeaderV4) event.getHeader()).getTimestamp();
+                this.binlogTimestamp = event.getHeader().getTimestamp();
                 return;
 
             case ROTATE:
@@ -176,7 +182,7 @@ public class JobSource extends AbstractSource<String, BinlogData>
                 //TODO DDL处理
                 this.binlogFileName = tmpFileName;
                 this.binlogPosition = ((EventHeaderV4) event.getHeader()).getNextPosition();
-                this.binlogTimestamp = ((EventHeaderV4) event.getHeader()).getTimestamp();
+                this.binlogTimestamp = event.getHeader().getTimestamp();
                 return;
 
             case USER_VAR:
@@ -185,7 +191,7 @@ public class JobSource extends AbstractSource<String, BinlogData>
                 log.error("Illegal event : " + event.toString());
                 this.binlogFileName = tmpFileName;
                 this.binlogPosition = ((EventHeaderV4) event.getHeader()).getNextPosition();
-                this.binlogTimestamp = ((EventHeaderV4) event.getHeader()).getTimestamp();
+                this.binlogTimestamp = event.getHeader().getTimestamp();
                 return;
 
             case GTID:
@@ -196,7 +202,7 @@ public class JobSource extends AbstractSource<String, BinlogData>
                 //TODO 处理GTID
                 this.binlogFileName = tmpFileName;
                 this.binlogPosition = ((EventHeaderV4) event.getHeader()).getNextPosition();
-                this.binlogTimestamp = ((EventHeaderV4) event.getHeader()).getTimestamp();
+                this.binlogTimestamp = event.getHeader().getTimestamp();
                 return;
 
             default:
@@ -220,6 +226,8 @@ public class JobSource extends AbstractSource<String, BinlogData>
         binlogData.setTablemap(currentTableMapEvent);
         binlogData.setEvent(event);
         binlogData.setTimestamp(currentTableMapEvent.getHeader().getTimestamp());
+        binlogData.setGlobalId(this.globalId);
+        binlogData.setRowsNum(rowsNum);
 
         byte[] columns = this.cacheColumnTypes.put(dbTableName, tmed.getColumnTypes());
         if (columns == null || !Arrays.equals(columns, tmed.getColumnTypes())) {
@@ -229,6 +237,7 @@ public class JobSource extends AbstractSource<String, BinlogData>
             LogProxy.LOG_DATA.debug(binlogData.toString());
         }
         push();
+        this.globalId = this.globalId + rowsNum;
     }
 
 
@@ -241,6 +250,7 @@ public class JobSource extends AbstractSource<String, BinlogData>
                 .binlogFileName(this.binlogFileName)
                 .binlogPosition(this.binlogPosition)
                 .binlogTimestamp(this.binlogTimestamp)
+                .globalId(this.globalId)
                 .build();
         this.checkpoints.put(barrierData.getBarrierId(), mysqlCheckPoint);
     }
@@ -338,13 +348,12 @@ public class JobSource extends AbstractSource<String, BinlogData>
         StateValue stateValue = stateValues.get(0);
         log.info("match state : " + stateValue.getValue().get("mysql"));
         MysqlCheckPoint cp = JSON.parseObject(stateValue.getValue().get("mysql"), MysqlCheckPoint.class);
+        this.binlogTimestamp = cp.getBinlogTimestamp();
+        this.globalId = cp.getGlobalId();
         if (this.mysqlDataSource.getServerId() == cp.getServerId()) {
             log.info("the serverid as same as last checkpoint , Go on : " + cp.getBinlogFileName() + "/" + cp.getBinlogPosition());
             this.binlogFileName = cp.getBinlogFileName();
             this.binlogPosition = cp.getBinlogPosition();
-            this.binlogTimestamp = cp.getBinlogTimestamp();
-            this.mysqlClient.setBinlogFilename(cp.getBinlogFileName());
-            this.mysqlClient.setBinlogPosition(cp.getBinlogPosition());
         } else {
             log.warn("Sid is diff (old:" + cp.getServerId() + " new: " + this.mysqlDataSource.getServerId() + ")");
             SimpleBinlogClient sbc = new SimpleBinlogClient(this.mysqlDataSource.getHost(),
@@ -360,14 +369,13 @@ public class JobSource extends AbstractSource<String, BinlogData>
                                 "auto fetch failed by delay : " + (cp.getBinlogTimestamp() - sbc.getLastDBTime()));
                 this.binlogFileName = sbc.getBinlogFileName();
                 this.binlogPosition = sbc.getBinlogPosition();
-                this.binlogTimestamp = cp.getBinlogTimestamp();
-                this.mysqlClient.setBinlogFilename(sbc.getBinlogFileName());
-                this.mysqlClient.setBinlogPosition(sbc.getBinlogPosition());
                 log.warn("auto fetch result : " + sbc.getBinlogFileName() + "/" + sbc.getBinlogPosition());
             } catch (Exception e) {
                 log.error("auto fetch failed :", e);
                 Validate.isTrue(false);
             }
         }
+        this.mysqlClient.setBinlogFilename(this.binlogFileName);
+        this.mysqlClient.setBinlogPosition(this.binlogPosition);
     }
 }

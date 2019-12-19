@@ -1,8 +1,6 @@
 package com.github.fevernova.framework.common.structure.rb;
 
 
-import com.github.fevernova.framework.common.structure.rb.adj.Adjustment;
-
 import java.io.Serializable;
 import java.util.Optional;
 
@@ -20,7 +18,4 @@ public interface IRingBuffer<E> extends Serializable {
 
     void clear();
 
-    default void setAdjustment(Adjustment adjustment) {
-
-    }
 }

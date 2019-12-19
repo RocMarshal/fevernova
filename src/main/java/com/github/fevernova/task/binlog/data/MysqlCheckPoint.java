@@ -26,4 +26,6 @@ public class MysqlCheckPoint implements CheckPoint {
 
     private long binlogTimestamp;
 
+    private long globalId;
+
 }

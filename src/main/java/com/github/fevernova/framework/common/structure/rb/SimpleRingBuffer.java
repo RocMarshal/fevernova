@@ -1,8 +1,6 @@
 package com.github.fevernova.framework.common.structure.rb;
 
 
-import com.github.fevernova.framework.common.structure.rb.adj.Adjustment;
-import lombok.Setter;
 import org.apache.commons.lang3.Validate;
 
 import java.util.Optional;
@@ -26,9 +24,6 @@ public class SimpleRingBuffer<E> implements IRingBuffer<E> {
 
     private long flushSize;
 
-    @Setter
-    private Adjustment adjustment;
-
 
     public SimpleRingBuffer(long size, long flushSize) {
 
@@ -40,8 +35,7 @@ public class SimpleRingBuffer<E> implements IRingBuffer<E> {
         this.WP = new AtomicLong(0L);
         this.RP = new AtomicLong(0L);
         for (long i = 0; i < size; i++) {
-            this.RING[(int) i] = (Element<E>) Element.builder().sequence(i).timestampW(System.currentTimeMillis()).timestampR
-                    (System.currentTimeMillis()).accVolume(0L).build();
+            this.RING[(int) i] = (Element<E>) Element.builder().build();
         }
     }
 
@@ -63,14 +57,7 @@ public class SimpleRingBuffer<E> implements IRingBuffer<E> {
                 if (WP.compareAndSet(cur, cur + 1)) {
                     int sq = mod(cur);
                     Element<E> ele = RING[sq];
-                    ele.setSequence(cur);
-                    ele.setTimestampW(System.currentTimeMillis());
-                    ele.setAccVolume(RING[mod(cur - 1)].getAccVolume() + eventSize);
                     ele.setBody(Optional.ofNullable(o));
-                    if (this.adjustment != null) {
-                        this.flushSize = this.adjustment.onEvent(ele, RING[mod(cur + 1)], (cur / this.size), sq, this.flushSize);
-                        Validate.isTrue(this.flushSize > 0);
-                    }
                     return true;
                 }
             }
@@ -89,7 +76,6 @@ public class SimpleRingBuffer<E> implements IRingBuffer<E> {
                 if (RP.compareAndSet(cur, cur + 1)) {
                     Element<E> ele = RING[mod(cur)];
                     Optional<E> r = ele.getBody();
-                    ele.setTimestampR(System.currentTimeMillis());
                     if (r == null) {
                         while (r == null) {
                             Thread.yield();

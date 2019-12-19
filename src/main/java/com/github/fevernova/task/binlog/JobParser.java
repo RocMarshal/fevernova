@@ -58,38 +58,38 @@ public class JobParser extends AbstractParser<String, MessageData> {
         }
 
         Table table = this.mysql.getTable(binlogData.getDbTableName(), binlogData.isReloadSchemaCache());
-
-        boolean theEnd = false;
         EventHeader eventHeader = binlogData.getEvent().getHeader();
         EventData eventData = binlogData.getEvent().getData();
 
-        for (int i = 0; !theEnd; i++) {
+        for (int i = 0; i < binlogData.getRowsNum(); i++) {
             MessageData messageData = feedOne(binlogData.getDbTableName());
             messageData.setDestTopic(table.getTopic());
             messageData.setTimestamp(eventHeader.getTimestamp());
             StringBuilder bizKey = new StringBuilder(128);
             if (EventType.isWrite(eventHeader.getEventType())) {
                 messageData.setDataContainer(DataContainer.createDataContainer4Write(table.getMeta(), Opt.INSERT));
-                theEnd = parseWrite(i, (WriteRowsEventData) eventData, table, bizKey, messageData.getDataContainer());
+                parseWrite(i, (WriteRowsEventData) eventData, table, bizKey, messageData.getDataContainer());
             } else if (EventType.isUpdate(eventHeader.getEventType())) {
                 messageData.setDataContainer(DataContainer.createDataContainer4Write(table.getMeta(), Opt.UPDATE));
-                theEnd = parseUpdate(i, (UpdateRowsEventData) eventData, table, bizKey, messageData.getDataContainer());
+                parseUpdate(i, (UpdateRowsEventData) eventData, table, bizKey, messageData.getDataContainer());
             } else if (EventType.isDelete(eventHeader.getEventType())) {
                 messageData.setDataContainer(DataContainer.createDataContainer4Write(table.getMeta(), Opt.DELETE));
-                theEnd = parseDelete(i, (DeleteRowsEventData) eventData, table, bizKey, messageData.getDataContainer());
+                parseDelete(i, (DeleteRowsEventData) eventData, table, bizKey, messageData.getDataContainer());
             } else {
                 Validate.isTrue(false, "Event Type Error : " + eventHeader.getEventType());
             }
-            messageData.getDataContainer().putTag("dbtable", table.getDbTableName());
-            messageData.getDataContainer().setTimestamp(eventHeader.getTimestamp());
-            messageData.getDataContainer().writeFinished();
             messageData.setKey(bizKey.toString().getBytes());
+            DataContainer dc = messageData.getDataContainer();
+            dc.putTag("dbtable", table.getDbTableName());
+            dc.setTimestamp(eventHeader.getTimestamp());
+            dc.setNid(binlogData.getGlobalId() + i);
+            dc.writeFinished();
             push();
         }
     }
 
 
-    private boolean parseWrite(int index, WriteRowsEventData event, Table table, StringBuilder bizKey, DataContainer container) {
+    private void parseWrite(int index, WriteRowsEventData event, Table table, StringBuilder bizKey, DataContainer container) {
 
         Serializable[] row = event.getRows().get(index);
         int colSize = Math.min(table.getColumns().size(), row.length);
@@ -109,11 +109,10 @@ public class JobParser extends AbstractParser<String, MessageData> {
                 }
             }
         }
-        return event.getRows().size() - 1 == index;
     }
 
 
-    private boolean parseUpdate(int index, UpdateRowsEventData event, Table table, StringBuilder bizKey, DataContainer container) {
+    private void parseUpdate(int index, UpdateRowsEventData event, Table table, StringBuilder bizKey, DataContainer container) {
 
         Map.Entry<Serializable[], Serializable[]> row = event.getRows().get(index);
         int colSize = Math.min(table.getColumns().size(), row.getValue().length);
@@ -139,11 +138,10 @@ public class JobParser extends AbstractParser<String, MessageData> {
                 }
             }
         }
-        return event.getRows().size() - 1 == index;
     }
 
 
-    private boolean parseDelete(int index, DeleteRowsEventData event, Table table, StringBuilder bizKey, DataContainer container) {
+    private void parseDelete(int index, DeleteRowsEventData event, Table table, StringBuilder bizKey, DataContainer container) {
 
         Serializable[] row = event.getRows().get(index);
         int colSize = Math.min(table.getColumns().size(), row.length);
@@ -163,6 +161,5 @@ public class JobParser extends AbstractParser<String, MessageData> {
                 }
             }
         }
-        return event.getRows().size() - 1 == index;
     }
 }

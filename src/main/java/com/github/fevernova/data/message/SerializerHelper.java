@@ -69,6 +69,7 @@ public class SerializerHelper implements Deserializer<DataContainer>, Serializer
     public byte[] serializeJSON(String s, DataContainer data) {
 
         JSONObject json = new JSONObject();
+        json.put("nid", data.getData().getNid());
         json.put("opt", data.getData().getOpt().name());
         json.put("timestamp", data.getData().getTimestamp());
         json.put("tags", data.getData().getTags());
