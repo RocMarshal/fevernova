@@ -34,7 +34,7 @@ public abstract class UAbstDate extends UData<Date> {
             @Override
             public void from(final Integer p) {
 
-                super.data = new Date(p * 1000l);
+                super.data = new Date(p * 1000L);
             }
 
 
@@ -48,7 +48,7 @@ public abstract class UAbstDate extends UData<Date> {
             @Override
             public void from(final Float p) {
 
-                super.data = new Date(p.longValue() * 1000l);
+                super.data = new Date(p.longValue() * 1000L);
             }
 
 
@@ -96,7 +96,7 @@ public abstract class UAbstDate extends UData<Date> {
             @Override
             public Integer toInt() {
 
-                return (int) (getFromData().getTime() / 1000l);
+                return (int) (getFromData().getTime() / 1000L);
             }
 
 
@@ -110,7 +110,7 @@ public abstract class UAbstDate extends UData<Date> {
             @Override
             public Float toFloat() {
 
-                return Float.valueOf(getFromData().getTime() / 1000l);
+                return Float.valueOf(getFromData().getTime() / 1000L);
             }
 
 

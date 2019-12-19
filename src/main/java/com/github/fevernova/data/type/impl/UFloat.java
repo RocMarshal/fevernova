@@ -55,7 +55,7 @@ public class UFloat extends UData<Float> {
 
             @Override public Date toDate() {
 
-                return new Date(getFromData().longValue() * 1000l);
+                return new Date(getFromData().longValue() * 1000L);
             }
 
 

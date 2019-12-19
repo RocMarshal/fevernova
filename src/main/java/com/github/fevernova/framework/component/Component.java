@@ -56,10 +56,7 @@ public abstract class Component extends LifecycleAwareExtension {
     protected BarrierServiceCallBack barrierServiceCallBack;
 
 
-    public Component(GlobalContext globalContext,
-                     TaskContext taskContext,
-                     int index,
-                     int inputsNum) {
+    public Component(GlobalContext globalContext, TaskContext taskContext, int index, int inputsNum) {
 
         this.globalContext = globalContext;
         this.taskContext = taskContext;

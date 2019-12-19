@@ -117,7 +117,7 @@ public class JobSource extends AbstractSource<String, BinlogData>
         Optional<Pair<String, Event>> oe = this.iRingBuffer.get();
         if (oe == null) {
             Util.sleepMS(1);
-            waitTime(1_000_000l);
+            waitTime(1_000_000L);
             return;
         }
 

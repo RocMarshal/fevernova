@@ -57,7 +57,7 @@ public class UInteger extends UData<Integer> {
             @Override
             public Date toDate() {
 
-                return new Date(getFromData() * 1000l);
+                return new Date(getFromData() * 1000L);
             }
 
 
