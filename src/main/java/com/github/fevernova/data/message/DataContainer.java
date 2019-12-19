@@ -15,7 +15,7 @@ import java.util.Map;
 public class DataContainer {
 
 
-    private final static Map<Long, Meta> CACHE = Maps.newConcurrentMap();
+    private static final Map<Long, Meta> CACHE = Maps.newConcurrentMap();
 
     @Getter
     private Meta meta;

@@ -36,7 +36,7 @@ public class JobSink extends AbstractSink implements Callback {
 
     private boolean convert2json;
 
-    private boolean test = false;
+    private final boolean test;
 
 
     public JobSink(GlobalContext globalContext, TaskContext taskContext, int index, int inputsNum) {

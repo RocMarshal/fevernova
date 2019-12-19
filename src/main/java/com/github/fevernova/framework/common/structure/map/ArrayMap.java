@@ -11,7 +11,7 @@ import java.util.*;
 public class ArrayMap<K, V> implements Map<K, V> {
 
 
-    private final static Object NULL = new Object();
+    private static final Object NULL = new Object();
 
     private Keys<K> keys;
 

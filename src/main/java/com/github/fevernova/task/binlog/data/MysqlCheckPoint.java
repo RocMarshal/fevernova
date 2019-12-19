@@ -2,14 +2,15 @@ package com.github.fevernova.task.binlog.data;
 
 
 import com.github.fevernova.framework.service.checkpoint.CheckPoint;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.ToString;
+import lombok.*;
 
 
+@Setter
 @Getter
 @Builder
 @ToString
+@AllArgsConstructor
+@NoArgsConstructor
 public class MysqlCheckPoint implements CheckPoint {
 
 

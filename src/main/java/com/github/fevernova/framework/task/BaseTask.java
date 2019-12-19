@@ -82,7 +82,7 @@ public abstract class BaseTask {
             public void run() {
 
                 try {
-                    Thread.sleep(15 * 1000);
+                    Thread.sleep(10 * 1000);
                 } catch (Exception e) {
                     log.error("Task close error : ", e);
                 } finally {

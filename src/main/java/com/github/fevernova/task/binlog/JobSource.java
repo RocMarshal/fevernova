@@ -339,13 +339,18 @@ public class JobSource extends AbstractSource<String, BinlogData>
         super.onRecovery();
         List<StateValue> history = Manager.getInstance().getStateService().recovery();
         if (CollectionUtils.isEmpty(history)) {
+            log.info("no states for recovery . ");
             return;
         }
         for (StateValue stateValue : history) {
             if (stateValue.getComponentType() == super.componentType) {
+                log.info("match state : " + stateValue.getValue().get("mysql"));
                 MysqlCheckPoint cp = JSON.parseObject(stateValue.getValue().get("mysql"), MysqlCheckPoint.class);
-
                 if (this.mysqlDataSource.getServerId() == cp.getServerId()) {
+                    log.info("the serverid as same as last checkpoint , Go on : " + cp.getBinlogFileName() + "/" + cp.getBinlogPosition());
+                    this.binlogFileName = cp.getBinlogFileName();
+                    this.binlogPosition = cp.getBinlogPosition();
+                    this.binlogTimestamp = cp.getBinlogTimestamp();
                     this.mysqlClient.setBinlogFilename(cp.getBinlogFileName());
                     this.mysqlClient.setBinlogPosition(cp.getBinlogPosition());
                 } else {
@@ -361,6 +366,9 @@ public class JobSource extends AbstractSource<String, BinlogData>
                         Validate.isTrue(sbc.getBinlogFileName() != null, "auto fetch failed : not found");
                         Validate.isTrue(cp.getBinlogTimestamp() - sbc.getLastDBTime() < super.taskContext.getLong("tolerate", 5 * 60000L),
                                         "auto fetch failed by delay : " + (cp.getBinlogTimestamp() - sbc.getLastDBTime()));
+                        this.binlogFileName = sbc.getBinlogFileName();
+                        this.binlogPosition = sbc.getBinlogPosition();
+                        this.binlogTimestamp = cp.getBinlogTimestamp();
                         this.mysqlClient.setBinlogFilename(sbc.getBinlogFileName());
                         this.mysqlClient.setBinlogPosition(sbc.getBinlogPosition());
                         log.warn("auto fetch result : " + sbc.getBinlogFileName() + "/" + sbc.getBinlogPosition());

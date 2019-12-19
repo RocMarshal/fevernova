@@ -14,9 +14,9 @@ import java.util.Map;
 public class ScaleEvaluate implements MetricEvaluate {
 
 
-    private final static long WAIT_TIME_TO_EXPAND = 15 * 1000;
+    private static final long WAIT_TIME_TO_EXPAND = 15 * 1000;
 
-    private final static long WAIT_TIME_TO_SHRINK = 45 * 1000;
+    private static final long WAIT_TIME_TO_SHRINK = 45 * 1000;
 
 
     @Override public Map<ComponentType, Tendency> evaluate(Map<ComponentType, Map<String, List<MetricData>>> metrics) {
