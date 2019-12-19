@@ -82,7 +82,7 @@ public class MysqlDataSource {
         config.put("testOnReturn", "false");
         config.put("poolPreparedStatements", "false");
         config.put("maxPoolPreparedStatementPerConnectionSize", "-1");
-        config.put("removeAbandoned", "true");
+        //config.put("removeAbandoned", "true");
         config.put("removeAbandonedTimeout", "1200");
         config.put("logAbandoned", "true");
         this.dataSource = DruidDataSourceFactory.createDataSource(config);

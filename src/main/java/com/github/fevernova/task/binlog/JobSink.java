@@ -2,6 +2,7 @@ package com.github.fevernova.task.binlog;
 
 
 import com.github.fevernova.data.message.SerializerHelper;
+import com.github.fevernova.framework.common.LogProxy;
 import com.github.fevernova.framework.common.context.GlobalContext;
 import com.github.fevernova.framework.common.context.TaskContext;
 import com.github.fevernova.framework.common.data.BarrierData;
@@ -67,15 +68,15 @@ public class JobSink extends AbstractSink implements Callback {
         if (data.getDataContainer() == null) {
             return;
         }
-        if (log.isDebugEnabled()) {
-            log.debug(data.getDataContainer().getData().toString());
+        if (LogProxy.LOG_DATA.isDebugEnabled()) {
+            LogProxy.LOG_DATA.debug(data.getDataContainer().getData().toString());
         }
         String targetTopic = (data.getDestTopic() != null ? data.getDestTopic() : this.defaultTopic);
         byte[] value;
         if (this.convert2json) {
             value = this.serializerHelper.serializeJSON(null, data.getDataContainer());
-            if (log.isDebugEnabled()) {
-                log.debug(new String(value));
+            if (LogProxy.LOG_DATA.isDebugEnabled()) {
+                LogProxy.LOG_DATA.debug(new String(value));
             }
         } else {
             value = this.serializerHelper.serialize(null, data.getDataContainer());

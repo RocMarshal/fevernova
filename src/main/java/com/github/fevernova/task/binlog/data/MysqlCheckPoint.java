@@ -19,12 +19,6 @@ public class MysqlCheckPoint implements CheckPoint {
 
     private long serverId;
 
-    private String username;
-
-    private String password;
-
-    private String mysqlVersion;
-
     private String binlogFileName;
 
     private long binlogPosition;

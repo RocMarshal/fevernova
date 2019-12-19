@@ -2,6 +2,7 @@ package com.github.fevernova.task.binlog;
 
 
 import com.alibaba.fastjson.JSON;
+import com.github.fevernova.framework.common.LogProxy;
 import com.github.fevernova.framework.common.Util;
 import com.github.fevernova.framework.common.context.GlobalContext;
 import com.github.fevernova.framework.common.context.TaskContext;
@@ -226,8 +227,8 @@ public class JobSource extends AbstractSource<String, BinlogData>
         if (columns == null || !Arrays.equals(columns, tmed.getColumnTypes())) {
             binlogData.setReloadSchemaCache(true);
         }
-        if (log.isDebugEnabled()) {
-            log.debug(binlogData.toString());
+        if (LogProxy.LOG_DATA.isDebugEnabled()) {
+            LogProxy.LOG_DATA.debug(binlogData.toString());
         }
         push();
     }
@@ -239,9 +240,6 @@ public class JobSource extends AbstractSource<String, BinlogData>
                 .host(this.mysqlDataSource.getHost())
                 .port(this.mysqlDataSource.getPort())
                 .serverId(this.mysqlDataSource.getServerId())
-                .username(this.mysqlDataSource.getUsername())
-                .password(this.mysqlDataSource.getPassword())
-                .mysqlVersion(this.mysqlDataSource.getMysqlVersion())
                 .binlogFileName(this.binlogFileName)
                 .binlogPosition(this.binlogPosition)
                 .binlogTimestamp(this.binlogTimestamp)
@@ -328,6 +326,7 @@ public class JobSource extends AbstractSource<String, BinlogData>
 
     @Override public void result(boolean result, BarrierData barrierData) throws Exception {
 
+        Validate.isTrue(result);
         MysqlCheckPoint mysqlCheckPoint = this.checkpoints.remove(barrierData.getBarrierId());
         if (log.isInfoEnabled()) {
             log.info("commit checkpoint : " + mysqlCheckPoint.toString());

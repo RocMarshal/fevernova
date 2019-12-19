@@ -134,7 +134,7 @@ public class BarrierService implements BarrierServiceCallBack {
                     for (BarrierCoordinatorListener barrierCoordinatorListener : barrierCoordinatorListeners) {
                         coordinatorCollectResult.add(barrierCoordinatorListener.collect(barrierData));
                     }
-                    boolean coordinatorResult = coordinatorCollectResult.stream().anyMatch(result -> !result);
+                    boolean coordinatorResult = coordinatorCollectResult.stream().allMatch(result -> result);
                     if (coordinatorResult) {
                         List<StateValue> stateValues = Lists.newArrayList();
                         for (BarrierCoordinatorListener barrierCoordinatorListener : barrierCoordinatorListeners) {

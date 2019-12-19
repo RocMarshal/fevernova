@@ -2,6 +2,7 @@ package com.github.fevernova.framework.task;
 
 
 import com.github.fevernova.framework.common.Constants;
+import com.github.fevernova.framework.common.LogProxy;
 import com.github.fevernova.framework.common.Named;
 import com.github.fevernova.framework.common.Util;
 import com.github.fevernova.framework.common.context.GlobalContext;
@@ -38,14 +39,14 @@ public abstract class BaseTask {
         this.globalContext = GlobalContext.builder().eventBus(eventBus).customContext(Maps.newConcurrentMap()).jobTags(tags).build();
         this.createTime = Util.nowMS();
         Validate.isTrue(this.globalContext.getJobTags().getUnit() >= 1 && this.globalContext.getJobTags().getUnit() <= 5);
-        log.info("Task Context : " + context.toString());
-        log.info("Task Tags : " + tags.toString());
     }
 
 
     public BaseTask init() throws Exception {
 
         log.info("Task Init .");
+        LogProxy.LOG_CONF.info(this.globalContext.getJobTags().toString());
+        LogProxy.LOG_CONF.info("taskcontext : " + this.context.toString());
         return this;
     }
 

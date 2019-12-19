@@ -18,9 +18,8 @@ import com.github.shyiko.mysql.binlog.network.protocol.command.DumpBinaryLogComm
 import com.github.shyiko.mysql.binlog.network.protocol.command.QueryCommand;
 import com.google.common.collect.Lists;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.EOFException;
 import java.io.IOException;
@@ -31,10 +30,9 @@ import java.util.LinkedList;
 import java.util.List;
 
 
+@Slf4j
 public class SimpleBinlogClient {
 
-
-    private static final Logger LOG = LoggerFactory.getLogger(MysqlDataSource.class);
 
     private static final int MAX_PACKET_LENGTH = 16777215;
 
@@ -91,7 +89,7 @@ public class SimpleBinlogClient {
         ensureEventDataDeserializer(EventType.ROTATE, RotateEventDataDeserializer.class);
         try {
             for (Pair<String, Long> file : getAllBinlogFilesAndSize()) {
-                LOG.info("auto fetch binlog file : " + file.getLeft());
+                log.info("auto fetch binlog file : " + file.getLeft());
                 openChannel(SOCKET_TIMEOUT);
                 checkChannel();
                 this.tmpFileName = file.getLeft();
@@ -100,7 +98,7 @@ public class SimpleBinlogClient {
                 listenForEventPackets();
                 disconnectChannel();
                 if (this.binlogFileName != null) {
-                    LOG.info("auto fetch bingo !");
+                    log.info("auto fetch bingo !");
                     break;
                 }
             }
@@ -155,14 +153,14 @@ public class SimpleBinlogClient {
             }
 
             if (found) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("maybe " + this.binlogFileName + "/" + this.binlogPosition);
+                if (log.isDebugEnabled()) {
+                    log.debug("maybe " + this.binlogFileName + "/" + this.binlogPosition);
                 }
                 this.binlogFileName = this.tmpFileName;
                 this.binlogPosition = ((EventHeaderV4) event.getHeader()).getPosition();
             } else {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("fetch to " + this.binlogFileName + "/" + this.binlogPosition);
+                if (log.isDebugEnabled()) {
+                    log.debug("fetch to " + this.binlogFileName + "/" + this.binlogPosition);
                 }
                 break;
             }
@@ -180,7 +178,7 @@ public class SimpleBinlogClient {
                 result.add(Pair.of(packet.getValue(0), Long.parseLong(packet.getValue(1))));
             }
         } catch (Exception e) {
-            LOG.info("use show master status");
+            log.info("use show master status");
             ResultSetRowPacket[] firstLogEventsSet = getResultSetRowPackets("show binlog events limit 1");
             String firstLogFileName = firstLogEventsSet[0].getValue(0);
             ResultSetRowPacket[] lastLogNameSet = getResultSetRowPackets("show master status");

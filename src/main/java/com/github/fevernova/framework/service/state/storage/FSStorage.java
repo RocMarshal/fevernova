@@ -10,6 +10,7 @@ import com.github.fevernova.framework.common.data.BarrierData;
 import com.github.fevernova.framework.service.state.AchieveClean;
 import com.github.fevernova.framework.service.state.StateValue;
 import com.google.common.collect.Lists;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.Validate;
 
 import java.io.File;
@@ -18,6 +19,7 @@ import java.util.Comparator;
 import java.util.List;
 
 
+@Slf4j
 public class FSStorage extends IStorage {
 
 
@@ -29,7 +31,7 @@ public class FSStorage extends IStorage {
         super(globalContext, taskContext);
         String basePathStr = taskContext.getString("basepath", "/tmp/fevernova/stat");
         JobTags tags = globalContext.getJobTags();
-        String taskPathStr = String.format("/{}/{}/", tags.getJobType() + tags.getJobId(), tags.getPodTotalNum() + "-" + tags.getPodIndex());
+        String taskPathStr = "/" + tags.getJobType() + "-" + tags.getJobId() + "/" + tags.getPodTotalNum() + "-" + tags.getPodIndex() + "/";
         this.basePath = basePathStr + taskPathStr;
         Util.mkDir(new File(this.basePath));
     }
@@ -37,8 +39,9 @@ public class FSStorage extends IStorage {
 
     @Override public void save(BarrierData barrierData, List<StateValue> stateValueList) {
 
-
-        Util.writeFile(this.basePath + barrier2FileName(barrierData), JSON.toJSONBytes(stateValueList));
+        String stateFilePath = this.basePath + barrier2FileName(barrierData);
+        log.info("FSStorage save : " + stateFilePath);
+        Util.writeFile(stateFilePath, JSON.toJSONBytes(stateValueList));
     }
 
 
@@ -48,6 +51,7 @@ public class FSStorage extends IStorage {
             case CURRENT:
                 File file = new File(this.basePath + barrier2FileName(barrierData));
                 if (file.exists()) {
+                    log.info("FSStorage delete : " + file.getName());
                     Validate.isTrue(file.delete());
                 }
                 return;
@@ -55,6 +59,7 @@ public class FSStorage extends IStorage {
                 File[] allFiles = new File(this.basePath).listFiles();
                 if (allFiles != null && allFiles.length > 0) {
                     for (File filea : allFiles) {
+                        log.info("FSStorage delete : " + filea.getName());
                         Validate.isTrue(filea.delete());
                     }
                 }
@@ -65,6 +70,7 @@ public class FSStorage extends IStorage {
                 if (files != null && files.length > 0) {
                     for (File fileb : files) {
                         if (current.compareTo(fileb.getName()) > 0) {
+                            log.info("FSStorage delete : " + fileb.getName());
                             Validate.isTrue(fileb.delete());
                         }
                     }
