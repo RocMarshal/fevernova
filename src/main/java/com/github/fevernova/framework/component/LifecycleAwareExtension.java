@@ -1,7 +1,10 @@
 package com.github.fevernova.framework.component;
 
 
+import com.github.fevernova.framework.service.state.StateValue;
 import com.lmax.disruptor.LifecycleAware;
+
+import java.util.List;
 
 
 public abstract class LifecycleAwareExtension implements LifecycleAware {
@@ -15,10 +18,10 @@ public abstract class LifecycleAwareExtension implements LifecycleAware {
     }
 
 
-    public void onRecovery() {
+    public void onRecovery(List<StateValue> stateValueList) {
 
     }
-    
+
 
     public abstract void onPause();
 

@@ -9,7 +9,6 @@ import com.github.fevernova.framework.common.data.Data;
 import com.github.fevernova.framework.component.sink.AbstractBatchSink;
 import com.github.fevernova.framework.service.barrier.listener.BarrierCoordinatorListener;
 import com.github.fevernova.framework.service.state.StateValue;
-import com.github.fevernova.framework.task.Manager;
 import com.github.fevernova.hdfs.writer.AbstractHDFSWriter;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -111,28 +110,20 @@ public abstract class AbstractHDFSBatchSink extends AbstractBatchSink implements
     }
 
 
-    @Override public void onRecovery() {
+    @Override public void onRecovery(List<StateValue> stateValues) {
 
-        super.onRecovery();
-        if (isFirst()) {
-            List<StateValue> history = Manager.getInstance().getStateService().recovery();
-            if (CollectionUtils.isEmpty(history)) {
-                return;
+        super.onRecovery(stateValues);
+        for (StateValue stateValue : stateValues) {
+            List<KV> filePathList = JSON.parseArray(stateValue.getValue().get("files"), KV.class);
+            if (CollectionUtils.isEmpty(filePathList)) {
+                continue;
             }
-            for (StateValue stateValue : history) {
-                if (stateValue.getComponentType() == super.componentType) {
-                    List<KV> filePathList = JSON.parseArray(stateValue.getValue().get("files"), KV.class);
-                    if (CollectionUtils.isEmpty(filePathList)) {
-                        continue;
-                    }
-                    for (KV kv : filePathList) {
-                        try {
-                            this.hdfsWriter.releaseDataFile(kv.k, kv.v);
-                        } catch (Exception e) {
-                            log.error("recovery error ", e);
-                            Validate.isTrue(false);
-                        }
-                    }
+            for (KV kv : filePathList) {
+                try {
+                    this.hdfsWriter.releaseDataFile(kv.k, kv.v);
+                } catch (Exception e) {
+                    log.error("recovery error ", e);
+                    Validate.isTrue(false);
                 }
             }
         }

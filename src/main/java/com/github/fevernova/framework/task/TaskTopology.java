@@ -16,16 +16,19 @@ import com.github.fevernova.framework.component.sink.AbstractSink;
 import com.github.fevernova.framework.component.source.AbstractSource;
 import com.github.fevernova.framework.metric.evaluate.MetricEvaluate;
 import com.github.fevernova.framework.service.config.TaskConfig;
+import com.github.fevernova.framework.service.state.StateValue;
 import com.google.common.collect.Lists;
 import com.lmax.disruptor.EventProcessor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.Validate;
 
 import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 
 @Slf4j public class TaskTopology implements AutoCloseable {
@@ -206,9 +209,17 @@ import java.util.concurrent.TimeUnit;
     }
 
 
-    public void recovery() {
+    public void recovery(List<StateValue> stateValues) {
 
-        this.components.forEach(component -> component.onRecovery());
+        this.components.forEach(component -> {
+            if (component.isFirst()) {
+                List<StateValue> ts = stateValues.stream().filter(stateValue -> stateValue.getComponentType() == component.getComponentType())
+                        .collect(Collectors.toList());
+                if (CollectionUtils.isNotEmpty(ts)) {
+                    component.onRecovery(ts);
+                }
+            }
+        });
     }
 
 

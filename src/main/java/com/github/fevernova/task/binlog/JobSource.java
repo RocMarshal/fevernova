@@ -16,7 +16,6 @@ import com.github.fevernova.framework.service.barrier.listener.BarrierCoordinato
 import com.github.fevernova.framework.service.checkpoint.CheckPointSaver;
 import com.github.fevernova.framework.service.checkpoint.ICheckPointSaver;
 import com.github.fevernova.framework.service.state.StateValue;
-import com.github.fevernova.framework.task.Manager;
 import com.github.fevernova.task.binlog.data.BinlogData;
 import com.github.fevernova.task.binlog.data.MysqlCheckPoint;
 import com.github.fevernova.task.binlog.util.MysqlDataSource;
@@ -27,7 +26,6 @@ import com.github.shyiko.mysql.binlog.event.deserialization.DeserializationHelpe
 import com.github.shyiko.mysql.binlog.event.deserialization.EventDeserializer;
 import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -334,49 +332,41 @@ public class JobSource extends AbstractSource<String, BinlogData>
     }
 
 
-    @Override public void onRecovery() {
+    @Override public void onRecovery(List<StateValue> stateValues) {
 
-        super.onRecovery();
-        List<StateValue> history = Manager.getInstance().getStateService().recovery();
-        if (CollectionUtils.isEmpty(history)) {
-            log.info("no states for recovery . ");
-            return;
-        }
-        for (StateValue stateValue : history) {
-            if (stateValue.getComponentType() == super.componentType) {
-                log.info("match state : " + stateValue.getValue().get("mysql"));
-                MysqlCheckPoint cp = JSON.parseObject(stateValue.getValue().get("mysql"), MysqlCheckPoint.class);
-                if (this.mysqlDataSource.getServerId() == cp.getServerId()) {
-                    log.info("the serverid as same as last checkpoint , Go on : " + cp.getBinlogFileName() + "/" + cp.getBinlogPosition());
-                    this.binlogFileName = cp.getBinlogFileName();
-                    this.binlogPosition = cp.getBinlogPosition();
-                    this.binlogTimestamp = cp.getBinlogTimestamp();
-                    this.mysqlClient.setBinlogFilename(cp.getBinlogFileName());
-                    this.mysqlClient.setBinlogPosition(cp.getBinlogPosition());
-                } else {
-                    log.warn("Sid is diff (old:" + cp.getServerId() + " new: " + this.mysqlDataSource.getServerId() + ")");
-                    SimpleBinlogClient sbc = new SimpleBinlogClient(this.mysqlDataSource.getHost(),
-                                                                    this.mysqlDataSource.getPort(),
-                                                                    this.mysqlDataSource.getUsername(),
-                                                                    this.mysqlDataSource.getPassword(),
-                                                                    this.mysqlDataSource.getSlaveId(),
-                                                                    cp.getBinlogTimestamp() - super.taskContext.getLong("rollback", 60000L));
-                    try {
-                        sbc.connect();
-                        Validate.isTrue(sbc.getBinlogFileName() != null, "auto fetch failed : not found");
-                        Validate.isTrue(cp.getBinlogTimestamp() - sbc.getLastDBTime() < super.taskContext.getLong("tolerate", 5 * 60000L),
-                                        "auto fetch failed by delay : " + (cp.getBinlogTimestamp() - sbc.getLastDBTime()));
-                        this.binlogFileName = sbc.getBinlogFileName();
-                        this.binlogPosition = sbc.getBinlogPosition();
-                        this.binlogTimestamp = cp.getBinlogTimestamp();
-                        this.mysqlClient.setBinlogFilename(sbc.getBinlogFileName());
-                        this.mysqlClient.setBinlogPosition(sbc.getBinlogPosition());
-                        log.warn("auto fetch result : " + sbc.getBinlogFileName() + "/" + sbc.getBinlogPosition());
-                    } catch (Exception e) {
-                        log.error("auto fetch failed :", e);
-                        Validate.isTrue(false);
-                    }
-                }
+        super.onRecovery(stateValues);
+        StateValue stateValue = stateValues.get(0);
+        log.info("match state : " + stateValue.getValue().get("mysql"));
+        MysqlCheckPoint cp = JSON.parseObject(stateValue.getValue().get("mysql"), MysqlCheckPoint.class);
+        if (this.mysqlDataSource.getServerId() == cp.getServerId()) {
+            log.info("the serverid as same as last checkpoint , Go on : " + cp.getBinlogFileName() + "/" + cp.getBinlogPosition());
+            this.binlogFileName = cp.getBinlogFileName();
+            this.binlogPosition = cp.getBinlogPosition();
+            this.binlogTimestamp = cp.getBinlogTimestamp();
+            this.mysqlClient.setBinlogFilename(cp.getBinlogFileName());
+            this.mysqlClient.setBinlogPosition(cp.getBinlogPosition());
+        } else {
+            log.warn("Sid is diff (old:" + cp.getServerId() + " new: " + this.mysqlDataSource.getServerId() + ")");
+            SimpleBinlogClient sbc = new SimpleBinlogClient(this.mysqlDataSource.getHost(),
+                                                            this.mysqlDataSource.getPort(),
+                                                            this.mysqlDataSource.getUsername(),
+                                                            this.mysqlDataSource.getPassword(),
+                                                            this.mysqlDataSource.getSlaveId(),
+                                                            cp.getBinlogTimestamp() - super.taskContext.getLong("rollback", 60000L));
+            try {
+                sbc.connect();
+                Validate.isTrue(sbc.getBinlogFileName() != null, "auto fetch failed : not found");
+                Validate.isTrue(cp.getBinlogTimestamp() - sbc.getLastDBTime() < super.taskContext.getLong("tolerate", 5 * 60000L),
+                                "auto fetch failed by delay : " + (cp.getBinlogTimestamp() - sbc.getLastDBTime()));
+                this.binlogFileName = sbc.getBinlogFileName();
+                this.binlogPosition = sbc.getBinlogPosition();
+                this.binlogTimestamp = cp.getBinlogTimestamp();
+                this.mysqlClient.setBinlogFilename(sbc.getBinlogFileName());
+                this.mysqlClient.setBinlogPosition(sbc.getBinlogPosition());
+                log.warn("auto fetch result : " + sbc.getBinlogFileName() + "/" + sbc.getBinlogPosition());
+            } catch (Exception e) {
+                log.error("auto fetch failed :", e);
+                Validate.isTrue(false);
             }
         }
     }

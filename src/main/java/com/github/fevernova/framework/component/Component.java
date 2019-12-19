@@ -11,6 +11,7 @@ import com.github.fevernova.framework.metric.MetricName;
 import com.github.fevernova.framework.metric.UnitCons;
 import com.github.fevernova.framework.metric.UnitCounter;
 import com.github.fevernova.framework.service.barrier.listener.BarrierServiceCallBack;
+import com.github.fevernova.framework.service.state.StateValue;
 import com.github.fevernova.framework.task.Manager;
 import com.google.common.collect.Maps;
 import lombok.Getter;
@@ -18,6 +19,7 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -89,7 +91,7 @@ public abstract class Component extends LifecycleAwareExtension {
     }
 
 
-    @Override public void onRecovery() {
+    @Override public void onRecovery(List<StateValue> stateValueList) {
 
         log.info(this.named.render(true) + " recovery at " + LocalDateTime.now());
     }
@@ -144,7 +146,7 @@ public abstract class Component extends LifecycleAwareExtension {
     }
 
 
-    protected boolean isFirst() {
+    public boolean isFirst() {
 
         return this.index == 0;
     }

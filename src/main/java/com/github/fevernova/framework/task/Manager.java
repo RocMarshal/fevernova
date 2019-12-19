@@ -15,9 +15,13 @@ import com.github.fevernova.framework.service.monitor.MonitorJob;
 import com.github.fevernova.framework.service.monitor.MonitorService;
 import com.github.fevernova.framework.service.scheduler.Schedulerd;
 import com.github.fevernova.framework.service.state.StateService;
+import com.github.fevernova.framework.service.state.StateValue;
 import com.google.common.collect.Maps;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
+
+import java.util.List;
 
 
 @Slf4j
@@ -90,7 +94,12 @@ public class Manager {
     public void recovery() {
 
         if (this.stateService.isSupportRecovery()) {
-            this.taskTopology.recovery();
+            List<StateValue> stateValueList = this.stateService.recovery();
+            if (CollectionUtils.isEmpty(stateValueList)) {
+                log.info("no states for recovery . ");
+                return;
+            }
+            this.taskTopology.recovery(stateValueList);
         }
     }
 

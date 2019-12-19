@@ -12,7 +12,6 @@ import com.github.fevernova.framework.service.barrier.listener.BarrierCoordinato
 import com.github.fevernova.framework.service.checkpoint.CheckPointSaverWithCoordiantor;
 import com.github.fevernova.framework.service.checkpoint.ICheckPointSaver;
 import com.github.fevernova.framework.service.state.StateValue;
-import com.github.fevernova.framework.task.Manager;
 import com.github.fevernova.kafka.KafkaConstants;
 import com.github.fevernova.kafka.KafkaUtil;
 import com.github.fevernova.kafka.data.KafkaCheckPoint;
@@ -20,7 +19,6 @@ import com.github.fevernova.kafka.data.KafkaData;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.kafka.clients.consumer.*;
 import org.apache.kafka.common.PartitionInfo;
 import org.apache.kafka.common.TopicPartition;
@@ -192,24 +190,18 @@ public class JobSourceV2 extends AbstractSource<byte[], KafkaData> implements Co
     }
 
 
-    @Override public void onRecovery() {
+    @Override public void onRecovery(List<StateValue> stateValues) {
 
-        super.onRecovery();
-        List<StateValue> history = Manager.getInstance().getStateService().recovery();
-        if (CollectionUtils.isEmpty(history)) {
-            return;
-        }
-        for (StateValue stateValue : history) {
-            if (stateValue.getComponentType() == super.componentType) {
-                Map<String, Map<Integer, Long>> rs = (Map<String, Map<Integer, Long>>) JSON.parse(stateValue.getValue().get("offsets"));
-                Map<TopicPartition, OffsetAndMetadata> params = Maps.newHashMap();
-                rs.forEach((topic, offset) -> offset.forEach((k, v) -> params.put(new TopicPartition(topic, k), new OffsetAndMetadata(v))));
-                this.kafkaLock.lock();
-                try {
-                    this.kafkaConsumer.commitSync(params);
-                } finally {
-                    this.kafkaLock.unlock();
-                }
+        super.onRecovery(stateValues);
+        for (StateValue stateValue : stateValues) {
+            Map<String, Map<Integer, Long>> rs = (Map<String, Map<Integer, Long>>) JSON.parse(stateValue.getValue().get("offsets"));
+            Map<TopicPartition, OffsetAndMetadata> params = Maps.newHashMap();
+            rs.forEach((topic, offset) -> offset.forEach((k, v) -> params.put(new TopicPartition(topic, k), new OffsetAndMetadata(v))));
+            this.kafkaLock.lock();
+            try {
+                this.kafkaConsumer.commitSync(params);
+            } finally {
+                this.kafkaLock.unlock();
             }
         }
     }
