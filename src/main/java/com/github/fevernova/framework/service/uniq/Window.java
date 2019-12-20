@@ -20,45 +20,49 @@ public class Window implements WriteBytesMarshallable, Comparable<Window> {
 
 
     @Getter
-    private final long seq;
+    private final int seq;
 
     private final IntObjectHashMap<RoaringBitmap> bitmaps;
 
+    //cache
+    private int currentHigh = 0;
 
-    public Window(long seq) {
+    private RoaringBitmap currentRb;
+
+
+    public Window(int seq) {
 
         this.seq = seq;
         this.bitmaps = new IntObjectHashMap<>();
     }
 
 
-    public Window(BytesIn bytes) {
+    public Window(final BytesIn bytes) {
 
-        this.seq = bytes.readLong();
-
+        this.seq = bytes.readInt();
         int length = bytes.readInt();
         this.bitmaps = new IntObjectHashMap<>(length);
         for (int i = 0; i < length; i++) {
-            int key = bytes.readInt();
-            int valueLen = bytes.readInt();
-            ByteBuffer bb = ByteBuffer.allocate(valueLen);
-            bytes.read(bb);
-            bb.flip();
-            RoaringBitmap rb = new RoaringBitmap();
             try {
-                rb.deserialize(bb);
+                int key = bytes.readInt();
+                int valueLen = bytes.readInt();
+                ByteBuffer byteBuffer = ByteBuffer.allocate(valueLen);
+                bytes.read(byteBuffer);
+                byteBuffer.flip();
+                RoaringBitmap rb = new RoaringBitmap();
+                rb.deserialize(byteBuffer);
+                this.bitmaps.put(key, rb);
             } catch (IOException e) {
                 log.error("Window recovery error : ", e);
                 Validate.isTrue(false);
             }
-            this.bitmaps.put(key, rb);
         }
     }
 
 
-    @Override public void writeMarshallable(BytesOut bytes) {
+    @Override public void writeMarshallable(final BytesOut bytes) {
 
-        bytes.writeLong(this.seq);
+        bytes.writeInt(this.seq);
         bytes.writeInt(this.bitmaps.size());
         this.bitmaps.forEachKeyValue((k, v) -> {
             bytes.writeInt(k);
@@ -76,27 +80,30 @@ public class Window implements WriteBytesMarshallable, Comparable<Window> {
      * @param eventId
      * @return true 没有出现过 false 出现过
      */
-    public boolean uniq(long eventId) {
+    public boolean unique(long eventId) {
 
         int high = (int) (eventId >> 32);
         int low = (int) eventId;
-
-        RoaringBitmap rb = this.bitmaps.get(high);
-        if (rb == null) {
-            rb = new RoaringBitmap();
-            this.bitmaps.put(high, rb);
+        if (this.currentRb == null || this.currentHigh != high) {
+            this.currentHigh = high;
+            this.currentRb = this.bitmaps.get(high);
+            if (this.currentRb == null) {
+                this.currentRb = new RoaringBitmap();
+                this.bitmaps.put(high, this.currentRb);
+            }
         }
-
-        boolean r = rb.contains(low);
-        if (!r) {
-            rb.add(low);
-        }
-        return !r;
+        return currentRb.checkedAdd(low);
     }
 
 
     @Override public int compareTo(@NotNull Window o) {
 
         return Long.compare(this.seq, o.getSeq());
+    }
+
+
+    public long count() {
+
+        return this.bitmaps.stream().mapToLong(value -> value.getLongCardinality()).sum();
     }
 }

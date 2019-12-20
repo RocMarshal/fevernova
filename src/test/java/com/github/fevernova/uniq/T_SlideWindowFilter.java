@@ -3,12 +3,13 @@ package com.github.fevernova.uniq;
 
 import com.github.fevernova.framework.common.context.GlobalContext;
 import com.github.fevernova.framework.common.context.TaskContext;
+import com.github.fevernova.framework.service.uniq.SerializationUtils;
 import com.github.fevernova.framework.service.uniq.SlideWindowFilter;
-import com.github.fevernova.framework.service.uniq.Util;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.File;
 import java.io.IOException;
 
 
@@ -31,27 +32,45 @@ public class T_SlideWindowFilter {
     public void T_base() {
 
         long time = System.currentTimeMillis();
-        Assert.assertTrue(this.filter.uniq(123, 9876543210L, time));
-        Assert.assertFalse(this.filter.uniq(123, 9876543210L, time));
-        Assert.assertTrue(this.filter.uniq(123, 9876543210L, time + 60000));
+        Assert.assertTrue(this.filter.unique(123, 9876543210L, time));
+        Assert.assertFalse(this.filter.unique(123, 9876543210L, time));
+        Assert.assertTrue(this.filter.unique(123, 9876543210L, time + 60000));
     }
+
+
+    private static final long delta = 100000000L;
 
 
     @Test
     public void T_snapshot() throws IOException {
 
-
-        for (long i = 0; i < 100000000; i++) {
-            this.filter.uniq(1, i * 2, 123123);
+        File f = new File("/tmp/fevernova.snapshot");
+        if (f.exists()) {
+            f.delete();
         }
-        Util.saveData("/tmp/plp/123", this.filter);
+        long base = 9000000000L;
+
+        long k = 0, j = 0;
+        while (k++ < base) {
+            j += k;
+        }
+        System.out.println(j);
+        long st = System.currentTimeMillis();
+        for (long i = 0L; i < delta; i++) {
+            this.filter.unique(1, base + i, 123123);
+        }
+        long et = System.currentTimeMillis();
+
+        SerializationUtils.saveData("/tmp/fevernova.snapshot", this.filter);
+        System.out.println(et - st);
     }
 
 
     @Test
     public void T_reload() {
 
-        init();
-        Util.loadData("/tmp/plp/123", this.filter);
+        SerializationUtils.loadData("/tmp/fevernova.snapshot", this.filter);
+        Assert.assertEquals(delta, this.filter.count());
     }
+
 }
