@@ -3,24 +3,30 @@ package com.github.fevernova.framework.service.uniq;
 
 import com.github.fevernova.framework.common.context.GlobalContext;
 import com.github.fevernova.framework.common.context.TaskContext;
-import org.eclipse.collections.impl.map.mutable.primitive.IntObjectHashMap;
+import com.github.fevernova.hdfs.Constants;
+import lombok.Getter;
+import net.openhft.chronicle.bytes.BytesIn;
+import net.openhft.chronicle.bytes.BytesOut;
+import net.openhft.chronicle.bytes.ReadBytesMarshallable;
+import net.openhft.chronicle.bytes.WriteBytesMarshallable;
+import net.openhft.chronicle.core.io.IORuntimeException;
+import org.apache.commons.lang3.Validate;
 import org.eclipse.collections.impl.map.mutable.primitive.LongObjectHashMap;
-import org.roaringbitmap.RoaringBitmap;
-import org.roaringbitmap.longlong.Roaring64NavigableMap;
 
 
-public class SlideWindowFilter {
+public class SlideWindowFilter implements WriteBytesMarshallable, ReadBytesMarshallable {
 
 
-    private GlobalContext globalContext;
+    private final GlobalContext globalContext;
 
-    private TaskContext taskContext;
+    private final TaskContext taskContext;
 
-    private long span;
+    private final long span;
 
-    private long windowNum;
+    private final int windowNum;
 
-    private IntObjectHashMap<LongObjectHashMap<Roaring64NavigableMap>> filter = IntObjectHashMap.newMap();
+    @Getter
+    private LongObjectHashMap<LongObjectHashMap<Window>> filter;
 
 
     public SlideWindowFilter(GlobalContext globalContext, TaskContext taskContext) {
@@ -28,12 +34,41 @@ public class SlideWindowFilter {
         this.globalContext = globalContext;
         this.taskContext = taskContext;
         this.span = taskContext.getLong("span", 60 * 1000L);
-        this.windowNum = taskContext.getLong("num", 10L);
+        Validate.isTrue(this.span % 60000 == 0 && Constants.MINUTE_PERIOD_SET.contains((int) (this.span / 60000)));
+        this.windowNum = taskContext.getInteger("num", 10);
+        this.filter = new LongObjectHashMap();
     }
 
 
-    public boolean uniq(int typeId, long eventId, long timestamp) {
+    public boolean uniq(long typeId, long eventId, long timestamp) {
 
-        return true;
+        LongObjectHashMap<Window> windows = this.filter.get(typeId);
+        if (windows == null) {
+            windows = new LongObjectHashMap<>(this.windowNum);
+            this.filter.put(typeId, windows);
+        }
+        long windowSeq = timestamp / this.span;
+        Window window = windows.get(windowSeq);
+        if (window == null) {
+            window = new Window(windowSeq);
+            while (windows.size() >= this.windowNum) {
+                Window mw = windows.min();
+                windows.remove(mw.getSeq());
+            }
+            windows.put(windowSeq, window);
+        }
+        return window.uniq(eventId);
+    }
+
+
+    @Override public void writeMarshallable(final BytesOut bytes) {
+
+        SerializationUtils.marshallLongLongMap(this.filter, bytes);
+    }
+
+
+    @Override public void readMarshallable(BytesIn bytes) throws IORuntimeException {
+
+        this.filter = SerializationUtils.readLongLongMap(bytes, bytesIn -> new Window(bytesIn));
     }
 }

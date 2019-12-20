@@ -135,6 +135,11 @@
             <version>3.9</version>
         </dependency>
         <dependency>
+            <groupId>commons-collections</groupId>
+            <artifactId>commons-collections</artifactId>
+            <version>3.2.2</version>
+        </dependency>
+        <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-collections4</artifactId>
             <version>4.4</version>
@@ -144,19 +149,22 @@
             <artifactId>commons-cli</artifactId>
             <version>1.4</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-compress</artifactId>
+            <version>1.19</version>
+        </dependency>
 
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
             <version>28.1-jre</version>
         </dependency>
-
         <dependency>
             <groupId>org.eclipse.collections</groupId>
             <artifactId>eclipse-collections</artifactId>
             <version>10.1.0</version>
         </dependency>
-
         <dependency>
             <groupId>org.roaringbitmap</groupId>
             <artifactId>RoaringBitmap</artifactId>
@@ -168,7 +176,6 @@
             <artifactId>disruptor</artifactId>
             <version>3.4.2</version>
         </dependency>
-
         <dependency>
             <groupId>org.quartz-scheduler</groupId>
             <artifactId>quartz</artifactId>
@@ -210,11 +217,36 @@
         </dependency>
 
         <dependency>
+            <groupId>net.openhft</groupId>
+            <artifactId>chronicle-core</artifactId>
+            <version>2.17.32</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-api</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>net.openhft</groupId>
+            <artifactId>chronicle-wire</artifactId>
+            <version>2.17.63</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>net.openhft</groupId>
+                    <artifactId>chronicle-core</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-api</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
             <groupId>com.alibaba</groupId>
             <artifactId>fastjson</artifactId>
             <version>1.2.62</version>
         </dependency>
-
         <dependency>
             <groupId>org.apache.avro</groupId>
             <artifactId>avro</artifactId>
@@ -245,14 +277,28 @@
                 </exclusion>
             </exclusions>
         </dependency>
+
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty</artifactId>
+            <version>3.7.0.Final</version>
+        </dependency>
         <dependency>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-client</artifactId>
             <version>2.7.7</version>
             <exclusions>
                 <exclusion>
+                    <groupId>io.netty</groupId>
+                    <artifactId>netty</artifactId>
+                </exclusion>
+                <exclusion>
                     <artifactId>guava</artifactId>
                     <groupId>com.google.guava</groupId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.google.code.findbugs</groupId>
+                    <artifactId>jsr305</artifactId>
                 </exclusion>
                 <exclusion>
                     <artifactId>commons-logging</artifactId>
@@ -267,12 +313,24 @@
                     <groupId>commons-cli</groupId>
                 </exclusion>
                 <exclusion>
+                    <groupId>commons-collections</groupId>
+                    <artifactId>commons-collections</artifactId>
+                </exclusion>
+                <exclusion>
                     <artifactId>commons-beanutils</artifactId>
                     <groupId>commons-beanutils</groupId>
                 </exclusion>
                 <exclusion>
                     <artifactId>commons-codec</artifactId>
                     <groupId>commons-codec</groupId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.commons</groupId>
+                    <artifactId>commons-compress</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.avro</groupId>
+                    <artifactId>avro</artifactId>
                 </exclusion>
                 <exclusion>
                     <artifactId>log4j</artifactId>
