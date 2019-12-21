@@ -4,7 +4,6 @@ package com.github.fevernova.uniq;
 import com.github.fevernova.framework.common.Util;
 import com.github.fevernova.framework.common.context.GlobalContext;
 import com.github.fevernova.framework.common.context.TaskContext;
-import com.github.fevernova.framework.service.uniq.SerializationUtils;
 import com.github.fevernova.framework.service.uniq.SlideWindowFilter;
 import org.junit.Assert;
 import org.junit.Before;
@@ -62,7 +61,7 @@ public class T_SlideWindowFilter {
         }
         long et = Util.nowMS();
 
-        SerializationUtils.saveData("/tmp/fevernova.snapshot", this.filter);
+        //SerializationUtils.saveData("/tmp/fevernova.snapshot", this.filter);
         System.out.println(et - st);
     }
 
@@ -70,7 +69,7 @@ public class T_SlideWindowFilter {
     @Test
     public void T_reload() {
 
-        SerializationUtils.loadData("/tmp/fevernova.snapshot", this.filter);
+        //SerializationUtils.loadData("/tmp/fevernova.snapshot", this.filter);
         Assert.assertEquals(delta, this.filter.count());
     }
 

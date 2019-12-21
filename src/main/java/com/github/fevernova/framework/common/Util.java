@@ -129,6 +129,7 @@ public class Util {
             Files.write(content, file);
         } catch (IOException e) {
             log.error("write file error : ", e);
+            Validate.isTrue(false);
         }
     }
 

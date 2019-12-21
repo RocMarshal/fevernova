@@ -4,8 +4,11 @@ package com.github.fevernova.framework.service.state.storage;
 import com.github.fevernova.framework.common.context.GlobalContext;
 import com.github.fevernova.framework.common.context.TaskContext;
 import com.github.fevernova.framework.common.data.BarrierData;
+import com.github.fevernova.framework.component.ComponentType;
 import com.github.fevernova.framework.service.state.AchieveClean;
 import com.github.fevernova.framework.service.state.StateValue;
+import net.openhft.chronicle.bytes.ReadBytesMarshallable;
+import net.openhft.chronicle.bytes.WriteBytesMarshallable;
 
 import java.util.List;
 
@@ -32,5 +35,11 @@ public abstract class IStorage {
 
 
     public abstract List<StateValue> recoveryStateValue();
+
+
+    public abstract String saveBinary(ComponentType componentType, int total, int index, BarrierData barrierData, WriteBytesMarshallable obj);
+
+
+    public abstract void recoveryBinary(String stateFilePath, ReadBytesMarshallable obj);
 
 }
