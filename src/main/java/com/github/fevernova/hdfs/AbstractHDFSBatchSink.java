@@ -1,17 +1,18 @@
 package com.github.fevernova.hdfs;
 
 
-import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.github.fevernova.framework.common.context.GlobalContext;
 import com.github.fevernova.framework.common.context.TaskContext;
 import com.github.fevernova.framework.common.data.BarrierData;
 import com.github.fevernova.framework.common.data.Data;
 import com.github.fevernova.framework.component.sink.AbstractBatchSink;
 import com.github.fevernova.framework.service.barrier.listener.BarrierCoordinatorListener;
+import com.github.fevernova.framework.service.checkpoint.CheckPointSaver;
+import com.github.fevernova.framework.service.checkpoint.ICheckPointSaver;
 import com.github.fevernova.framework.service.state.StateValue;
 import com.github.fevernova.hdfs.writer.AbstractHDFSWriter;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.Validate;
@@ -19,7 +20,6 @@ import org.apache.commons.lang3.tuple.Pair;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
 
 
 @Slf4j
@@ -28,23 +28,21 @@ public abstract class AbstractHDFSBatchSink extends AbstractBatchSink implements
 
     protected AbstractHDFSWriter hdfsWriter;
 
-    private ConcurrentHashMap<Long, List<KV>> toBeMovedFileMap = new ConcurrentHashMap<>();
+    private ICheckPointSaver<HDFSCheckPoint> checkpoints;
 
-    private List<KV> hdfsFilePathList = Lists.newLinkedList();
+    private List<FileInfo> hdfsFilePathList = Lists.newArrayList();
 
 
-    public AbstractHDFSBatchSink(GlobalContext globalContext,
-                                 TaskContext taskContext,
-                                 int index,
-                                 int inputsNum) {
+    public AbstractHDFSBatchSink(GlobalContext globalContext, TaskContext taskContext, int index, int inputsNum) {
 
         super(globalContext, taskContext, index, inputsNum);
+        this.checkpoints = new CheckPointSaver<>();
     }
 
 
     @Override protected void snapshotWhenBarrierAfterBatch(BarrierData barrierData) {
 
-        this.toBeMovedFileMap.put(barrierData.getBarrierId(), this.hdfsFilePathList);
+        this.checkpoints.put(barrierData.getBarrierId(), new HDFSCheckPoint(this.hdfsFilePathList));
         this.hdfsFilePathList = Lists.newLinkedList();
 
     }
@@ -77,10 +75,7 @@ public abstract class AbstractHDFSBatchSink extends AbstractBatchSink implements
 
         if (this.hdfsWriter != null) {
             Pair<String, String> p = this.hdfsWriter.close();
-            KV kv = new KV();
-            kv.k = p.getKey();
-            kv.v = p.getValue();
-            this.hdfsFilePathList.add(kv);
+            this.hdfsFilePathList.add(new FileInfo(p.getKey(), p.getValue()));
         }
     }
 
@@ -93,19 +88,18 @@ public abstract class AbstractHDFSBatchSink extends AbstractBatchSink implements
 
     @Override public boolean collect(BarrierData barrierData) throws Exception {
 
-        return this.toBeMovedFileMap.containsKey(barrierData.getBarrierId());
+        return this.checkpoints.getCheckPoint(barrierData.getBarrierId()) != null;
     }
 
 
     @Override public StateValue getStateForRecovery(BarrierData barrierData) {
 
-        List<KV> filePathList = this.toBeMovedFileMap.get(barrierData.getBarrierId());
+        HDFSCheckPoint checkPoint = this.checkpoints.getCheckPoint(barrierData.getBarrierId());
         StateValue stateValue = new StateValue();
         stateValue.setComponentType(super.componentType);
         stateValue.setComponentTotalNum(super.total);
         stateValue.setCompomentIndex(super.index);
-        stateValue.setValue(Maps.newHashMap());
-        stateValue.getValue().put("files", JSON.toJSONString(filePathList));
+        stateValue.setValue(checkPoint);
         return stateValue;
     }
 
@@ -114,13 +108,14 @@ public abstract class AbstractHDFSBatchSink extends AbstractBatchSink implements
 
         super.onRecovery(stateValues);
         for (StateValue stateValue : stateValues) {
-            List<KV> filePathList = JSON.parseArray(stateValue.getValue().get("files"), KV.class);
-            if (CollectionUtils.isEmpty(filePathList)) {
+            HDFSCheckPoint checkPoint = new HDFSCheckPoint();
+            checkPoint.parseFromJSON((JSONObject) stateValue.getValue());
+            if (CollectionUtils.isEmpty(checkPoint.getFiles())) {
                 continue;
             }
-            for (KV kv : filePathList) {
+            for (FileInfo fileInfo : checkPoint.getFiles()) {
                 try {
-                    this.hdfsWriter.releaseDataFile(kv.k, kv.v);
+                    this.hdfsWriter.releaseDataFile(fileInfo.getFrom(), fileInfo.getTo());
                 } catch (Exception e) {
                     log.error("recovery error ", e);
                     Validate.isTrue(false);
@@ -133,28 +128,17 @@ public abstract class AbstractHDFSBatchSink extends AbstractBatchSink implements
     @Override public void result(boolean result, BarrierData barrierData) throws Exception {
 
         if (result) {
-            List<KV> filePathList = this.toBeMovedFileMap.remove(barrierData.getBarrierId());
-            Validate.notNull(filePathList);
-            if (!filePathList.isEmpty()) {
-                for (KV path : filePathList) {
-                    boolean releaseDataFile = this.hdfsWriter.releaseDataFile(path.k, path.v);
-                    if (releaseDataFile) {
-                        log.info(" mv tmp file to target path : " + path.v);
-                    } else {
-                        log.error(" failed to mv file from {} to {} ", path.k, path.v);
-                        Validate.isTrue(false);
-                    }
+            HDFSCheckPoint checkPoint = this.checkpoints.remove(barrierData.getBarrierId());
+            Validate.notNull(checkPoint);
+            for (FileInfo fileInfo : checkPoint.getFiles()) {
+                boolean releaseDataFile = this.hdfsWriter.releaseDataFile(fileInfo.getFrom(), fileInfo.getTo());
+                if (releaseDataFile) {
+                    log.info(" mv tmp file to target path : " + fileInfo.getTo());
+                } else {
+                    log.error(" failed to mv file from {} to {} ", fileInfo.getFrom(), fileInfo.getTo());
+                    Validate.isTrue(false);
                 }
             }
         }
-    }
-
-
-    class KV {
-
-
-        public String k;
-
-        public String v;
     }
 }

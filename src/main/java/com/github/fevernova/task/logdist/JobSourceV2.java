@@ -2,6 +2,7 @@ package com.github.fevernova.task.logdist;
 
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.github.fevernova.framework.common.context.GlobalContext;
 import com.github.fevernova.framework.common.context.TaskContext;
 import com.github.fevernova.framework.common.data.BarrierData;
@@ -184,8 +185,7 @@ public class JobSourceV2 extends AbstractSource<byte[], KafkaData> implements Co
         stateValue.setComponentType(super.componentType);
         stateValue.setComponentTotalNum(super.total);
         stateValue.setCompomentIndex(super.index);
-        stateValue.setValue(Maps.newHashMap());
-        stateValue.getValue().put("offsets", JSON.toJSONString(checkPoint.getOffsets()));
+        stateValue.setValue(checkPoint);
         return stateValue;
     }
 
@@ -194,9 +194,11 @@ public class JobSourceV2 extends AbstractSource<byte[], KafkaData> implements Co
 
         super.onRecovery(stateValues);
         for (StateValue stateValue : stateValues) {
-            Map<String, Map<Integer, Long>> rs = (Map<String, Map<Integer, Long>>) JSON.parse(stateValue.getValue().get("offsets"));
+            KafkaCheckPoint kafkaCheckPoint = new KafkaCheckPoint();
+            kafkaCheckPoint.parseFromJSON((JSONObject) stateValue.getValue());
             Map<TopicPartition, OffsetAndMetadata> params = Maps.newHashMap();
-            rs.forEach((topic, offset) -> offset.forEach((k, v) -> params.put(new TopicPartition(topic, k), new OffsetAndMetadata(v))));
+            kafkaCheckPoint.getOffsets()
+                    .forEach((topic, offset) -> offset.forEach((k, v) -> params.put(new TopicPartition(topic, k), new OffsetAndMetadata(v))));
             this.kafkaLock.lock();
             try {
                 this.kafkaConsumer.commitSync(params);

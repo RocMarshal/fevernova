@@ -1,7 +1,7 @@
 package com.github.fevernova.task.binlog;
 
 
-import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.github.fevernova.framework.common.LogProxy;
 import com.github.fevernova.framework.common.Util;
 import com.github.fevernova.framework.common.context.GlobalContext;
@@ -79,6 +79,7 @@ public class JobSource extends AbstractSource<String, BinlogData>
             this.mysqlDataSource.initJDBC();
         } catch (Exception e) {
             log.error("source init error : ", e);
+            Validate.isTrue(false);
         }
         this.mysqlClient = new BinaryLogClient(this.mysqlDataSource.getHost(), this.mysqlDataSource.getPort(), this.mysqlDataSource.getUsername(),
                                                this.mysqlDataSource.getPassword());
@@ -91,6 +92,7 @@ public class JobSource extends AbstractSource<String, BinlogData>
         this.iRingBuffer = new SimpleRingBuffer<>(taskContext.getInteger("buffersize", 128));
         super.globalContext.getCustomContext().put(MysqlDataSource.class.getSimpleName(), this.mysqlDataSource);
 
+        //test
         this.binlogFileName = taskContext.get("binlogfilename");
         this.binlogPosition = taskContext.getLong("binlogposition", 0L);
         this.mysqlClient.setBinlogFilename(this.binlogFileName);
@@ -114,21 +116,20 @@ public class JobSource extends AbstractSource<String, BinlogData>
 
     @Override public void work() {
 
-        Optional<Pair<String, Event>> oe = this.iRingBuffer.get();
-        if (oe == null) {
+        Optional<Pair<String, Event>> pairOptional = this.iRingBuffer.get();
+        if (pairOptional == null) {
             Util.sleepMS(1);
             waitTime(1_000_000L);
             return;
         }
 
-
-        String tmpFileName = oe.get().getLeft();
-        Event event = oe.get().getRight();
+        String tmpFileName = pairOptional.get().getLeft();
+        Event event = pairOptional.get().getRight();
         Validate.notNull(event);
 
         EventType eventType = event.getHeader().getEventType();
         long dataTableId;
-        int rowsNum = 0;
+        int rowsNum;
         switch (eventType) {
             case PRE_GA_WRITE_ROWS:
             case WRITE_ROWS:
@@ -326,8 +327,7 @@ public class JobSource extends AbstractSource<String, BinlogData>
         stateValue.setComponentType(super.componentType);
         stateValue.setComponentTotalNum(super.total);
         stateValue.setCompomentIndex(super.index);
-        stateValue.setValue(Maps.newHashMap());
-        stateValue.getValue().put("mysql", JSON.toJSONString(mysqlCheckPoint));
+        stateValue.setValue(mysqlCheckPoint);
         return stateValue;
     }
 
@@ -345,9 +345,11 @@ public class JobSource extends AbstractSource<String, BinlogData>
     @Override public void onRecovery(List<StateValue> stateValues) {
 
         super.onRecovery(stateValues);
+        Validate.isTrue(stateValues.size() == 1);
         StateValue stateValue = stateValues.get(0);
-        log.info("match state : " + stateValue.getValue().get("mysql"));
-        MysqlCheckPoint cp = JSON.parseObject(stateValue.getValue().get("mysql"), MysqlCheckPoint.class);
+        log.info("match state : " + stateValue.getValue().toString());
+        MysqlCheckPoint cp = new MysqlCheckPoint();
+        cp.parseFromJSON((JSONObject) stateValue.getValue());
         this.binlogTimestamp = cp.getBinlogTimestamp();
         this.globalId = cp.getGlobalId();
         if (this.mysqlDataSource.getServerId() == cp.getServerId()) {

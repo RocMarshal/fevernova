@@ -2,6 +2,7 @@ package com.github.fevernova.data;
 
 
 import com.github.fevernova.data.message.*;
+import com.github.fevernova.framework.common.Util;
 import com.google.common.collect.Lists;
 
 import java.util.List;
@@ -53,13 +54,13 @@ public class TestMsg {
         System.out.println(sresult.length);
 
 
-        long st = System.currentTimeMillis();
+        long st = Util.nowMS();
         for (int i = 0; i < loop; i++) {
             //DataContainer dresult = serializerHelper.deserialize(null, sresult);
             byte[] result = serializerHelper.serialize(null, dataContainer);
         }
 
-        long et = System.currentTimeMillis();
+        long et = Util.nowMS();
         System.out.println(et - st);
     }
 }

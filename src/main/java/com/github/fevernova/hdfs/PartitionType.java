@@ -1,6 +1,7 @@
 package com.github.fevernova.hdfs;
 
 
+import com.github.fevernova.framework.common.Util;
 import org.apache.commons.lang3.Validate;
 
 import java.text.SimpleDateFormat;
@@ -79,7 +80,7 @@ public enum PartitionType {
         @Override
         public void render(StringBuilder base) {
 
-            long t = (System.currentTimeMillis() / (period * 3600000) * (period * 3600000));
+            long t = (Util.nowMS() / (period * 3600000) * (period * 3600000));
             base.append(simpleDateFormat.format(new Date(t)));
         }
     }
@@ -101,7 +102,7 @@ public enum PartitionType {
         @Override
         public void render(StringBuilder base) {
 
-            long t = (System.currentTimeMillis() / (period * 60000) * (period * 60000));
+            long t = (Util.nowMS() / (period * 60000) * (period * 60000));
             base.append(simpleDateFormat.format(new Date(t)));
         }
     }

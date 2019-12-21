@@ -1,6 +1,7 @@
 package com.github.fevernova.uniq;
 
 
+import com.github.fevernova.framework.common.Util;
 import com.github.fevernova.framework.common.context.GlobalContext;
 import com.github.fevernova.framework.common.context.TaskContext;
 import com.github.fevernova.framework.service.uniq.SerializationUtils;
@@ -31,7 +32,7 @@ public class T_SlideWindowFilter {
     @Test
     public void T_base() {
 
-        long time = System.currentTimeMillis();
+        long time = Util.nowMS();
         Assert.assertTrue(this.filter.unique(123, 9876543210L, time));
         Assert.assertFalse(this.filter.unique(123, 9876543210L, time));
         Assert.assertTrue(this.filter.unique(123, 9876543210L, time + 60000));
@@ -55,11 +56,11 @@ public class T_SlideWindowFilter {
             j += k;
         }
         System.out.println(j);
-        long st = System.currentTimeMillis();
+        long st = Util.nowMS();
         for (long i = 0L; i < delta; i++) {
             this.filter.unique(1, base + i, 123123);
         }
-        long et = System.currentTimeMillis();
+        long et = Util.nowMS();
 
         SerializationUtils.saveData("/tmp/fevernova.snapshot", this.filter);
         System.out.println(et - st);
