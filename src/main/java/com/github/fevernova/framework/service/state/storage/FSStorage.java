@@ -23,6 +23,8 @@ import java.util.List;
 public class FSStorage extends IStorage {
 
 
+    private static final String PRE_TXT = "txt_";
+
     private String basePath;
 
 
@@ -56,7 +58,7 @@ public class FSStorage extends IStorage {
                 }
                 return;
             case ALL:
-                File[] allFiles = new File(this.basePath).listFiles();
+                File[] allFiles = new File(this.basePath).listFiles(pathname -> pathname.getName().startsWith(PRE_TXT));
                 if (allFiles != null && allFiles.length > 0) {
                     for (File filea : allFiles) {
                         log.info("FSStorage delete : " + filea.getName());
@@ -66,7 +68,7 @@ public class FSStorage extends IStorage {
                 return;
             case BEFORE:
                 String current = barrier2FileName(barrierData);
-                File[] files = new File(this.basePath).listFiles();
+                File[] files = new File(this.basePath).listFiles(pathname -> pathname.getName().startsWith(PRE_TXT));
                 if (files != null && files.length > 0) {
                     for (File fileb : files) {
                         if (current.compareTo(fileb.getName()) > 0) {
@@ -82,7 +84,7 @@ public class FSStorage extends IStorage {
 
     @Override public List<StateValue> recovery() {
 
-        File[] files = new File(this.basePath).listFiles();
+        File[] files = new File(this.basePath).listFiles(pathname -> pathname.getName().startsWith(PRE_TXT));
         if (files != null && files.length > 0) {
             Arrays.sort(files, Comparator.comparing(File::getName));
             File file = files[files.length - 1];
@@ -96,6 +98,6 @@ public class FSStorage extends IStorage {
 
     private String barrier2FileName(BarrierData barrierData) {
 
-        return barrierData.getTimestamp() + "_" + barrierData.getBarrierId();
+        return PRE_TXT + barrierData.getTimestamp() + "_" + barrierData.getBarrierId();
     }
 }
