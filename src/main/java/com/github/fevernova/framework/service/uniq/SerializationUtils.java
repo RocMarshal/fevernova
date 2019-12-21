@@ -46,18 +46,6 @@ public class SerializationUtils {
     }
 
 
-    public static <T> IntObjectHashMap<IntObjectHashMap<T>> readIntIntMap(final BytesIn bytes, final Function<BytesIn, T> creator) {
-
-        int length = bytes.readInt();
-        final IntObjectHashMap<IntObjectHashMap<T>> hashMap = new IntObjectHashMap<>(length);
-        for (int i = 0; i < length; i++) {
-            int k = bytes.readInt();
-            hashMap.put(k, readIntMap(bytes, creator));
-        }
-        return hashMap;
-    }
-
-
     public static void saveData(String pathStr, WriteBytesMarshallable obj) {
 
         final Path path = Paths.get(pathStr);

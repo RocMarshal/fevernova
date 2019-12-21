@@ -19,17 +19,17 @@ public class IgnoreStorage extends IStorage {
     }
 
 
-    @Override public void save(BarrierData barrierData, List<StateValue> stateValueList) {
+    @Override public void saveStateValue(BarrierData barrierData, List<StateValue> stateValueList) {
 
     }
 
 
-    @Override public void achieve(BarrierData barrierData, AchieveClean achieveClean) {
+    @Override public void achieveStateValue(BarrierData barrierData, AchieveClean achieveClean) {
 
     }
 
 
-    @Override public List<StateValue> recovery() {
+    @Override public List<StateValue> recoveryStateValue() {
 
         return null;
     }

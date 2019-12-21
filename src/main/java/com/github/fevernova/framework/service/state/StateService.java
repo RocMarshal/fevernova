@@ -47,18 +47,18 @@ public class StateService {
 
     public void saveStateValues(BarrierData barrierData, List<StateValue> stateValueList) {
 
-        this.storage.save(barrierData, stateValueList);
+        this.storage.saveStateValue(barrierData, stateValueList);
     }
 
 
     public void achieveStateValues(BarrierData barrierData) {
 
-        this.storage.achieve(barrierData, this.achieveClean);
+        this.storage.achieveStateValue(barrierData, this.achieveClean);
     }
 
 
-    public List<StateValue> recovery() {
+    public List<StateValue> recoveryStateValue() {
 
-        return this.storage.recovery();
+        return this.storage.recoveryStateValue();
     }
 }

@@ -25,12 +25,12 @@ public abstract class IStorage {
     }
 
 
-    public abstract void save(BarrierData barrierData, List<StateValue> stateValueList);
+    public abstract void saveStateValue(BarrierData barrierData, List<StateValue> stateValueList);
 
 
-    public abstract void achieve(BarrierData barrierData, AchieveClean achieveClean);
+    public abstract void achieveStateValue(BarrierData barrierData, AchieveClean achieveClean);
 
 
-    public abstract List<StateValue> recovery();
+    public abstract List<StateValue> recoveryStateValue();
 
 }

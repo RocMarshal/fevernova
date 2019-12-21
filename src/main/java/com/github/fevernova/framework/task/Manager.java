@@ -94,7 +94,7 @@ public class Manager {
     public void recovery() {
 
         if (this.stateService.isSupportRecovery()) {
-            List<StateValue> stateValueList = this.stateService.recovery();
+            List<StateValue> stateValueList = this.stateService.recoveryStateValue();
             if (CollectionUtils.isEmpty(stateValueList)) {
                 log.info("no states for recovery . ");
                 return;

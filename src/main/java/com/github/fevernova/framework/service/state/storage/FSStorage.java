@@ -9,11 +9,22 @@ import com.github.fevernova.framework.common.context.TaskContext;
 import com.github.fevernova.framework.common.data.BarrierData;
 import com.github.fevernova.framework.service.state.AchieveClean;
 import com.github.fevernova.framework.service.state.StateValue;
+import com.github.fevernova.framework.service.uniq.WireToOutputStream2;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
+import net.openhft.chronicle.bytes.WriteBytesMarshallable;
+import net.openhft.chronicle.wire.Wire;
+import net.openhft.chronicle.wire.WireType;
 import org.apache.commons.lang3.Validate;
 
+import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
@@ -24,6 +35,8 @@ public class FSStorage extends IStorage {
 
 
     private static final String PRE_TXT = "txt_";
+
+    private static final String PRE_BIN = "bin_";
 
     private String basePath;
 
@@ -39,19 +52,42 @@ public class FSStorage extends IStorage {
     }
 
 
-    @Override public void save(BarrierData barrierData, List<StateValue> stateValueList) {
+    @Override public void saveStateValue(BarrierData barrierData, List<StateValue> stateValueList) {
 
-        String stateFilePath = this.basePath + barrier2FileName(barrierData);
-        log.info("FSStorage save : " + stateFilePath);
+        String stateFilePath = this.basePath + barrier2FileName(barrierData, PRE_TXT);
+        log.info("FSStorage saveStateValue : " + stateFilePath);
         Util.writeFile(stateFilePath, JSON.toJSONBytes(stateValueList));
     }
 
 
-    @Override public void achieve(BarrierData barrierData, AchieveClean achieveClean) {
+    public void saveBinary(BarrierData barrierData, WriteBytesMarshallable obj) {
+
+        String stateFilePath = this.basePath + barrier2FileName(barrierData, PRE_BIN);
+        log.info("FSStorage saveBinary : " + stateFilePath);
+        final Path path = Paths.get(stateFilePath);
+        log.info("Writing state to {} ...", path);
+        try (final OutputStream os = Files.newOutputStream(path, StandardOpenOption.CREATE_NEW);
+                final OutputStream bos = new BufferedOutputStream(os);
+                final WireToOutputStream2 wireToOutputStream = new WireToOutputStream2(WireType.RAW, bos)) {
+
+            final Wire wire = wireToOutputStream.getWire();
+            wire.writeBytes(obj);
+            log.info("done serializing, flushing {} ...", path);
+            wireToOutputStream.flush();
+            //bos.flush();
+            log.info("completed {}", path);
+        } catch (final IOException ex) {
+            log.error("Can not write snapshot file: ", ex);
+            Validate.isTrue(false);
+        }
+    }
+
+
+    @Override public void achieveStateValue(BarrierData barrierData, AchieveClean achieveClean) {
 
         switch (achieveClean) {
             case CURRENT:
-                File file = new File(this.basePath + barrier2FileName(barrierData));
+                File file = new File(this.basePath + barrier2FileName(barrierData, PRE_TXT));
                 if (file.exists()) {
                     log.info("FSStorage delete : " + file.getName());
                     Validate.isTrue(file.delete());
@@ -67,7 +103,7 @@ public class FSStorage extends IStorage {
                 }
                 return;
             case BEFORE:
-                String current = barrier2FileName(barrierData);
+                String current = barrier2FileName(barrierData, PRE_TXT);
                 File[] files = new File(this.basePath).listFiles(pathname -> pathname.getName().startsWith(PRE_TXT));
                 if (files != null && files.length > 0) {
                     for (File fileb : files) {
@@ -82,7 +118,7 @@ public class FSStorage extends IStorage {
     }
 
 
-    @Override public List<StateValue> recovery() {
+    @Override public List<StateValue> recoveryStateValue() {
 
         File[] files = new File(this.basePath).listFiles(pathname -> pathname.getName().startsWith(PRE_TXT));
         if (files != null && files.length > 0) {
@@ -96,8 +132,8 @@ public class FSStorage extends IStorage {
     }
 
 
-    private String barrier2FileName(BarrierData barrierData) {
+    private String barrier2FileName(BarrierData barrierData, String pre) {
 
-        return PRE_TXT + barrierData.getTimestamp() + "_" + barrierData.getBarrierId();
+        return pre + barrierData.getTimestamp() + "_" + barrierData.getBarrierId();
     }
 }
