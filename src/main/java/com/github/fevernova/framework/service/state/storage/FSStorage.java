@@ -7,8 +7,8 @@ import com.github.fevernova.framework.common.context.GlobalContext;
 import com.github.fevernova.framework.common.context.JobTags;
 import com.github.fevernova.framework.common.context.TaskContext;
 import com.github.fevernova.framework.common.data.BarrierData;
-import com.github.fevernova.framework.component.ComponentType;
 import com.github.fevernova.framework.service.state.AchieveClean;
+import com.github.fevernova.framework.service.state.BinaryFileIdentity;
 import com.github.fevernova.framework.service.state.StateValue;
 import com.github.fevernova.framework.service.uniq.WireToOutputStream2;
 import com.google.common.collect.Lists;
@@ -113,9 +113,9 @@ public class FSStorage extends IStorage {
     }
 
 
-    @Override public String saveBinary(ComponentType componentType, int total, int index, BarrierData barrierData, WriteBytesMarshallable obj) {
+    @Override public String saveBinary(BinaryFileIdentity identity, BarrierData barrierData, WriteBytesMarshallable obj) {
 
-        String stateFilePath = this.dataPath + component2FileName(componentType, total, index) + "_" + barrier2FileName(barrierData, BIN);
+        String stateFilePath = this.dataPath + identity.toString() + barrier2FileName(barrierData, BIN);
         log.info("FSStorage saveBinary : " + stateFilePath);
         final Path path = Paths.get(stateFilePath);
         log.info("Writing state to {} ...", path);
@@ -133,7 +133,7 @@ public class FSStorage extends IStorage {
             log.error("Can not write snapshot file: ", ex);
             Validate.isTrue(false);
         }
-        achieveBinary(component2FileName(componentType, total, index), 10);
+        achieveBinary(identity.toString(), 10);
         return stateFilePath;
     }
 
@@ -172,11 +172,5 @@ public class FSStorage extends IStorage {
     private String barrier2FileName(BarrierData barrierData, String end) {
 
         return barrierData.getTimestamp() + "_" + barrierData.getBarrierId() + end;
-    }
-
-
-    private String component2FileName(ComponentType componentType, int total, int index) {
-
-        return componentType.name() + "_" + total + "_" + index;
     }
 }

@@ -4,7 +4,6 @@ package com.github.fevernova.framework.service.state;
 import com.github.fevernova.framework.common.context.GlobalContext;
 import com.github.fevernova.framework.common.context.TaskContext;
 import com.github.fevernova.framework.common.data.BarrierData;
-import com.github.fevernova.framework.component.ComponentType;
 import com.github.fevernova.framework.service.state.storage.IStorage;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -66,9 +65,9 @@ public class StateService {
     }
 
 
-    public String saveBinary(ComponentType componentType, int total, int index, BarrierData barrierData, WriteBytesMarshallable obj) {
+    public String saveBinary(BinaryFileIdentity identity, BarrierData barrierData, WriteBytesMarshallable obj) {
 
-        return this.storage.saveBinary(componentType, total, index, barrierData, obj);
+        return this.storage.saveBinary(identity, barrierData, obj);
     }
 
 
