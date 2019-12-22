@@ -42,6 +42,8 @@ public class FSStorage extends IStorage {
 
     private String dataPath;
 
+    private int maxRemain;
+
 
     public FSStorage(GlobalContext globalContext, TaskContext taskContext) {
 
@@ -51,6 +53,7 @@ public class FSStorage extends IStorage {
         String taskPath = "/" + tags.getJobType() + "-" + tags.getJobId() + "/" + tags.getPodTotalNum() + "-" + tags.getPodIndex() + "/";
         this.statePath = basePath + taskPath + "state/";
         this.dataPath = basePath + taskPath + "data/";
+        this.maxRemain = taskContext.getInteger("maxremain", 10);
         Util.mkDir(new File(this.statePath));
         Util.mkDir(new File(this.dataPath));
     }
@@ -67,13 +70,6 @@ public class FSStorage extends IStorage {
     @Override public void achieveStateValue(BarrierData barrierData, AchieveClean achieveClean) {
 
         switch (achieveClean) {
-            case CURRENT:
-                File file = new File(this.statePath + barrier2FileName(barrierData, TXT));
-                if (file.exists()) {
-                    log.info("FSStorage delete : " + file.getName());
-                    Validate.isTrue(file.delete());
-                }
-                return;
             case ALL:
                 File[] allFiles = new File(this.statePath).listFiles(pathname -> pathname.getName().endsWith(TXT));
                 if (allFiles != null && allFiles.length > 0) {
@@ -84,17 +80,26 @@ public class FSStorage extends IStorage {
                 }
                 return;
             case BEFORE:
-                String current = barrier2FileName(barrierData, TXT);
-                File[] files = new File(this.statePath).listFiles(pathname -> pathname.getName().endsWith(TXT));
-                if (files != null && files.length > 0) {
-                    for (File fileb : files) {
-                        if (current.compareTo(fileb.getName()) > 0) {
+                String t1 = barrier2FileName(barrierData, TXT);
+                File[] fs1 = new File(this.statePath).listFiles(pathname -> pathname.getName().endsWith(TXT));
+                if (fs1 != null && fs1.length > 0) {
+                    for (File fileb : fs1) {
+                        if (t1.compareTo(fileb.getName()) > 0) {
                             log.info("FSStorage delete : " + fileb.getName());
                             Validate.isTrue(fileb.delete());
                         }
                     }
                 }
                 return;
+            case LASTN:
+                File[] fs2 = new File(this.statePath).listFiles(pathname -> pathname.getName().endsWith(TXT));
+                if (fs2 != null && fs2.length > this.maxRemain) {
+                    Arrays.sort(fs2, Comparator.comparing(File::getName));
+                    for (int i = 0; i < fs2.length - this.maxRemain; i++) {
+                        log.info("FSStorage delete : " + fs2[i].getName());
+                        Validate.isTrue(fs2[i].delete());
+                    }
+                }
         }
     }
 
@@ -127,23 +132,22 @@ public class FSStorage extends IStorage {
             wire.writeBytes(obj);
             log.info("done serializing, flushing {} ...", path);
             wireToOutputStream.flush();
-            //bos.flush();
             log.info("completed {}", path);
         } catch (final IOException ex) {
             log.error("Can not write snapshot file: ", ex);
             Validate.isTrue(false);
         }
-        achieveBinary(identity.toString(), 10);
+        achieveBinary(identity.toString());
         return stateFilePath;
     }
 
 
-    private void achieveBinary(String pre, int remain) {
+    private void achieveBinary(String pre) {
 
         File[] files = new File(this.dataPath).listFiles(pathname -> pathname.getName().startsWith(pre) && pathname.getName().endsWith(BIN));
-        if (files != null && files.length > remain) {
+        if (files != null && files.length > this.maxRemain) {
             Arrays.sort(files, Comparator.comparing(File::getName));
-            for (int i = 0; i < files.length - remain; i++) {
+            for (int i = 0; i < files.length - this.maxRemain; i++) {
                 log.info("FSStorage delete : " + files[i].getName());
                 Validate.isTrue(files[i].delete());
             }
