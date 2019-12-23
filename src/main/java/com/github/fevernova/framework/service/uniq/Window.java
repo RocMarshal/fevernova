@@ -1,18 +1,21 @@
 package com.github.fevernova.framework.service.uniq;
 
 
+import com.google.common.collect.Maps;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import net.openhft.chronicle.bytes.BytesIn;
 import net.openhft.chronicle.bytes.BytesOut;
 import net.openhft.chronicle.bytes.WriteBytesMarshallable;
 import org.apache.commons.lang3.Validate;
+import org.eclipse.collections.api.block.procedure.primitive.IntObjectProcedure;
 import org.eclipse.collections.impl.map.mutable.primitive.IntObjectHashMap;
 import org.jetbrains.annotations.NotNull;
 import org.roaringbitmap.RoaringBitmap;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.Map;
 
 
 @Slf4j
@@ -24,6 +27,8 @@ public class Window implements WriteBytesMarshallable, Comparable<Window> {
 
     private final IntObjectHashMap<RoaringBitmap> bitmaps;
 
+    private final Map<Integer, RoaringBitmap> bitmapsCache;
+
     //cache
     private int currentHigh = 0;
 
@@ -34,6 +39,7 @@ public class Window implements WriteBytesMarshallable, Comparable<Window> {
 
         this.seq = seq;
         this.bitmaps = new IntObjectHashMap<>();
+        this.bitmapsCache = Maps.newHashMap();
     }
 
 
@@ -57,6 +63,8 @@ public class Window implements WriteBytesMarshallable, Comparable<Window> {
                 Validate.isTrue(false);
             }
         }
+        this.bitmapsCache = Maps.newHashMap();
+        this.bitmaps.forEachKeyValue((IntObjectProcedure<RoaringBitmap>) (each, parameter) -> bitmapsCache.put(each, parameter));
     }
 
 
@@ -86,10 +94,11 @@ public class Window implements WriteBytesMarshallable, Comparable<Window> {
         int low = (int) eventId;
         if (this.currentRb == null || this.currentHigh != high) {
             this.currentHigh = high;
-            this.currentRb = this.bitmaps.get(high);
+            this.currentRb = this.bitmapsCache.get(high);
             if (this.currentRb == null) {
                 this.currentRb = new RoaringBitmap();
                 this.bitmaps.put(high, this.currentRb);
+                this.bitmapsCache.put(high, this.currentRb);
             }
         }
         return currentRb.checkedAdd(low);

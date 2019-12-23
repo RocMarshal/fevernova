@@ -4,13 +4,17 @@ package com.github.fevernova.framework.service.uniq;
 import com.github.fevernova.framework.common.context.GlobalContext;
 import com.github.fevernova.framework.common.context.TaskContext;
 import com.github.fevernova.hdfs.Constants;
+import com.google.common.collect.Maps;
 import net.openhft.chronicle.bytes.BytesIn;
 import net.openhft.chronicle.bytes.BytesOut;
 import net.openhft.chronicle.bytes.ReadBytesMarshallable;
 import net.openhft.chronicle.bytes.WriteBytesMarshallable;
 import net.openhft.chronicle.core.io.IORuntimeException;
 import org.apache.commons.lang3.Validate;
+import org.eclipse.collections.api.block.procedure.primitive.IntObjectProcedure;
 import org.eclipse.collections.impl.map.mutable.primitive.IntObjectHashMap;
+
+import java.util.Map;
 
 
 public class SlideWindowFilter implements WriteBytesMarshallable, ReadBytesMarshallable {
@@ -26,6 +30,8 @@ public class SlideWindowFilter implements WriteBytesMarshallable, ReadBytesMarsh
 
     private IntObjectHashMap<WindowsArray> filter;
 
+    private Map<Integer, WindowsArray> filterCache;
+
     //cache
     private int currentTypeId = 0;
 
@@ -40,6 +46,7 @@ public class SlideWindowFilter implements WriteBytesMarshallable, ReadBytesMarsh
         Validate.isTrue(this.span % 60000 == 0 && Constants.MINUTE_PERIOD_SET.contains((int) (this.span / 60000)));
         this.windowNum = taskContext.getInteger("num", 10);
         this.filter = new IntObjectHashMap();
+        this.filterCache = Maps.newHashMap();
     }
 
 
@@ -47,9 +54,10 @@ public class SlideWindowFilter implements WriteBytesMarshallable, ReadBytesMarsh
 
         if (this.currentWindows == null || this.currentTypeId != typeId) {
             this.currentTypeId = typeId;
-            this.currentWindows = this.filter.get(typeId);
+            this.currentWindows = this.filterCache.get(typeId);
             if (this.currentWindows == null) {
                 this.currentWindows = new WindowsArray(this.span, this.windowNum);
+                this.filter.put(typeId, this.currentWindows);
                 this.filter.put(typeId, this.currentWindows);
             }
         }
@@ -72,5 +80,6 @@ public class SlideWindowFilter implements WriteBytesMarshallable, ReadBytesMarsh
     @Override public void readMarshallable(BytesIn bytes) throws IORuntimeException {
 
         this.filter = SerializationUtils.readIntMap(bytes, bytesIn -> new WindowsArray(span, windowNum, bytesIn));
+        this.filter.forEachKeyValue((IntObjectProcedure<WindowsArray>) (each, parameter) -> filterCache.put(each, parameter));
     }
 }
