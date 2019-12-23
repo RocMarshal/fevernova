@@ -31,10 +31,7 @@ public abstract class AbstractBatchSink extends AbstractSink {
     protected long lastRollingSeq;
 
 
-    public AbstractBatchSink(GlobalContext globalContext,
-                             TaskContext taskContext,
-                             int index,
-                             int inputsNum) {
+    public AbstractBatchSink(GlobalContext globalContext, TaskContext taskContext, int index, int inputsNum) {
 
         super(globalContext, taskContext, index, inputsNum);
         this.syncSize = super.taskContext.getLong("syncsize", 8 * 1024 * 1024L);

@@ -6,12 +6,11 @@ import com.github.fevernova.framework.service.checkpoint.CheckPoint;
 import lombok.*;
 
 
-@Setter
+@ToString
 @Getter
 @Builder
-@ToString
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 public class MysqlCheckPoint implements CheckPoint {
 
 

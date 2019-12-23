@@ -24,14 +24,15 @@ public class T_State {
         stateValue.setComponentType(ComponentType.SOURCE);
         stateValue.setComponentTotalNum(3);
         stateValue.setCompomentIndex(1);
-        MysqlCheckPoint checkPoint = new MysqlCheckPoint();
-        checkPoint.setBinlogFileName("binlog1");
-        checkPoint.setBinlogPosition(4);
-        checkPoint.setBinlogTimestamp(123456789);
-        checkPoint.setGlobalId(123);
-        checkPoint.setHost("127.0.0.1");
-        checkPoint.setPort(3306);
-        checkPoint.setServerId(12);
+        MysqlCheckPoint checkPoint = MysqlCheckPoint.builder()
+                .binlogFileName("binlog1")
+                .binlogPosition(4)
+                .binlogTimestamp(123456789)
+                .globalId(123)
+                .host("127.0.0.1")
+                .port(3306)
+                .serverId(12)
+                .build();
         stateValue.setValue(checkPoint);
         System.out.println(JSON.toJSONString(stateValue));
 
@@ -40,8 +41,8 @@ public class T_State {
         stateValue1.setComponentTotalNum(2);
         stateValue1.setCompomentIndex(1);
         HDFSCheckPoint checkPoint1 = new HDFSCheckPoint();
-        checkPoint1.getFiles().add(new FileInfo("f0", "t0"));
-        checkPoint1.getFiles().add(new FileInfo("f1", "t1"));
+        checkPoint1.getFiles().add(FileInfo.builder().from("f0").to("t0").build());
+        checkPoint1.getFiles().add(FileInfo.builder().from("f1").to("t1").build());
         stateValue1.setValue(checkPoint1);
         System.out.println(JSON.toJSONString(stateValue1));
 

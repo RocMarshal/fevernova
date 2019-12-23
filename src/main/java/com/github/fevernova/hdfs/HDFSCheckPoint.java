@@ -10,9 +10,7 @@ import lombok.*;
 import java.util.List;
 
 
-@Setter
 @Getter
-@Builder
 @ToString
 @AllArgsConstructor
 public class HDFSCheckPoint implements CheckPoint {

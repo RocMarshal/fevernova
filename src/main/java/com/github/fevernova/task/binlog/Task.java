@@ -29,9 +29,10 @@ public class Task extends BaseTask {
         super(context, tags);
         context.put(Constants.INPUTCHANNEL_ + Constants.SIZE, "1024");
         context.put(Constants.OUTPUTCHANNEL_ + Constants.SIZE, "512");
-        this.parserInitParallelism =
-                context.getInteger(Constants.PARSER_ + Constants.PARALLELISM, Math.min(this.globalContext.getJobTags().getUnit(), 2));
-        this.sinkInitParallelism = context.getInteger(Constants.SINK_ + Constants.PARALLELISM, this.globalContext.getJobTags().getUnit());
+
+        int unit = this.globalContext.getJobTags().getUnit();
+        this.parserInitParallelism = context.getInteger(Constants.PARSER_ + Constants.PARALLELISM, Math.min(unit, 2));
+        this.sinkInitParallelism = context.getInteger(Constants.SINK_ + Constants.PARALLELISM, unit);
     }
 
 
@@ -48,8 +49,8 @@ public class Task extends BaseTask {
                 .inputSelectorClass(StringSelector.class)
                 .outputSelectorClass(StringSelector.class)
                 .sourceParallelism(1)
-                .parserParallelism(Math.min(this.globalContext.getJobTags().getUnit(), 2))
-                .sinkParallelism(this.globalContext.getJobTags().getUnit() + 1)
+                .parserParallelism(this.parserInitParallelism)
+                .sinkParallelism(this.sinkInitParallelism + 1)
                 .sourceAvailbleNum(new AtomicInteger(1))
                 .parserAvailbleNum(new AtomicInteger(this.parserInitParallelism))
                 .sinkAvailbleNum(new AtomicInteger(this.sinkInitParallelism))

@@ -1,4 +1,4 @@
-package com.github.fevernova.task.logdist;
+package com.github.fevernova.task.dataarchive;
 
 
 import com.alibaba.fastjson.JSON;
@@ -10,7 +10,7 @@ import com.github.fevernova.framework.common.data.broadcast.GlobalOnceData;
 import com.github.fevernova.framework.component.channel.ChannelProxy;
 import com.github.fevernova.framework.component.source.AbstractSource;
 import com.github.fevernova.framework.service.barrier.listener.BarrierCoordinatorListener;
-import com.github.fevernova.framework.service.checkpoint.CheckPointSaverWithCoordiantor;
+import com.github.fevernova.framework.service.checkpoint.CheckPointSaverPlus;
 import com.github.fevernova.framework.service.checkpoint.ICheckPointSaver;
 import com.github.fevernova.framework.service.state.StateValue;
 import com.github.fevernova.kafka.KafkaConstants;
@@ -34,7 +34,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 
 @Slf4j
-public class JobSourceV2 extends AbstractSource<byte[], KafkaData> implements ConsumerRebalanceListener, BarrierCoordinatorListener {
+public class JobSource extends AbstractSource<byte[], KafkaData> implements ConsumerRebalanceListener, BarrierCoordinatorListener {
 
 
     protected ICheckPointSaver<KafkaCheckPoint> checkpoints;
@@ -60,18 +60,14 @@ public class JobSourceV2 extends AbstractSource<byte[], KafkaData> implements Co
     private boolean broadCastOnStart;
 
 
-    public JobSourceV2(GlobalContext globalContext,
-                       TaskContext taskContext,
-                       int index,
-                       int inputsNum,
-                       ChannelProxy channelProxy) {
+    public JobSource(GlobalContext globalContext, TaskContext taskContext, int index, int inputsNum, ChannelProxy channelProxy) {
 
         super(globalContext, taskContext, index, inputsNum, channelProxy);
         this.topic = super.taskContext.get(KafkaConstants.TOPICS);
         this.autoDiscovery = super.taskContext.getBoolean("autodiscovery", false);
         this.kafkaContext = new TaskContext(KafkaConstants.KAFKA, super.taskContext.getSubProperties(KafkaConstants.KAFKA_));
         this.pollTimeOut = super.taskContext.getLong(KafkaConstants.POLLTIMEOUT, 5000L);
-        this.checkpoints = new CheckPointSaverWithCoordiantor<>();
+        this.checkpoints = new CheckPointSaverPlus<>();
         this.broadCastOnStart = super.taskContext.getBoolean("broadcastonstart", false);
     }
 

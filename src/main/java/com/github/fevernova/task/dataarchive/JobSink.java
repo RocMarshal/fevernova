@@ -32,6 +32,6 @@ public class JobSink extends AbstractHDFSBatchSink {
     @Override public BroadcastData onBroadcast(BroadcastData broadcastData) {
 
         ((HDFSOrcFile) super.hdfsWriter).initColumnInfos((SchemaData) broadcastData);
-        return null;
+        return broadcastData;
     }
 }

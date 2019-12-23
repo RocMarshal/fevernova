@@ -47,14 +47,8 @@ public class ChannelProxy<K, V extends Data> {
     private boolean isExactlyOnce;
 
 
-    public ChannelProxy(GlobalContext globalContext,
-                        TaskContext taskContext,
-                        List<RingbufferChannel> channels,
-                        AtomicInteger availbleNum,
-                        DataEventFactory dataEventFactory,
-                        ISelector selector,
-                        int index,
-                        boolean dynamicBalance) {
+    public ChannelProxy(GlobalContext globalContext, TaskContext taskContext, List<RingbufferChannel> channels, AtomicInteger availbleNum,
+                        DataEventFactory dataEventFactory, ISelector selector, int index, boolean dynamicBalance) {
 
         this.globalContext = globalContext;
         this.channelList.addAll(channels);
@@ -62,9 +56,8 @@ public class ChannelProxy<K, V extends Data> {
         this.dataEventFactory = dataEventFactory;
         this.selector = selector;
         this.index = index;
-        this.named =
-                Named.builder().taskName(globalContext.getJobTags().getJobType()).moduleName(taskContext.getName())
-                        .moduleType(this.getClass().getSimpleName()).index(this.index).total(taskContext.getInteger(Constants.PARALLELISM)).build();
+        this.named = Named.builder().taskName(globalContext.getJobTags().getJobType()).moduleName(taskContext.getName())
+                .moduleType(this.getClass().getSimpleName()).index(this.index).total(taskContext.getInteger(Constants.PARALLELISM)).build();
 
         this.dynamicBalance = dynamicBalance;
         this.aligner = Manager.getInstance().getAlignService().getAligner(taskContext.getName(), taskContext.getInteger(Constants.PARALLELISM));

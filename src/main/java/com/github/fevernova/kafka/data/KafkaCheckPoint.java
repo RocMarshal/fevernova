@@ -4,16 +4,14 @@ package com.github.fevernova.kafka.data;
 import com.alibaba.fastjson.JSONObject;
 import com.github.fevernova.framework.service.checkpoint.CheckPoint;
 import com.google.common.collect.Maps;
-import lombok.*;
+import lombok.Getter;
+import lombok.ToString;
 
 import java.util.Map;
 
 
-@Setter
 @Getter
-@Builder
 @ToString
-@AllArgsConstructor
 public class KafkaCheckPoint implements CheckPoint {
 
 
@@ -28,10 +26,12 @@ public class KafkaCheckPoint implements CheckPoint {
 
     public void put(String topic, int partition, long offset) {
 
-        if (!this.offsets.containsKey(topic)) {
-            this.offsets.put(topic, Maps.newHashMap());
+        Map<Integer, Long> offs = this.offsets.get(topic);
+        if (offs == null) {
+            offs = Maps.newHashMap();
+            this.offsets.put(topic, offs);
         }
-        this.offsets.get(topic).put(partition, offset);
+        offs.put(partition, offset);
     }
 
 

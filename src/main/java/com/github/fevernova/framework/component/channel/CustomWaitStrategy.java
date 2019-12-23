@@ -33,11 +33,7 @@ public class CustomWaitStrategy implements WaitStrategy {
 
 
     @Override
-    public long waitFor(
-            final long sequence,
-            final Sequence cursorSequence,
-            final Sequence dependentSequence,
-            final SequenceBarrier barrier)
+    public long waitFor(final long sequence, final Sequence cursorSequence, final Sequence dependentSequence, final SequenceBarrier barrier)
             throws AlertException, InterruptedException, TimeoutException {
 
         long nanos = timeoutInNanos;

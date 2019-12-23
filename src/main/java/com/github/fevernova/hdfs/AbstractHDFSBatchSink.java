@@ -75,7 +75,7 @@ public abstract class AbstractHDFSBatchSink extends AbstractBatchSink implements
 
         if (this.hdfsWriter != null) {
             Pair<String, String> p = this.hdfsWriter.close();
-            this.hdfsFilePathList.add(new FileInfo(p.getKey(), p.getValue()));
+            this.hdfsFilePathList.add(FileInfo.builder().from(p.getKey()).to(p.getValue()).build());
         }
     }
 

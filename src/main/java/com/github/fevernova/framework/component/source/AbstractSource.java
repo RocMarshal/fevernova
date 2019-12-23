@@ -30,11 +30,7 @@ public abstract class AbstractSource<K, V extends Data> extends Component implem
     private AtomicInteger barriersNum = new AtomicInteger(0);
 
 
-    public AbstractSource(GlobalContext globalContext,
-                          TaskContext taskContext,
-                          int index,
-                          int inputsNum,
-                          ChannelProxy channelProxy) {
+    public AbstractSource(GlobalContext globalContext, TaskContext taskContext, int index, int inputsNum, ChannelProxy channelProxy) {
 
         super(globalContext, taskContext, index, inputsNum);
         this.channelProxy = channelProxy;

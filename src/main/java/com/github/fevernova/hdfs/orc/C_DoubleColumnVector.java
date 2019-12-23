@@ -22,4 +22,5 @@ public class C_DoubleColumnVector implements Convert {
             dv.vector[row] = value;
         }
     }
+
 }

@@ -12,7 +12,6 @@ import com.github.fevernova.framework.task.Manager;
 import com.github.fevernova.framework.task.TaskTopology;
 import com.github.fevernova.kafka.data.KafkaDataFactory;
 import com.github.fevernova.task.dataarchive.data.ListDataFactory;
-import com.github.fevernova.task.logdist.JobSourceV2;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -40,7 +39,7 @@ public class Task extends BaseTask {
         super.init();
         super.manager = Manager.getInstance(this.globalContext, this.context);
         TaskConfig taskConfig = TaskConfig.builder()
-                .sourceClass(JobSourceV2.class)
+                .sourceClass(JobSource.class)
                 .parserClass(JobParser.class)
                 .sinkClass(JobSink.class)
                 .inputDataFactoryClass(KafkaDataFactory.class)

@@ -47,8 +47,9 @@ public abstract class AbstractRowsEventDataDeserializerV2<T extends EventData> e
     private static void appendDateTime(StringBuffer stringBuffer, int value, String split) {
 
         stringBuffer.append(split);
-        if (value < 10)
+        if (value < 10) {
             stringBuffer.append("0");
+        }
         stringBuffer.append(value);
     }
 
@@ -56,10 +57,11 @@ public abstract class AbstractRowsEventDataDeserializerV2<T extends EventData> e
     private static void appendMillisecond(StringBuffer stringBuffer, int value) {
 
         stringBuffer.append(".");
-        if (value < 10)
+        if (value < 10) {
             stringBuffer.append("00");
-        else if (value < 100)
+        } else if (value < 100) {
             stringBuffer.append("0");
+        }
         stringBuffer.append(value);
     }
 

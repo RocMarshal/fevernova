@@ -15,10 +15,7 @@ public class JobSink extends AbstractHDFSBatchSink {
     private TaskContext writerContext;
 
 
-    public JobSink(GlobalContext globalContext,
-                   TaskContext taskContext,
-                   int index,
-                   int inputsNum) {
+    public JobSink(GlobalContext globalContext, TaskContext taskContext, int index, int inputsNum) {
 
         super(globalContext, taskContext, index, inputsNum);
         this.writerContext = new TaskContext("writer", super.taskContext.getSubProperties("writer."));

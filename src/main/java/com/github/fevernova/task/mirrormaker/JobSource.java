@@ -50,11 +50,7 @@ public class JobSource extends AbstractSource<byte[], KafkaData> implements Cons
     private Map<String, String> destTopics;
 
 
-    public JobSource(GlobalContext globalContext,
-                     TaskContext taskContext,
-                     int index,
-                     int inputsNum,
-                     ChannelProxy channelProxy) {
+    public JobSource(GlobalContext globalContext, TaskContext taskContext, int index, int inputsNum, ChannelProxy channelProxy) {
 
         super(globalContext, taskContext, index, inputsNum, channelProxy);
         this.topics = Util.splitStringWithFilter(super.taskContext.get(KafkaConstants.TOPICS), ",", null);
@@ -72,7 +68,6 @@ public class JobSource extends AbstractSource<byte[], KafkaData> implements Cons
                 pts.forEach(s -> partitions.add(new TopicPartition(topic, Integer.valueOf(s))));
             }
         });
-
     }
 
 

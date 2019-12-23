@@ -18,10 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 public abstract class Processor extends Component implements WorkHandler<DataEvent>, TimeoutHandler, WaitNotify {
 
 
-    public Processor(GlobalContext globalContext,
-                     TaskContext taskContext,
-                     int index,
-                     int inputsNum) {
+    public Processor(GlobalContext globalContext, TaskContext taskContext, int index, int inputsNum) {
 
         super(globalContext, taskContext, index, inputsNum);
     }

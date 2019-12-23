@@ -11,10 +11,7 @@ import com.github.fevernova.framework.component.Processor;
 public abstract class AbstractSink extends Processor {
 
 
-    public AbstractSink(GlobalContext globalContext,
-                        TaskContext taskContext,
-                        int index,
-                        int inputsNum) {
+    public AbstractSink(GlobalContext globalContext, TaskContext taskContext, int index, int inputsNum) {
 
         super(globalContext, taskContext, index, inputsNum);
     }

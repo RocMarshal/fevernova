@@ -129,22 +129,24 @@ public class HDFSOrcFile extends AbstractHDFSWriter {
 
     public void initColumnInfos(SchemaData schemaData) {
 
-        if (this.columnInfos == null) {
-            this.columnInfos = Lists.newArrayList();
-            try {
-                for (ColumnInfo columnInfo : schemaData.getColumnInfos()) {
-                    this.columnInfos.add(ColumnInfo.builder().clazz(columnInfo.getClazz())
-                                                 .uData(columnInfo.getClazz().getConstructor(boolean.class).newInstance(true))
-                                                 .sourceColumnName(columnInfo.getSourceColumnName())
-                                                 .targetColumnName(columnInfo.getTargetColumnName())
-                                                 .targetTypeEnum(columnInfo.getTargetTypeEnum())
-                                                 .orcTypeEnum(OrcTypeEnum.findType(columnInfo.getTargetTypeEnum()))
-                                                 .build());
-                }
-            } catch (Exception e) {
-                log.error("Init ColumnInfo Error : ", e);
-                Validate.isTrue(false);
+        if (this.columnInfos != null) {
+            return;
+        }
+        this.columnInfos = Lists.newArrayList();
+        try {
+            for (ColumnInfo columnInfo : schemaData.getColumnInfos()) {
+                this.columnInfos.add(ColumnInfo.builder().clazz(columnInfo.getClazz())
+                                             .uData(columnInfo.getClazz().getConstructor(boolean.class).newInstance(true))
+                                             .sourceColumnName(columnInfo.getSourceColumnName())
+                                             .targetColumnName(columnInfo.getTargetColumnName())
+                                             .targetTypeEnum(columnInfo.getTargetTypeEnum())
+                                             .orcTypeEnum(OrcTypeEnum.findType(columnInfo.getTargetTypeEnum()))
+                                             .build());
             }
+        } catch (Exception e) {
+            log.error("Init ColumnInfo Error : ", e);
+            Validate.isTrue(false);
         }
     }
+
 }

@@ -17,11 +17,7 @@ public abstract class AbstractParser<K, V extends Data> extends Processor {
     protected ChannelProxy<K, V> channelProxy;
 
 
-    public AbstractParser(GlobalContext globalContext,
-                          TaskContext taskContext,
-                          int index,
-                          int inputsNum,
-                          ChannelProxy channelProxy) {
+    public AbstractParser(GlobalContext globalContext, TaskContext taskContext, int index, int inputsNum, ChannelProxy channelProxy) {
 
         super(globalContext, taskContext, index, inputsNum);
         this.channelProxy = channelProxy;

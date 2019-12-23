@@ -22,4 +22,5 @@ public class C_LongColumnVector implements Convert {
             lv.vector[row] = value;
         }
     }
+
 }

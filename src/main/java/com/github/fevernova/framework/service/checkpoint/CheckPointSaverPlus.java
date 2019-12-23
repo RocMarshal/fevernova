@@ -5,7 +5,7 @@ import java.util.Iterator;
 import java.util.Map;
 
 
-public class CheckPointSaverWithCoordiantor<T extends CheckPoint> extends CheckPointSaver<T> {
+public class CheckPointSaverPlus<T extends CheckPoint> extends CheckPointSaver<T> {
 
 
     @Override public T remove(long barrierId) {
