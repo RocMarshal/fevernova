@@ -28,6 +28,72 @@ public abstract class AbstractRowsEventDataDeserializerV2<T extends EventData> e
     }
 
 
+    private static void appendYearTime(StringBuffer stringBuffer, int value, String split) {
+
+        stringBuffer.append(split);
+        if (value > 999) {
+
+        } else if (value > 99) {
+            stringBuffer.append("0");
+        } else if (value > 9) {
+            stringBuffer.append("00");
+        } else {
+            stringBuffer.append("000");
+        }
+        stringBuffer.append(value);
+    }
+
+
+    private static void appendDateTime(StringBuffer stringBuffer, int value, String split) {
+
+        stringBuffer.append(split);
+        if (value < 10)
+            stringBuffer.append("0");
+        stringBuffer.append(value);
+    }
+
+
+    private static void appendMillisecond(StringBuffer stringBuffer, int value) {
+
+        stringBuffer.append(".");
+        if (value < 10)
+            stringBuffer.append("00");
+        else if (value < 100)
+            stringBuffer.append("0");
+        stringBuffer.append(value);
+    }
+
+
+    private static long bigEndianLong(byte[] bytes, int offset, int length) {
+
+        long result = 0;
+        for (int i = offset; i < (offset + length); i++) {
+            byte b = bytes[i];
+            result = (result << 8) | (b >= 0 ? (int) b : (b + 256));
+        }
+        return result;
+    }
+
+
+    private static int bitSlice(long value, int bitOffset, int numberOfBits, int payloadSize) {
+
+        long result = value >> payloadSize - (bitOffset + numberOfBits);
+        return (int) (result & ((1 << numberOfBits) - 1));
+    }
+
+
+    private static int[] split(long value, int divider, int length) {
+
+        int[] result = new int[length];
+        for (int i = 0; i < length - 1; i++) {
+            result[i] = (int) (value % divider);
+            value /= divider;
+        }
+        result[length - 1] = (int) value;
+        return result;
+    }
+
+
     @Override protected Serializable deserializeBit(int meta, ByteArrayInputStream inputStream) throws IOException {
 
         BitSet bs = (BitSet) super.deserializeBit(meta, inputStream);
@@ -152,42 +218,6 @@ public abstract class AbstractRowsEventDataDeserializerV2<T extends EventData> e
     }
 
 
-    private static void appendYearTime(StringBuffer stringBuffer, int value, String split) {
-
-        stringBuffer.append(split);
-        if (value > 999) {
-
-        } else if (value > 99) {
-            stringBuffer.append("0");
-        } else if (value > 9) {
-            stringBuffer.append("00");
-        } else {
-            stringBuffer.append("000");
-        }
-        stringBuffer.append(value);
-    }
-
-
-    private static void appendDateTime(StringBuffer stringBuffer, int value, String split) {
-
-        stringBuffer.append(split);
-        if (value < 10)
-            stringBuffer.append("0");
-        stringBuffer.append(value);
-    }
-
-
-    private static void appendMillisecond(StringBuffer stringBuffer, int value) {
-
-        stringBuffer.append(".");
-        if (value < 10)
-            stringBuffer.append("00");
-        else if (value < 100)
-            stringBuffer.append("0");
-        stringBuffer.append(value);
-    }
-
-
     @Override
     void setDeserializeDateAndTimeAsLong(boolean value) {
 
@@ -208,36 +238,6 @@ public abstract class AbstractRowsEventDataDeserializerV2<T extends EventData> e
 
         this.invalidDateAndTimeRepresentation = value;
         super.setInvalidDateAndTimeRepresentation(value);
-    }
-
-
-    private static long bigEndianLong(byte[] bytes, int offset, int length) {
-
-        long result = 0;
-        for (int i = offset; i < (offset + length); i++) {
-            byte b = bytes[i];
-            result = (result << 8) | (b >= 0 ? (int) b : (b + 256));
-        }
-        return result;
-    }
-
-
-    private static int bitSlice(long value, int bitOffset, int numberOfBits, int payloadSize) {
-
-        long result = value >> payloadSize - (bitOffset + numberOfBits);
-        return (int) (result & ((1 << numberOfBits) - 1));
-    }
-
-
-    private static int[] split(long value, int divider, int length) {
-
-        int[] result = new int[length];
-        for (int i = 0; i < length - 1; i++) {
-            result[i] = (int) (value % divider);
-            value /= divider;
-        }
-        result[length - 1] = (int) value;
-        return result;
     }
 
 

@@ -146,6 +146,14 @@ public class ArrayMap<K, V> implements Map<K, V> {
     }
 
 
+    public V putP(int p, V value) {
+
+        Object v = this.vals[p];
+        this.vals[p] = (value == null ? NULL : value);
+        return v == NULL ? null : (V) v;
+    }
+
+
     final class EntrySet extends AbstractSet<Entry<K, V>> {
 
 
@@ -238,14 +246,6 @@ public class ArrayMap<K, V> implements Map<K, V> {
 
             return putP(this.pos, (V) value);
         }
-    }
-
-
-    public V putP(int p, V value) {
-
-        Object v = this.vals[p];
-        this.vals[p] = (value == null ? NULL : value);
-        return v == NULL ? null : (V) v;
     }
 
 }

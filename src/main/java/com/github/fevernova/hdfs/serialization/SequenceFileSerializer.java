@@ -3,7 +3,6 @@ package com.github.fevernova.hdfs.serialization;
 
 import com.github.fevernova.framework.common.context.TaskContext;
 import com.github.fevernova.framework.common.data.Data;
-import com.github.fevernova.framework.common.data.DataEvent;
 
 
 public interface SequenceFileSerializer {

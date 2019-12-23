@@ -16,7 +16,7 @@ public class WireToOutputStream2 implements AutoCloseable {
 
     private final Bytes<ByteBuffer> bytes = Bytes.elasticByteBuffer(128 * 1024 * 1024);
 
-    private final Wire             wire;
+    private final Wire wire;
 
     private final DataOutputStream dos;
 

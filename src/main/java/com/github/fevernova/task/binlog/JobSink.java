@@ -24,6 +24,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class JobSink extends AbstractSink implements Callback {
 
 
+    private final boolean test;
+
     private TaskContext kafkaContext;
 
     private KafkaProducer<byte[], byte[]> kafka;
@@ -35,8 +37,6 @@ public class JobSink extends AbstractSink implements Callback {
     private SerializerHelper serializerHelper;
 
     private boolean convert2json;
-
-    private final boolean test;
 
 
     public JobSink(GlobalContext globalContext, TaskContext taskContext, int index, int inputsNum) {

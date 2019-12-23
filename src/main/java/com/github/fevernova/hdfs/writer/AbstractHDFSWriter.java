@@ -48,6 +48,22 @@ public abstract class AbstractHDFSWriter implements Writer {
     private int index;
 
 
+    protected static boolean codecMatches(Class<? extends CompressionCodec> cls, String codecName) {
+
+        String simpleName = cls.getSimpleName();
+        if (cls.getName().equals(codecName) || simpleName.equalsIgnoreCase(codecName)) {
+            return true;
+        }
+        if (simpleName.endsWith("Codec")) {
+            String prefix = simpleName.substring(0, simpleName.length() - "Codec".length());
+            if (prefix.equalsIgnoreCase(codecName)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+
     @Override
     public void configure(GlobalContext globalContext, TaskContext writerContext) {
 
@@ -99,22 +115,6 @@ public abstract class AbstractHDFSWriter implements Writer {
     protected boolean needCompressor() {
 
         return !"lzop".equals(this.codecName);
-    }
-
-
-    protected static boolean codecMatches(Class<? extends CompressionCodec> cls, String codecName) {
-
-        String simpleName = cls.getSimpleName();
-        if (cls.getName().equals(codecName) || simpleName.equalsIgnoreCase(codecName)) {
-            return true;
-        }
-        if (simpleName.endsWith("Codec")) {
-            String prefix = simpleName.substring(0, simpleName.length() - "Codec".length());
-            if (prefix.equalsIgnoreCase(codecName)) {
-                return true;
-            }
-        }
-        return false;
     }
 
 

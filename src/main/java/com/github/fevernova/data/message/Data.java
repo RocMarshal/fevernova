@@ -17,9 +17,7 @@ import org.apache.avro.specific.SpecificData;
 public class Data extends org.apache.avro.specific.SpecificRecordBase implements org.apache.avro.specific.SpecificRecord {
 
 
-    private static final long                   serialVersionUID = 6429783915970116205L;
-
-    public static final  org.apache.avro.Schema SCHEMA$          = new org.apache.avro.Schema.Parser()
+    public static final org.apache.avro.Schema SCHEMA$ = new org.apache.avro.Schema.Parser()
             .parse("{\"type\":\"record\",\"name\":\"Data\",\"namespace\":\"com.github.fevernova.data.message\",\"fields\":[{\"name\":\"nid\","
                    + "\"type\":\"long\"},{\"name\":\"sid\",\"type\":[\"null\",{\"type\":\"string\",\"avro.java.string\":\"String\"}]},"
                    + "{\"name\":\"opt\",\"type\":{\"type\":\"enum\",\"name\":\"Opt\",\"symbols\":[\"INSERT\",\"UPDATE\",\"DELETE\"]}},"
@@ -34,12 +32,7 @@ public class Data extends org.apache.avro.specific.SpecificRecordBase implements
                    + "\"type\":[{\"type\":\"array\",\"items\":[\"null\",\"boolean\"]},\"null\"]},{\"name\":\"meta\",\"type\":[\"null\","
                    + "\"bytes\"]}]}");
 
-
-    public static org.apache.avro.Schema getClassSchema() {
-
-        return SCHEMA$;
-    }
-
+    private static final long serialVersionUID = 6429783915970116205L;
 
     private static SpecificData MODEL$ = new SpecificData();
 
@@ -49,92 +42,43 @@ public class Data extends org.apache.avro.specific.SpecificRecordBase implements
     private static final BinaryMessageDecoder<Data> DECODER =
             new BinaryMessageDecoder<Data>(MODEL$, SCHEMA$);
 
+    @SuppressWarnings("unchecked")
+    private static final org.apache.avro.io.DatumWriter<Data>
+            WRITER$ = (org.apache.avro.io.DatumWriter<Data>) MODEL$.createDatumWriter(SCHEMA$);
 
-    /**
-     * Return the BinaryMessageEncoder instance used by this class.
-     * @return the message encoder used by this class
-     */
-    public static BinaryMessageEncoder<Data> getEncoder() {
+    @SuppressWarnings("unchecked")
+    private static final org.apache.avro.io.DatumReader<Data>
+            READER$ = (org.apache.avro.io.DatumReader<Data>) MODEL$.createDatumReader(SCHEMA$);
 
-        return ENCODER;
-    }
+    private long nid;
 
+    private java.lang.String sid;
 
-    /**
-     * Return the BinaryMessageDecoder instance used by this class.
-     * @return the message decoder used by this class
-     */
-    public static BinaryMessageDecoder<Data> getDecoder() {
+    private com.github.fevernova.data.message.Opt opt;
 
-        return DECODER;
-    }
-
-
-    /**
-     * Create a new BinaryMessageDecoder instance for this class that uses the specified {@link SchemaStore}.
-     * @param resolver a {@link SchemaStore} used to find schemas by fingerprint
-     * @return a BinaryMessageDecoder instance for this class backed by the given SchemaStore
-     */
-    public static BinaryMessageDecoder<Data> createDecoder(SchemaStore resolver) {
-
-        return new BinaryMessageDecoder<Data>(MODEL$, SCHEMA$, resolver);
-    }
-
-
-    /**
-     * Serializes this Data to a ByteBuffer.
-     * @return a buffer holding the serialized data for this instance
-     * @throws java.io.IOException if this instance could not be serialized
-     */
-    public java.nio.ByteBuffer toByteBuffer() throws java.io.IOException {
-
-        return ENCODER.encode(this);
-    }
-
-
-    /**
-     * Deserializes a Data from a ByteBuffer.
-     * @param b a byte buffer holding serialized data for an instance of this class
-     * @return a Data instance decoded from the given buffer
-     * @throws java.io.IOException if the given bytes could not be deserialized into an instance of this class
-     */
-    public static Data fromByteBuffer(
-            java.nio.ByteBuffer b) throws java.io.IOException {
-
-        return DECODER.decode(b);
-    }
-
-
-    private long                                              nid;
-
-    private java.lang.String                                  sid;
-
-    private com.github.fevernova.data.message.Opt             opt;
-
-    private long                                              timestamp;
+    private long timestamp;
 
     private java.util.Map<java.lang.String, java.lang.String> tags;
 
-    private long                                              metaId;
+    private long metaId;
 
-    private long                                              updatesLong;
+    private long updatesLong;
 
-    private java.util.List<java.lang.Long>                    longs;
+    private java.util.List<java.lang.Long> longs;
 
-    private java.util.List<java.lang.String>                  strings;
+    private java.util.List<java.lang.String> strings;
 
-    private java.util.List<java.lang.Integer>                 ints;
+    private java.util.List<java.lang.Integer> ints;
 
-    private java.util.List<java.lang.Double>                  doubles;
+    private java.util.List<java.lang.Double> doubles;
 
-    private java.util.List<java.lang.Float>                   floats;
+    private java.util.List<java.lang.Float> floats;
 
-    private java.util.List<java.nio.ByteBuffer>               bytes;
+    private java.util.List<java.nio.ByteBuffer> bytes;
 
-    private java.util.List<java.lang.Boolean>                 booleans;
+    private java.util.List<java.lang.Boolean> booleans;
 
-    private java.nio.ByteBuffer                               meta;
-
+    private java.nio.ByteBuffer meta;
 
     /**
      * Default constructor.  Note that this does not initialize fields
@@ -145,24 +89,24 @@ public class Data extends org.apache.avro.specific.SpecificRecordBase implements
 
     }
 
-
     /**
      * All-args constructor.
-     * @param nid The new value for nid
-     * @param sid The new value for sid
-     * @param opt The new value for opt
-     * @param timestamp The new value for timestamp
-     * @param tags The new value for tags
-     * @param metaId The new value for metaId
+     *
+     * @param nid         The new value for nid
+     * @param sid         The new value for sid
+     * @param opt         The new value for opt
+     * @param timestamp   The new value for timestamp
+     * @param tags        The new value for tags
+     * @param metaId      The new value for metaId
      * @param updatesLong The new value for updatesLong
-     * @param longs The new value for longs
-     * @param strings The new value for strings
-     * @param ints The new value for ints
-     * @param doubles The new value for doubles
-     * @param floats The new value for floats
-     * @param bytes The new value for bytes
-     * @param booleans The new value for booleans
-     * @param meta The new value for meta
+     * @param longs       The new value for longs
+     * @param strings     The new value for strings
+     * @param ints        The new value for ints
+     * @param doubles     The new value for doubles
+     * @param floats      The new value for floats
+     * @param bytes       The new value for bytes
+     * @param booleans    The new value for booleans
+     * @param meta        The new value for meta
      */
     public Data(java.lang.Long nid, java.lang.String sid, com.github.fevernova.data.message.Opt opt, java.lang.Long timestamp,
                 java.util.Map<java.lang.String, java.lang.String> tags, java.lang.Long metaId, java.lang.Long updatesLong,
@@ -185,6 +129,115 @@ public class Data extends org.apache.avro.specific.SpecificRecordBase implements
         this.bytes = bytes;
         this.booleans = booleans;
         this.meta = meta;
+    }
+
+
+    public static org.apache.avro.Schema getClassSchema() {
+
+        return SCHEMA$;
+    }
+
+
+    /**
+     * Return the BinaryMessageEncoder instance used by this class.
+     *
+     * @return the message encoder used by this class
+     */
+    public static BinaryMessageEncoder<Data> getEncoder() {
+
+        return ENCODER;
+    }
+
+
+    /**
+     * Return the BinaryMessageDecoder instance used by this class.
+     *
+     * @return the message decoder used by this class
+     */
+    public static BinaryMessageDecoder<Data> getDecoder() {
+
+        return DECODER;
+    }
+
+
+    /**
+     * Create a new BinaryMessageDecoder instance for this class that uses the specified {@link SchemaStore}.
+     *
+     * @param resolver a {@link SchemaStore} used to find schemas by fingerprint
+     * @return a BinaryMessageDecoder instance for this class backed by the given SchemaStore
+     */
+    public static BinaryMessageDecoder<Data> createDecoder(SchemaStore resolver) {
+
+        return new BinaryMessageDecoder<Data>(MODEL$, SCHEMA$, resolver);
+    }
+
+
+    /**
+     * Deserializes a Data from a ByteBuffer.
+     *
+     * @param b a byte buffer holding serialized data for an instance of this class
+     * @return a Data instance decoded from the given buffer
+     * @throws java.io.IOException if the given bytes could not be deserialized into an instance of this class
+     */
+    public static Data fromByteBuffer(
+            java.nio.ByteBuffer b) throws java.io.IOException {
+
+        return DECODER.decode(b);
+    }
+
+
+    /**
+     * Creates a new Data RecordBuilder.
+     *
+     * @return A new Data RecordBuilder
+     */
+    public static com.github.fevernova.data.message.Data.Builder newBuilder() {
+
+        return new com.github.fevernova.data.message.Data.Builder();
+    }
+
+
+    /**
+     * Creates a new Data RecordBuilder by copying an existing Builder.
+     *
+     * @param other The existing builder to copy.
+     * @return A new Data RecordBuilder
+     */
+    public static com.github.fevernova.data.message.Data.Builder newBuilder(com.github.fevernova.data.message.Data.Builder other) {
+
+        if (other == null) {
+            return new com.github.fevernova.data.message.Data.Builder();
+        } else {
+            return new com.github.fevernova.data.message.Data.Builder(other);
+        }
+    }
+
+
+    /**
+     * Creates a new Data RecordBuilder by copying an existing Data instance.
+     *
+     * @param other The existing instance to copy.
+     * @return A new Data RecordBuilder
+     */
+    public static com.github.fevernova.data.message.Data.Builder newBuilder(com.github.fevernova.data.message.Data other) {
+
+        if (other == null) {
+            return new com.github.fevernova.data.message.Data.Builder();
+        } else {
+            return new com.github.fevernova.data.message.Data.Builder(other);
+        }
+    }
+
+
+    /**
+     * Serializes this Data to a ByteBuffer.
+     *
+     * @return a buffer holding the serialized data for this instance
+     * @throws java.io.IOException if this instance could not be serialized
+     */
+    public java.nio.ByteBuffer toByteBuffer() throws java.io.IOException {
+
+        return ENCODER.encode(this);
     }
 
 
@@ -298,6 +351,7 @@ public class Data extends org.apache.avro.specific.SpecificRecordBase implements
 
     /**
      * Gets the value of the 'nid' field.
+     *
      * @return The value of the 'nid' field.
      */
     public long getNid() {
@@ -308,6 +362,7 @@ public class Data extends org.apache.avro.specific.SpecificRecordBase implements
 
     /**
      * Sets the value of the 'nid' field.
+     *
      * @param value the value to set.
      */
     public void setNid(long value) {
@@ -318,6 +373,7 @@ public class Data extends org.apache.avro.specific.SpecificRecordBase implements
 
     /**
      * Gets the value of the 'sid' field.
+     *
      * @return The value of the 'sid' field.
      */
     public java.lang.String getSid() {
@@ -328,6 +384,7 @@ public class Data extends org.apache.avro.specific.SpecificRecordBase implements
 
     /**
      * Sets the value of the 'sid' field.
+     *
      * @param value the value to set.
      */
     public void setSid(java.lang.String value) {
@@ -338,6 +395,7 @@ public class Data extends org.apache.avro.specific.SpecificRecordBase implements
 
     /**
      * Gets the value of the 'opt' field.
+     *
      * @return The value of the 'opt' field.
      */
     public com.github.fevernova.data.message.Opt getOpt() {
@@ -348,6 +406,7 @@ public class Data extends org.apache.avro.specific.SpecificRecordBase implements
 
     /**
      * Sets the value of the 'opt' field.
+     *
      * @param value the value to set.
      */
     public void setOpt(com.github.fevernova.data.message.Opt value) {
@@ -358,6 +417,7 @@ public class Data extends org.apache.avro.specific.SpecificRecordBase implements
 
     /**
      * Gets the value of the 'timestamp' field.
+     *
      * @return The value of the 'timestamp' field.
      */
     public long getTimestamp() {
@@ -368,6 +428,7 @@ public class Data extends org.apache.avro.specific.SpecificRecordBase implements
 
     /**
      * Sets the value of the 'timestamp' field.
+     *
      * @param value the value to set.
      */
     public void setTimestamp(long value) {
@@ -378,6 +439,7 @@ public class Data extends org.apache.avro.specific.SpecificRecordBase implements
 
     /**
      * Gets the value of the 'tags' field.
+     *
      * @return The value of the 'tags' field.
      */
     public java.util.Map<java.lang.String, java.lang.String> getTags() {
@@ -388,6 +450,7 @@ public class Data extends org.apache.avro.specific.SpecificRecordBase implements
 
     /**
      * Sets the value of the 'tags' field.
+     *
      * @param value the value to set.
      */
     public void setTags(java.util.Map<java.lang.String, java.lang.String> value) {
@@ -398,6 +461,7 @@ public class Data extends org.apache.avro.specific.SpecificRecordBase implements
 
     /**
      * Gets the value of the 'metaId' field.
+     *
      * @return The value of the 'metaId' field.
      */
     public long getMetaId() {
@@ -408,6 +472,7 @@ public class Data extends org.apache.avro.specific.SpecificRecordBase implements
 
     /**
      * Sets the value of the 'metaId' field.
+     *
      * @param value the value to set.
      */
     public void setMetaId(long value) {
@@ -418,6 +483,7 @@ public class Data extends org.apache.avro.specific.SpecificRecordBase implements
 
     /**
      * Gets the value of the 'updatesLong' field.
+     *
      * @return The value of the 'updatesLong' field.
      */
     public long getUpdatesLong() {
@@ -428,6 +494,7 @@ public class Data extends org.apache.avro.specific.SpecificRecordBase implements
 
     /**
      * Sets the value of the 'updatesLong' field.
+     *
      * @param value the value to set.
      */
     public void setUpdatesLong(long value) {
@@ -438,6 +505,7 @@ public class Data extends org.apache.avro.specific.SpecificRecordBase implements
 
     /**
      * Gets the value of the 'longs' field.
+     *
      * @return The value of the 'longs' field.
      */
     public java.util.List<java.lang.Long> getLongs() {
@@ -448,6 +516,7 @@ public class Data extends org.apache.avro.specific.SpecificRecordBase implements
 
     /**
      * Sets the value of the 'longs' field.
+     *
      * @param value the value to set.
      */
     public void setLongs(java.util.List<java.lang.Long> value) {
@@ -458,6 +527,7 @@ public class Data extends org.apache.avro.specific.SpecificRecordBase implements
 
     /**
      * Gets the value of the 'strings' field.
+     *
      * @return The value of the 'strings' field.
      */
     public java.util.List<java.lang.String> getStrings() {
@@ -468,6 +538,7 @@ public class Data extends org.apache.avro.specific.SpecificRecordBase implements
 
     /**
      * Sets the value of the 'strings' field.
+     *
      * @param value the value to set.
      */
     public void setStrings(java.util.List<java.lang.String> value) {
@@ -478,6 +549,7 @@ public class Data extends org.apache.avro.specific.SpecificRecordBase implements
 
     /**
      * Gets the value of the 'ints' field.
+     *
      * @return The value of the 'ints' field.
      */
     public java.util.List<java.lang.Integer> getInts() {
@@ -488,6 +560,7 @@ public class Data extends org.apache.avro.specific.SpecificRecordBase implements
 
     /**
      * Sets the value of the 'ints' field.
+     *
      * @param value the value to set.
      */
     public void setInts(java.util.List<java.lang.Integer> value) {
@@ -498,6 +571,7 @@ public class Data extends org.apache.avro.specific.SpecificRecordBase implements
 
     /**
      * Gets the value of the 'doubles' field.
+     *
      * @return The value of the 'doubles' field.
      */
     public java.util.List<java.lang.Double> getDoubles() {
@@ -508,6 +582,7 @@ public class Data extends org.apache.avro.specific.SpecificRecordBase implements
 
     /**
      * Sets the value of the 'doubles' field.
+     *
      * @param value the value to set.
      */
     public void setDoubles(java.util.List<java.lang.Double> value) {
@@ -518,6 +593,7 @@ public class Data extends org.apache.avro.specific.SpecificRecordBase implements
 
     /**
      * Gets the value of the 'floats' field.
+     *
      * @return The value of the 'floats' field.
      */
     public java.util.List<java.lang.Float> getFloats() {
@@ -528,6 +604,7 @@ public class Data extends org.apache.avro.specific.SpecificRecordBase implements
 
     /**
      * Sets the value of the 'floats' field.
+     *
      * @param value the value to set.
      */
     public void setFloats(java.util.List<java.lang.Float> value) {
@@ -538,6 +615,7 @@ public class Data extends org.apache.avro.specific.SpecificRecordBase implements
 
     /**
      * Gets the value of the 'bytes' field.
+     *
      * @return The value of the 'bytes' field.
      */
     public java.util.List<java.nio.ByteBuffer> getBytes() {
@@ -548,6 +626,7 @@ public class Data extends org.apache.avro.specific.SpecificRecordBase implements
 
     /**
      * Sets the value of the 'bytes' field.
+     *
      * @param value the value to set.
      */
     public void setBytes(java.util.List<java.nio.ByteBuffer> value) {
@@ -558,6 +637,7 @@ public class Data extends org.apache.avro.specific.SpecificRecordBase implements
 
     /**
      * Gets the value of the 'booleans' field.
+     *
      * @return The value of the 'booleans' field.
      */
     public java.util.List<java.lang.Boolean> getBooleans() {
@@ -568,6 +648,7 @@ public class Data extends org.apache.avro.specific.SpecificRecordBase implements
 
     /**
      * Sets the value of the 'booleans' field.
+     *
      * @param value the value to set.
      */
     public void setBooleans(java.util.List<java.lang.Boolean> value) {
@@ -578,6 +659,7 @@ public class Data extends org.apache.avro.specific.SpecificRecordBase implements
 
     /**
      * Gets the value of the 'meta' field.
+     *
      * @return The value of the 'meta' field.
      */
     public java.nio.ByteBuffer getMeta() {
@@ -588,6 +670,7 @@ public class Data extends org.apache.avro.specific.SpecificRecordBase implements
 
     /**
      * Sets the value of the 'meta' field.
+     *
      * @param value the value to set.
      */
     public void setMeta(java.nio.ByteBuffer value) {
@@ -596,963 +679,11 @@ public class Data extends org.apache.avro.specific.SpecificRecordBase implements
     }
 
 
-    /**
-     * Creates a new Data RecordBuilder.
-     * @return A new Data RecordBuilder
-     */
-    public static com.github.fevernova.data.message.Data.Builder newBuilder() {
-
-        return new com.github.fevernova.data.message.Data.Builder();
-    }
-
-
-    /**
-     * Creates a new Data RecordBuilder by copying an existing Builder.
-     * @param other The existing builder to copy.
-     * @return A new Data RecordBuilder
-     */
-    public static com.github.fevernova.data.message.Data.Builder newBuilder(com.github.fevernova.data.message.Data.Builder other) {
-
-        if (other == null) {
-            return new com.github.fevernova.data.message.Data.Builder();
-        } else {
-            return new com.github.fevernova.data.message.Data.Builder(other);
-        }
-    }
-
-
-    /**
-     * Creates a new Data RecordBuilder by copying an existing Data instance.
-     * @param other The existing instance to copy.
-     * @return A new Data RecordBuilder
-     */
-    public static com.github.fevernova.data.message.Data.Builder newBuilder(com.github.fevernova.data.message.Data other) {
-
-        if (other == null) {
-            return new com.github.fevernova.data.message.Data.Builder();
-        } else {
-            return new com.github.fevernova.data.message.Data.Builder(other);
-        }
-    }
-
-
-    /**
-     * RecordBuilder for Data instances.
-     */
-    public static class Builder extends org.apache.avro.specific.SpecificRecordBuilderBase<Data>
-            implements org.apache.avro.data.RecordBuilder<Data> {
-
-
-        private long                                              nid;
-
-        private java.lang.String                                  sid;
-
-        private com.github.fevernova.data.message.Opt             opt;
-
-        private long                                              timestamp;
-
-        private java.util.Map<java.lang.String, java.lang.String> tags;
-
-        private long                                              metaId;
-
-        private long                                              updatesLong;
-
-        private java.util.List<java.lang.Long>                    longs;
-
-        private java.util.List<java.lang.String>                  strings;
-
-        private java.util.List<java.lang.Integer>                 ints;
-
-        private java.util.List<java.lang.Double>                  doubles;
-
-        private java.util.List<java.lang.Float>                   floats;
-
-        private java.util.List<java.nio.ByteBuffer>               bytes;
-
-        private java.util.List<java.lang.Boolean>                 booleans;
-
-        private java.nio.ByteBuffer                               meta;
-
-
-        /** Creates a new Builder */
-        private Builder() {
-
-            super(SCHEMA$);
-        }
-
-
-        /**
-         * Creates a Builder by copying an existing Builder.
-         * @param other The existing Builder to copy.
-         */
-        private Builder(com.github.fevernova.data.message.Data.Builder other) {
-
-            super(other);
-            if (isValidValue(fields()[0], other.nid)) {
-                this.nid = data().deepCopy(fields()[0].schema(), other.nid);
-                fieldSetFlags()[0] = other.fieldSetFlags()[0];
-            }
-            if (isValidValue(fields()[1], other.sid)) {
-                this.sid = data().deepCopy(fields()[1].schema(), other.sid);
-                fieldSetFlags()[1] = other.fieldSetFlags()[1];
-            }
-            if (isValidValue(fields()[2], other.opt)) {
-                this.opt = data().deepCopy(fields()[2].schema(), other.opt);
-                fieldSetFlags()[2] = other.fieldSetFlags()[2];
-            }
-            if (isValidValue(fields()[3], other.timestamp)) {
-                this.timestamp = data().deepCopy(fields()[3].schema(), other.timestamp);
-                fieldSetFlags()[3] = other.fieldSetFlags()[3];
-            }
-            if (isValidValue(fields()[4], other.tags)) {
-                this.tags = data().deepCopy(fields()[4].schema(), other.tags);
-                fieldSetFlags()[4] = other.fieldSetFlags()[4];
-            }
-            if (isValidValue(fields()[5], other.metaId)) {
-                this.metaId = data().deepCopy(fields()[5].schema(), other.metaId);
-                fieldSetFlags()[5] = other.fieldSetFlags()[5];
-            }
-            if (isValidValue(fields()[6], other.updatesLong)) {
-                this.updatesLong = data().deepCopy(fields()[6].schema(), other.updatesLong);
-                fieldSetFlags()[6] = other.fieldSetFlags()[6];
-            }
-            if (isValidValue(fields()[7], other.longs)) {
-                this.longs = data().deepCopy(fields()[7].schema(), other.longs);
-                fieldSetFlags()[7] = other.fieldSetFlags()[7];
-            }
-            if (isValidValue(fields()[8], other.strings)) {
-                this.strings = data().deepCopy(fields()[8].schema(), other.strings);
-                fieldSetFlags()[8] = other.fieldSetFlags()[8];
-            }
-            if (isValidValue(fields()[9], other.ints)) {
-                this.ints = data().deepCopy(fields()[9].schema(), other.ints);
-                fieldSetFlags()[9] = other.fieldSetFlags()[9];
-            }
-            if (isValidValue(fields()[10], other.doubles)) {
-                this.doubles = data().deepCopy(fields()[10].schema(), other.doubles);
-                fieldSetFlags()[10] = other.fieldSetFlags()[10];
-            }
-            if (isValidValue(fields()[11], other.floats)) {
-                this.floats = data().deepCopy(fields()[11].schema(), other.floats);
-                fieldSetFlags()[11] = other.fieldSetFlags()[11];
-            }
-            if (isValidValue(fields()[12], other.bytes)) {
-                this.bytes = data().deepCopy(fields()[12].schema(), other.bytes);
-                fieldSetFlags()[12] = other.fieldSetFlags()[12];
-            }
-            if (isValidValue(fields()[13], other.booleans)) {
-                this.booleans = data().deepCopy(fields()[13].schema(), other.booleans);
-                fieldSetFlags()[13] = other.fieldSetFlags()[13];
-            }
-            if (isValidValue(fields()[14], other.meta)) {
-                this.meta = data().deepCopy(fields()[14].schema(), other.meta);
-                fieldSetFlags()[14] = other.fieldSetFlags()[14];
-            }
-        }
-
-
-        /**
-         * Creates a Builder by copying an existing Data instance
-         * @param other The existing instance to copy.
-         */
-        private Builder(com.github.fevernova.data.message.Data other) {
-
-            super(SCHEMA$);
-            if (isValidValue(fields()[0], other.nid)) {
-                this.nid = data().deepCopy(fields()[0].schema(), other.nid);
-                fieldSetFlags()[0] = true;
-            }
-            if (isValidValue(fields()[1], other.sid)) {
-                this.sid = data().deepCopy(fields()[1].schema(), other.sid);
-                fieldSetFlags()[1] = true;
-            }
-            if (isValidValue(fields()[2], other.opt)) {
-                this.opt = data().deepCopy(fields()[2].schema(), other.opt);
-                fieldSetFlags()[2] = true;
-            }
-            if (isValidValue(fields()[3], other.timestamp)) {
-                this.timestamp = data().deepCopy(fields()[3].schema(), other.timestamp);
-                fieldSetFlags()[3] = true;
-            }
-            if (isValidValue(fields()[4], other.tags)) {
-                this.tags = data().deepCopy(fields()[4].schema(), other.tags);
-                fieldSetFlags()[4] = true;
-            }
-            if (isValidValue(fields()[5], other.metaId)) {
-                this.metaId = data().deepCopy(fields()[5].schema(), other.metaId);
-                fieldSetFlags()[5] = true;
-            }
-            if (isValidValue(fields()[6], other.updatesLong)) {
-                this.updatesLong = data().deepCopy(fields()[6].schema(), other.updatesLong);
-                fieldSetFlags()[6] = true;
-            }
-            if (isValidValue(fields()[7], other.longs)) {
-                this.longs = data().deepCopy(fields()[7].schema(), other.longs);
-                fieldSetFlags()[7] = true;
-            }
-            if (isValidValue(fields()[8], other.strings)) {
-                this.strings = data().deepCopy(fields()[8].schema(), other.strings);
-                fieldSetFlags()[8] = true;
-            }
-            if (isValidValue(fields()[9], other.ints)) {
-                this.ints = data().deepCopy(fields()[9].schema(), other.ints);
-                fieldSetFlags()[9] = true;
-            }
-            if (isValidValue(fields()[10], other.doubles)) {
-                this.doubles = data().deepCopy(fields()[10].schema(), other.doubles);
-                fieldSetFlags()[10] = true;
-            }
-            if (isValidValue(fields()[11], other.floats)) {
-                this.floats = data().deepCopy(fields()[11].schema(), other.floats);
-                fieldSetFlags()[11] = true;
-            }
-            if (isValidValue(fields()[12], other.bytes)) {
-                this.bytes = data().deepCopy(fields()[12].schema(), other.bytes);
-                fieldSetFlags()[12] = true;
-            }
-            if (isValidValue(fields()[13], other.booleans)) {
-                this.booleans = data().deepCopy(fields()[13].schema(), other.booleans);
-                fieldSetFlags()[13] = true;
-            }
-            if (isValidValue(fields()[14], other.meta)) {
-                this.meta = data().deepCopy(fields()[14].schema(), other.meta);
-                fieldSetFlags()[14] = true;
-            }
-        }
-
-
-        /**
-         * Gets the value of the 'nid' field.
-         * @return The value.
-         */
-        public long getNid() {
-
-            return nid;
-        }
-
-
-        /**
-         * Sets the value of the 'nid' field.
-         * @param value The value of 'nid'.
-         * @return This builder.
-         */
-        public com.github.fevernova.data.message.Data.Builder setNid(long value) {
-
-            validate(fields()[0], value);
-            this.nid = value;
-            fieldSetFlags()[0] = true;
-            return this;
-        }
-
-
-        /**
-         * Checks whether the 'nid' field has been set.
-         * @return True if the 'nid' field has been set, false otherwise.
-         */
-        public boolean hasNid() {
-
-            return fieldSetFlags()[0];
-        }
-
-
-        /**
-         * Clears the value of the 'nid' field.
-         * @return This builder.
-         */
-        public com.github.fevernova.data.message.Data.Builder clearNid() {
-
-            fieldSetFlags()[0] = false;
-            return this;
-        }
-
-
-        /**
-         * Gets the value of the 'sid' field.
-         * @return The value.
-         */
-        public java.lang.String getSid() {
-
-            return sid;
-        }
-
-
-        /**
-         * Sets the value of the 'sid' field.
-         * @param value The value of 'sid'.
-         * @return This builder.
-         */
-        public com.github.fevernova.data.message.Data.Builder setSid(java.lang.String value) {
-
-            validate(fields()[1], value);
-            this.sid = value;
-            fieldSetFlags()[1] = true;
-            return this;
-        }
-
-
-        /**
-         * Checks whether the 'sid' field has been set.
-         * @return True if the 'sid' field has been set, false otherwise.
-         */
-        public boolean hasSid() {
-
-            return fieldSetFlags()[1];
-        }
-
-
-        /**
-         * Clears the value of the 'sid' field.
-         * @return This builder.
-         */
-        public com.github.fevernova.data.message.Data.Builder clearSid() {
-
-            sid = null;
-            fieldSetFlags()[1] = false;
-            return this;
-        }
-
-
-        /**
-         * Gets the value of the 'opt' field.
-         * @return The value.
-         */
-        public com.github.fevernova.data.message.Opt getOpt() {
-
-            return opt;
-        }
-
-
-        /**
-         * Sets the value of the 'opt' field.
-         * @param value The value of 'opt'.
-         * @return This builder.
-         */
-        public com.github.fevernova.data.message.Data.Builder setOpt(com.github.fevernova.data.message.Opt value) {
-
-            validate(fields()[2], value);
-            this.opt = value;
-            fieldSetFlags()[2] = true;
-            return this;
-        }
-
-
-        /**
-         * Checks whether the 'opt' field has been set.
-         * @return True if the 'opt' field has been set, false otherwise.
-         */
-        public boolean hasOpt() {
-
-            return fieldSetFlags()[2];
-        }
-
-
-        /**
-         * Clears the value of the 'opt' field.
-         * @return This builder.
-         */
-        public com.github.fevernova.data.message.Data.Builder clearOpt() {
-
-            opt = null;
-            fieldSetFlags()[2] = false;
-            return this;
-        }
-
-
-        /**
-         * Gets the value of the 'timestamp' field.
-         * @return The value.
-         */
-        public long getTimestamp() {
-
-            return timestamp;
-        }
-
-
-        /**
-         * Sets the value of the 'timestamp' field.
-         * @param value The value of 'timestamp'.
-         * @return This builder.
-         */
-        public com.github.fevernova.data.message.Data.Builder setTimestamp(long value) {
-
-            validate(fields()[3], value);
-            this.timestamp = value;
-            fieldSetFlags()[3] = true;
-            return this;
-        }
-
-
-        /**
-         * Checks whether the 'timestamp' field has been set.
-         * @return True if the 'timestamp' field has been set, false otherwise.
-         */
-        public boolean hasTimestamp() {
-
-            return fieldSetFlags()[3];
-        }
-
-
-        /**
-         * Clears the value of the 'timestamp' field.
-         * @return This builder.
-         */
-        public com.github.fevernova.data.message.Data.Builder clearTimestamp() {
-
-            fieldSetFlags()[3] = false;
-            return this;
-        }
-
-
-        /**
-         * Gets the value of the 'tags' field.
-         * @return The value.
-         */
-        public java.util.Map<java.lang.String, java.lang.String> getTags() {
-
-            return tags;
-        }
-
-
-        /**
-         * Sets the value of the 'tags' field.
-         * @param value The value of 'tags'.
-         * @return This builder.
-         */
-        public com.github.fevernova.data.message.Data.Builder setTags(java.util.Map<java.lang.String, java.lang.String> value) {
-
-            validate(fields()[4], value);
-            this.tags = value;
-            fieldSetFlags()[4] = true;
-            return this;
-        }
-
-
-        /**
-         * Checks whether the 'tags' field has been set.
-         * @return True if the 'tags' field has been set, false otherwise.
-         */
-        public boolean hasTags() {
-
-            return fieldSetFlags()[4];
-        }
-
-
-        /**
-         * Clears the value of the 'tags' field.
-         * @return This builder.
-         */
-        public com.github.fevernova.data.message.Data.Builder clearTags() {
-
-            tags = null;
-            fieldSetFlags()[4] = false;
-            return this;
-        }
-
-
-        /**
-         * Gets the value of the 'metaId' field.
-         * @return The value.
-         */
-        public long getMetaId() {
-
-            return metaId;
-        }
-
-
-        /**
-         * Sets the value of the 'metaId' field.
-         * @param value The value of 'metaId'.
-         * @return This builder.
-         */
-        public com.github.fevernova.data.message.Data.Builder setMetaId(long value) {
-
-            validate(fields()[5], value);
-            this.metaId = value;
-            fieldSetFlags()[5] = true;
-            return this;
-        }
-
-
-        /**
-         * Checks whether the 'metaId' field has been set.
-         * @return True if the 'metaId' field has been set, false otherwise.
-         */
-        public boolean hasMetaId() {
-
-            return fieldSetFlags()[5];
-        }
-
-
-        /**
-         * Clears the value of the 'metaId' field.
-         * @return This builder.
-         */
-        public com.github.fevernova.data.message.Data.Builder clearMetaId() {
-
-            fieldSetFlags()[5] = false;
-            return this;
-        }
-
-
-        /**
-         * Gets the value of the 'updatesLong' field.
-         * @return The value.
-         */
-        public long getUpdatesLong() {
-
-            return updatesLong;
-        }
-
-
-        /**
-         * Sets the value of the 'updatesLong' field.
-         * @param value The value of 'updatesLong'.
-         * @return This builder.
-         */
-        public com.github.fevernova.data.message.Data.Builder setUpdatesLong(long value) {
-
-            validate(fields()[6], value);
-            this.updatesLong = value;
-            fieldSetFlags()[6] = true;
-            return this;
-        }
-
-
-        /**
-         * Checks whether the 'updatesLong' field has been set.
-         * @return True if the 'updatesLong' field has been set, false otherwise.
-         */
-        public boolean hasUpdatesLong() {
-
-            return fieldSetFlags()[6];
-        }
-
-
-        /**
-         * Clears the value of the 'updatesLong' field.
-         * @return This builder.
-         */
-        public com.github.fevernova.data.message.Data.Builder clearUpdatesLong() {
-
-            fieldSetFlags()[6] = false;
-            return this;
-        }
-
-
-        /**
-         * Gets the value of the 'longs' field.
-         * @return The value.
-         */
-        public java.util.List<java.lang.Long> getLongs() {
-
-            return longs;
-        }
-
-
-        /**
-         * Sets the value of the 'longs' field.
-         * @param value The value of 'longs'.
-         * @return This builder.
-         */
-        public com.github.fevernova.data.message.Data.Builder setLongs(java.util.List<java.lang.Long> value) {
-
-            validate(fields()[7], value);
-            this.longs = value;
-            fieldSetFlags()[7] = true;
-            return this;
-        }
-
-
-        /**
-         * Checks whether the 'longs' field has been set.
-         * @return True if the 'longs' field has been set, false otherwise.
-         */
-        public boolean hasLongs() {
-
-            return fieldSetFlags()[7];
-        }
-
-
-        /**
-         * Clears the value of the 'longs' field.
-         * @return This builder.
-         */
-        public com.github.fevernova.data.message.Data.Builder clearLongs() {
-
-            longs = null;
-            fieldSetFlags()[7] = false;
-            return this;
-        }
-
-
-        /**
-         * Gets the value of the 'strings' field.
-         * @return The value.
-         */
-        public java.util.List<java.lang.String> getStrings() {
-
-            return strings;
-        }
-
-
-        /**
-         * Sets the value of the 'strings' field.
-         * @param value The value of 'strings'.
-         * @return This builder.
-         */
-        public com.github.fevernova.data.message.Data.Builder setStrings(java.util.List<java.lang.String> value) {
-
-            validate(fields()[8], value);
-            this.strings = value;
-            fieldSetFlags()[8] = true;
-            return this;
-        }
-
-
-        /**
-         * Checks whether the 'strings' field has been set.
-         * @return True if the 'strings' field has been set, false otherwise.
-         */
-        public boolean hasStrings() {
-
-            return fieldSetFlags()[8];
-        }
-
-
-        /**
-         * Clears the value of the 'strings' field.
-         * @return This builder.
-         */
-        public com.github.fevernova.data.message.Data.Builder clearStrings() {
-
-            strings = null;
-            fieldSetFlags()[8] = false;
-            return this;
-        }
-
-
-        /**
-         * Gets the value of the 'ints' field.
-         * @return The value.
-         */
-        public java.util.List<java.lang.Integer> getInts() {
-
-            return ints;
-        }
-
-
-        /**
-         * Sets the value of the 'ints' field.
-         * @param value The value of 'ints'.
-         * @return This builder.
-         */
-        public com.github.fevernova.data.message.Data.Builder setInts(java.util.List<java.lang.Integer> value) {
-
-            validate(fields()[9], value);
-            this.ints = value;
-            fieldSetFlags()[9] = true;
-            return this;
-        }
-
-
-        /**
-         * Checks whether the 'ints' field has been set.
-         * @return True if the 'ints' field has been set, false otherwise.
-         */
-        public boolean hasInts() {
-
-            return fieldSetFlags()[9];
-        }
-
-
-        /**
-         * Clears the value of the 'ints' field.
-         * @return This builder.
-         */
-        public com.github.fevernova.data.message.Data.Builder clearInts() {
-
-            ints = null;
-            fieldSetFlags()[9] = false;
-            return this;
-        }
-
-
-        /**
-         * Gets the value of the 'doubles' field.
-         * @return The value.
-         */
-        public java.util.List<java.lang.Double> getDoubles() {
-
-            return doubles;
-        }
-
-
-        /**
-         * Sets the value of the 'doubles' field.
-         * @param value The value of 'doubles'.
-         * @return This builder.
-         */
-        public com.github.fevernova.data.message.Data.Builder setDoubles(java.util.List<java.lang.Double> value) {
-
-            validate(fields()[10], value);
-            this.doubles = value;
-            fieldSetFlags()[10] = true;
-            return this;
-        }
-
-
-        /**
-         * Checks whether the 'doubles' field has been set.
-         * @return True if the 'doubles' field has been set, false otherwise.
-         */
-        public boolean hasDoubles() {
-
-            return fieldSetFlags()[10];
-        }
-
-
-        /**
-         * Clears the value of the 'doubles' field.
-         * @return This builder.
-         */
-        public com.github.fevernova.data.message.Data.Builder clearDoubles() {
-
-            doubles = null;
-            fieldSetFlags()[10] = false;
-            return this;
-        }
-
-
-        /**
-         * Gets the value of the 'floats' field.
-         * @return The value.
-         */
-        public java.util.List<java.lang.Float> getFloats() {
-
-            return floats;
-        }
-
-
-        /**
-         * Sets the value of the 'floats' field.
-         * @param value The value of 'floats'.
-         * @return This builder.
-         */
-        public com.github.fevernova.data.message.Data.Builder setFloats(java.util.List<java.lang.Float> value) {
-
-            validate(fields()[11], value);
-            this.floats = value;
-            fieldSetFlags()[11] = true;
-            return this;
-        }
-
-
-        /**
-         * Checks whether the 'floats' field has been set.
-         * @return True if the 'floats' field has been set, false otherwise.
-         */
-        public boolean hasFloats() {
-
-            return fieldSetFlags()[11];
-        }
-
-
-        /**
-         * Clears the value of the 'floats' field.
-         * @return This builder.
-         */
-        public com.github.fevernova.data.message.Data.Builder clearFloats() {
-
-            floats = null;
-            fieldSetFlags()[11] = false;
-            return this;
-        }
-
-
-        /**
-         * Gets the value of the 'bytes' field.
-         * @return The value.
-         */
-        public java.util.List<java.nio.ByteBuffer> getBytes() {
-
-            return bytes;
-        }
-
-
-        /**
-         * Sets the value of the 'bytes' field.
-         * @param value The value of 'bytes'.
-         * @return This builder.
-         */
-        public com.github.fevernova.data.message.Data.Builder setBytes(java.util.List<java.nio.ByteBuffer> value) {
-
-            validate(fields()[12], value);
-            this.bytes = value;
-            fieldSetFlags()[12] = true;
-            return this;
-        }
-
-
-        /**
-         * Checks whether the 'bytes' field has been set.
-         * @return True if the 'bytes' field has been set, false otherwise.
-         */
-        public boolean hasBytes() {
-
-            return fieldSetFlags()[12];
-        }
-
-
-        /**
-         * Clears the value of the 'bytes' field.
-         * @return This builder.
-         */
-        public com.github.fevernova.data.message.Data.Builder clearBytes() {
-
-            bytes = null;
-            fieldSetFlags()[12] = false;
-            return this;
-        }
-
-
-        /**
-         * Gets the value of the 'booleans' field.
-         * @return The value.
-         */
-        public java.util.List<java.lang.Boolean> getBooleans() {
-
-            return booleans;
-        }
-
-
-        /**
-         * Sets the value of the 'booleans' field.
-         * @param value The value of 'booleans'.
-         * @return This builder.
-         */
-        public com.github.fevernova.data.message.Data.Builder setBooleans(java.util.List<java.lang.Boolean> value) {
-
-            validate(fields()[13], value);
-            this.booleans = value;
-            fieldSetFlags()[13] = true;
-            return this;
-        }
-
-
-        /**
-         * Checks whether the 'booleans' field has been set.
-         * @return True if the 'booleans' field has been set, false otherwise.
-         */
-        public boolean hasBooleans() {
-
-            return fieldSetFlags()[13];
-        }
-
-
-        /**
-         * Clears the value of the 'booleans' field.
-         * @return This builder.
-         */
-        public com.github.fevernova.data.message.Data.Builder clearBooleans() {
-
-            booleans = null;
-            fieldSetFlags()[13] = false;
-            return this;
-        }
-
-
-        /**
-         * Gets the value of the 'meta' field.
-         * @return The value.
-         */
-        public java.nio.ByteBuffer getMeta() {
-
-            return meta;
-        }
-
-
-        /**
-         * Sets the value of the 'meta' field.
-         * @param value The value of 'meta'.
-         * @return This builder.
-         */
-        public com.github.fevernova.data.message.Data.Builder setMeta(java.nio.ByteBuffer value) {
-
-            validate(fields()[14], value);
-            this.meta = value;
-            fieldSetFlags()[14] = true;
-            return this;
-        }
-
-
-        /**
-         * Checks whether the 'meta' field has been set.
-         * @return True if the 'meta' field has been set, false otherwise.
-         */
-        public boolean hasMeta() {
-
-            return fieldSetFlags()[14];
-        }
-
-
-        /**
-         * Clears the value of the 'meta' field.
-         * @return This builder.
-         */
-        public com.github.fevernova.data.message.Data.Builder clearMeta() {
-
-            meta = null;
-            fieldSetFlags()[14] = false;
-            return this;
-        }
-
-
-        @Override
-        @SuppressWarnings("unchecked")
-        public Data build() {
-
-            try {
-                Data record = new Data();
-                record.nid = fieldSetFlags()[0] ? this.nid : (java.lang.Long) defaultValue(fields()[0]);
-                record.sid = fieldSetFlags()[1] ? this.sid : (java.lang.String) defaultValue(fields()[1]);
-                record.opt = fieldSetFlags()[2] ? this.opt : (com.github.fevernova.data.message.Opt) defaultValue(fields()[2]);
-                record.timestamp = fieldSetFlags()[3] ? this.timestamp : (java.lang.Long) defaultValue(fields()[3]);
-                record.tags = fieldSetFlags()[4] ? this.tags : (java.util.Map<java.lang.String, java.lang.String>) defaultValue(fields()[4]);
-                record.metaId = fieldSetFlags()[5] ? this.metaId : (java.lang.Long) defaultValue(fields()[5]);
-                record.updatesLong = fieldSetFlags()[6] ? this.updatesLong : (java.lang.Long) defaultValue(fields()[6]);
-                record.longs = fieldSetFlags()[7] ? this.longs : (java.util.List<java.lang.Long>) defaultValue(fields()[7]);
-                record.strings = fieldSetFlags()[8] ? this.strings : (java.util.List<java.lang.String>) defaultValue(fields()[8]);
-                record.ints = fieldSetFlags()[9] ? this.ints : (java.util.List<java.lang.Integer>) defaultValue(fields()[9]);
-                record.doubles = fieldSetFlags()[10] ? this.doubles : (java.util.List<java.lang.Double>) defaultValue(fields()[10]);
-                record.floats = fieldSetFlags()[11] ? this.floats : (java.util.List<java.lang.Float>) defaultValue(fields()[11]);
-                record.bytes = fieldSetFlags()[12] ? this.bytes : (java.util.List<java.nio.ByteBuffer>) defaultValue(fields()[12]);
-                record.booleans = fieldSetFlags()[13] ? this.booleans : (java.util.List<java.lang.Boolean>) defaultValue(fields()[13]);
-                record.meta = fieldSetFlags()[14] ? this.meta : (java.nio.ByteBuffer) defaultValue(fields()[14]);
-                return record;
-            } catch (org.apache.avro.AvroMissingFieldException e) {
-                throw e;
-            } catch (java.lang.Exception e) {
-                throw new org.apache.avro.AvroRuntimeException(e);
-            }
-        }
-    }
-
-
-    @SuppressWarnings("unchecked")
-    private static final org.apache.avro.io.DatumWriter<Data>
-            WRITER$ = (org.apache.avro.io.DatumWriter<Data>) MODEL$.createDatumWriter(SCHEMA$);
-
-
     @Override public void writeExternal(java.io.ObjectOutput out)
             throws java.io.IOException {
 
         WRITER$.write(this, SpecificData.getEncoder(out));
     }
-
-
-    @SuppressWarnings("unchecked")
-    private static final org.apache.avro.io.DatumReader<Data>
-            READER$ = (org.apache.avro.io.DatumReader<Data>) MODEL$.createDatumReader(SCHEMA$);
 
 
     @Override public void readExternal(java.io.ObjectInput in)
@@ -2324,6 +1455,972 @@ public class Data extends org.apache.avro.specific.SpecificRecordBase implements
                     default:
                         throw new java.io.IOException("Corrupt ResolvingDecoder.");
                 }
+            }
+        }
+    }
+
+
+    /**
+     * RecordBuilder for Data instances.
+     */
+    public static class Builder extends org.apache.avro.specific.SpecificRecordBuilderBase<Data>
+            implements org.apache.avro.data.RecordBuilder<Data> {
+
+
+        private long nid;
+
+        private java.lang.String sid;
+
+        private com.github.fevernova.data.message.Opt opt;
+
+        private long timestamp;
+
+        private java.util.Map<java.lang.String, java.lang.String> tags;
+
+        private long metaId;
+
+        private long updatesLong;
+
+        private java.util.List<java.lang.Long> longs;
+
+        private java.util.List<java.lang.String> strings;
+
+        private java.util.List<java.lang.Integer> ints;
+
+        private java.util.List<java.lang.Double> doubles;
+
+        private java.util.List<java.lang.Float> floats;
+
+        private java.util.List<java.nio.ByteBuffer> bytes;
+
+        private java.util.List<java.lang.Boolean> booleans;
+
+        private java.nio.ByteBuffer meta;
+
+
+        /**
+         * Creates a new Builder
+         */
+        private Builder() {
+
+            super(SCHEMA$);
+        }
+
+
+        /**
+         * Creates a Builder by copying an existing Builder.
+         *
+         * @param other The existing Builder to copy.
+         */
+        private Builder(com.github.fevernova.data.message.Data.Builder other) {
+
+            super(other);
+            if (isValidValue(fields()[0], other.nid)) {
+                this.nid = data().deepCopy(fields()[0].schema(), other.nid);
+                fieldSetFlags()[0] = other.fieldSetFlags()[0];
+            }
+            if (isValidValue(fields()[1], other.sid)) {
+                this.sid = data().deepCopy(fields()[1].schema(), other.sid);
+                fieldSetFlags()[1] = other.fieldSetFlags()[1];
+            }
+            if (isValidValue(fields()[2], other.opt)) {
+                this.opt = data().deepCopy(fields()[2].schema(), other.opt);
+                fieldSetFlags()[2] = other.fieldSetFlags()[2];
+            }
+            if (isValidValue(fields()[3], other.timestamp)) {
+                this.timestamp = data().deepCopy(fields()[3].schema(), other.timestamp);
+                fieldSetFlags()[3] = other.fieldSetFlags()[3];
+            }
+            if (isValidValue(fields()[4], other.tags)) {
+                this.tags = data().deepCopy(fields()[4].schema(), other.tags);
+                fieldSetFlags()[4] = other.fieldSetFlags()[4];
+            }
+            if (isValidValue(fields()[5], other.metaId)) {
+                this.metaId = data().deepCopy(fields()[5].schema(), other.metaId);
+                fieldSetFlags()[5] = other.fieldSetFlags()[5];
+            }
+            if (isValidValue(fields()[6], other.updatesLong)) {
+                this.updatesLong = data().deepCopy(fields()[6].schema(), other.updatesLong);
+                fieldSetFlags()[6] = other.fieldSetFlags()[6];
+            }
+            if (isValidValue(fields()[7], other.longs)) {
+                this.longs = data().deepCopy(fields()[7].schema(), other.longs);
+                fieldSetFlags()[7] = other.fieldSetFlags()[7];
+            }
+            if (isValidValue(fields()[8], other.strings)) {
+                this.strings = data().deepCopy(fields()[8].schema(), other.strings);
+                fieldSetFlags()[8] = other.fieldSetFlags()[8];
+            }
+            if (isValidValue(fields()[9], other.ints)) {
+                this.ints = data().deepCopy(fields()[9].schema(), other.ints);
+                fieldSetFlags()[9] = other.fieldSetFlags()[9];
+            }
+            if (isValidValue(fields()[10], other.doubles)) {
+                this.doubles = data().deepCopy(fields()[10].schema(), other.doubles);
+                fieldSetFlags()[10] = other.fieldSetFlags()[10];
+            }
+            if (isValidValue(fields()[11], other.floats)) {
+                this.floats = data().deepCopy(fields()[11].schema(), other.floats);
+                fieldSetFlags()[11] = other.fieldSetFlags()[11];
+            }
+            if (isValidValue(fields()[12], other.bytes)) {
+                this.bytes = data().deepCopy(fields()[12].schema(), other.bytes);
+                fieldSetFlags()[12] = other.fieldSetFlags()[12];
+            }
+            if (isValidValue(fields()[13], other.booleans)) {
+                this.booleans = data().deepCopy(fields()[13].schema(), other.booleans);
+                fieldSetFlags()[13] = other.fieldSetFlags()[13];
+            }
+            if (isValidValue(fields()[14], other.meta)) {
+                this.meta = data().deepCopy(fields()[14].schema(), other.meta);
+                fieldSetFlags()[14] = other.fieldSetFlags()[14];
+            }
+        }
+
+
+        /**
+         * Creates a Builder by copying an existing Data instance
+         *
+         * @param other The existing instance to copy.
+         */
+        private Builder(com.github.fevernova.data.message.Data other) {
+
+            super(SCHEMA$);
+            if (isValidValue(fields()[0], other.nid)) {
+                this.nid = data().deepCopy(fields()[0].schema(), other.nid);
+                fieldSetFlags()[0] = true;
+            }
+            if (isValidValue(fields()[1], other.sid)) {
+                this.sid = data().deepCopy(fields()[1].schema(), other.sid);
+                fieldSetFlags()[1] = true;
+            }
+            if (isValidValue(fields()[2], other.opt)) {
+                this.opt = data().deepCopy(fields()[2].schema(), other.opt);
+                fieldSetFlags()[2] = true;
+            }
+            if (isValidValue(fields()[3], other.timestamp)) {
+                this.timestamp = data().deepCopy(fields()[3].schema(), other.timestamp);
+                fieldSetFlags()[3] = true;
+            }
+            if (isValidValue(fields()[4], other.tags)) {
+                this.tags = data().deepCopy(fields()[4].schema(), other.tags);
+                fieldSetFlags()[4] = true;
+            }
+            if (isValidValue(fields()[5], other.metaId)) {
+                this.metaId = data().deepCopy(fields()[5].schema(), other.metaId);
+                fieldSetFlags()[5] = true;
+            }
+            if (isValidValue(fields()[6], other.updatesLong)) {
+                this.updatesLong = data().deepCopy(fields()[6].schema(), other.updatesLong);
+                fieldSetFlags()[6] = true;
+            }
+            if (isValidValue(fields()[7], other.longs)) {
+                this.longs = data().deepCopy(fields()[7].schema(), other.longs);
+                fieldSetFlags()[7] = true;
+            }
+            if (isValidValue(fields()[8], other.strings)) {
+                this.strings = data().deepCopy(fields()[8].schema(), other.strings);
+                fieldSetFlags()[8] = true;
+            }
+            if (isValidValue(fields()[9], other.ints)) {
+                this.ints = data().deepCopy(fields()[9].schema(), other.ints);
+                fieldSetFlags()[9] = true;
+            }
+            if (isValidValue(fields()[10], other.doubles)) {
+                this.doubles = data().deepCopy(fields()[10].schema(), other.doubles);
+                fieldSetFlags()[10] = true;
+            }
+            if (isValidValue(fields()[11], other.floats)) {
+                this.floats = data().deepCopy(fields()[11].schema(), other.floats);
+                fieldSetFlags()[11] = true;
+            }
+            if (isValidValue(fields()[12], other.bytes)) {
+                this.bytes = data().deepCopy(fields()[12].schema(), other.bytes);
+                fieldSetFlags()[12] = true;
+            }
+            if (isValidValue(fields()[13], other.booleans)) {
+                this.booleans = data().deepCopy(fields()[13].schema(), other.booleans);
+                fieldSetFlags()[13] = true;
+            }
+            if (isValidValue(fields()[14], other.meta)) {
+                this.meta = data().deepCopy(fields()[14].schema(), other.meta);
+                fieldSetFlags()[14] = true;
+            }
+        }
+
+
+        /**
+         * Gets the value of the 'nid' field.
+         *
+         * @return The value.
+         */
+        public long getNid() {
+
+            return nid;
+        }
+
+
+        /**
+         * Sets the value of the 'nid' field.
+         *
+         * @param value The value of 'nid'.
+         * @return This builder.
+         */
+        public com.github.fevernova.data.message.Data.Builder setNid(long value) {
+
+            validate(fields()[0], value);
+            this.nid = value;
+            fieldSetFlags()[0] = true;
+            return this;
+        }
+
+
+        /**
+         * Checks whether the 'nid' field has been set.
+         *
+         * @return True if the 'nid' field has been set, false otherwise.
+         */
+        public boolean hasNid() {
+
+            return fieldSetFlags()[0];
+        }
+
+
+        /**
+         * Clears the value of the 'nid' field.
+         *
+         * @return This builder.
+         */
+        public com.github.fevernova.data.message.Data.Builder clearNid() {
+
+            fieldSetFlags()[0] = false;
+            return this;
+        }
+
+
+        /**
+         * Gets the value of the 'sid' field.
+         *
+         * @return The value.
+         */
+        public java.lang.String getSid() {
+
+            return sid;
+        }
+
+
+        /**
+         * Sets the value of the 'sid' field.
+         *
+         * @param value The value of 'sid'.
+         * @return This builder.
+         */
+        public com.github.fevernova.data.message.Data.Builder setSid(java.lang.String value) {
+
+            validate(fields()[1], value);
+            this.sid = value;
+            fieldSetFlags()[1] = true;
+            return this;
+        }
+
+
+        /**
+         * Checks whether the 'sid' field has been set.
+         *
+         * @return True if the 'sid' field has been set, false otherwise.
+         */
+        public boolean hasSid() {
+
+            return fieldSetFlags()[1];
+        }
+
+
+        /**
+         * Clears the value of the 'sid' field.
+         *
+         * @return This builder.
+         */
+        public com.github.fevernova.data.message.Data.Builder clearSid() {
+
+            sid = null;
+            fieldSetFlags()[1] = false;
+            return this;
+        }
+
+
+        /**
+         * Gets the value of the 'opt' field.
+         *
+         * @return The value.
+         */
+        public com.github.fevernova.data.message.Opt getOpt() {
+
+            return opt;
+        }
+
+
+        /**
+         * Sets the value of the 'opt' field.
+         *
+         * @param value The value of 'opt'.
+         * @return This builder.
+         */
+        public com.github.fevernova.data.message.Data.Builder setOpt(com.github.fevernova.data.message.Opt value) {
+
+            validate(fields()[2], value);
+            this.opt = value;
+            fieldSetFlags()[2] = true;
+            return this;
+        }
+
+
+        /**
+         * Checks whether the 'opt' field has been set.
+         *
+         * @return True if the 'opt' field has been set, false otherwise.
+         */
+        public boolean hasOpt() {
+
+            return fieldSetFlags()[2];
+        }
+
+
+        /**
+         * Clears the value of the 'opt' field.
+         *
+         * @return This builder.
+         */
+        public com.github.fevernova.data.message.Data.Builder clearOpt() {
+
+            opt = null;
+            fieldSetFlags()[2] = false;
+            return this;
+        }
+
+
+        /**
+         * Gets the value of the 'timestamp' field.
+         *
+         * @return The value.
+         */
+        public long getTimestamp() {
+
+            return timestamp;
+        }
+
+
+        /**
+         * Sets the value of the 'timestamp' field.
+         *
+         * @param value The value of 'timestamp'.
+         * @return This builder.
+         */
+        public com.github.fevernova.data.message.Data.Builder setTimestamp(long value) {
+
+            validate(fields()[3], value);
+            this.timestamp = value;
+            fieldSetFlags()[3] = true;
+            return this;
+        }
+
+
+        /**
+         * Checks whether the 'timestamp' field has been set.
+         *
+         * @return True if the 'timestamp' field has been set, false otherwise.
+         */
+        public boolean hasTimestamp() {
+
+            return fieldSetFlags()[3];
+        }
+
+
+        /**
+         * Clears the value of the 'timestamp' field.
+         *
+         * @return This builder.
+         */
+        public com.github.fevernova.data.message.Data.Builder clearTimestamp() {
+
+            fieldSetFlags()[3] = false;
+            return this;
+        }
+
+
+        /**
+         * Gets the value of the 'tags' field.
+         *
+         * @return The value.
+         */
+        public java.util.Map<java.lang.String, java.lang.String> getTags() {
+
+            return tags;
+        }
+
+
+        /**
+         * Sets the value of the 'tags' field.
+         *
+         * @param value The value of 'tags'.
+         * @return This builder.
+         */
+        public com.github.fevernova.data.message.Data.Builder setTags(java.util.Map<java.lang.String, java.lang.String> value) {
+
+            validate(fields()[4], value);
+            this.tags = value;
+            fieldSetFlags()[4] = true;
+            return this;
+        }
+
+
+        /**
+         * Checks whether the 'tags' field has been set.
+         *
+         * @return True if the 'tags' field has been set, false otherwise.
+         */
+        public boolean hasTags() {
+
+            return fieldSetFlags()[4];
+        }
+
+
+        /**
+         * Clears the value of the 'tags' field.
+         *
+         * @return This builder.
+         */
+        public com.github.fevernova.data.message.Data.Builder clearTags() {
+
+            tags = null;
+            fieldSetFlags()[4] = false;
+            return this;
+        }
+
+
+        /**
+         * Gets the value of the 'metaId' field.
+         *
+         * @return The value.
+         */
+        public long getMetaId() {
+
+            return metaId;
+        }
+
+
+        /**
+         * Sets the value of the 'metaId' field.
+         *
+         * @param value The value of 'metaId'.
+         * @return This builder.
+         */
+        public com.github.fevernova.data.message.Data.Builder setMetaId(long value) {
+
+            validate(fields()[5], value);
+            this.metaId = value;
+            fieldSetFlags()[5] = true;
+            return this;
+        }
+
+
+        /**
+         * Checks whether the 'metaId' field has been set.
+         *
+         * @return True if the 'metaId' field has been set, false otherwise.
+         */
+        public boolean hasMetaId() {
+
+            return fieldSetFlags()[5];
+        }
+
+
+        /**
+         * Clears the value of the 'metaId' field.
+         *
+         * @return This builder.
+         */
+        public com.github.fevernova.data.message.Data.Builder clearMetaId() {
+
+            fieldSetFlags()[5] = false;
+            return this;
+        }
+
+
+        /**
+         * Gets the value of the 'updatesLong' field.
+         *
+         * @return The value.
+         */
+        public long getUpdatesLong() {
+
+            return updatesLong;
+        }
+
+
+        /**
+         * Sets the value of the 'updatesLong' field.
+         *
+         * @param value The value of 'updatesLong'.
+         * @return This builder.
+         */
+        public com.github.fevernova.data.message.Data.Builder setUpdatesLong(long value) {
+
+            validate(fields()[6], value);
+            this.updatesLong = value;
+            fieldSetFlags()[6] = true;
+            return this;
+        }
+
+
+        /**
+         * Checks whether the 'updatesLong' field has been set.
+         *
+         * @return True if the 'updatesLong' field has been set, false otherwise.
+         */
+        public boolean hasUpdatesLong() {
+
+            return fieldSetFlags()[6];
+        }
+
+
+        /**
+         * Clears the value of the 'updatesLong' field.
+         *
+         * @return This builder.
+         */
+        public com.github.fevernova.data.message.Data.Builder clearUpdatesLong() {
+
+            fieldSetFlags()[6] = false;
+            return this;
+        }
+
+
+        /**
+         * Gets the value of the 'longs' field.
+         *
+         * @return The value.
+         */
+        public java.util.List<java.lang.Long> getLongs() {
+
+            return longs;
+        }
+
+
+        /**
+         * Sets the value of the 'longs' field.
+         *
+         * @param value The value of 'longs'.
+         * @return This builder.
+         */
+        public com.github.fevernova.data.message.Data.Builder setLongs(java.util.List<java.lang.Long> value) {
+
+            validate(fields()[7], value);
+            this.longs = value;
+            fieldSetFlags()[7] = true;
+            return this;
+        }
+
+
+        /**
+         * Checks whether the 'longs' field has been set.
+         *
+         * @return True if the 'longs' field has been set, false otherwise.
+         */
+        public boolean hasLongs() {
+
+            return fieldSetFlags()[7];
+        }
+
+
+        /**
+         * Clears the value of the 'longs' field.
+         *
+         * @return This builder.
+         */
+        public com.github.fevernova.data.message.Data.Builder clearLongs() {
+
+            longs = null;
+            fieldSetFlags()[7] = false;
+            return this;
+        }
+
+
+        /**
+         * Gets the value of the 'strings' field.
+         *
+         * @return The value.
+         */
+        public java.util.List<java.lang.String> getStrings() {
+
+            return strings;
+        }
+
+
+        /**
+         * Sets the value of the 'strings' field.
+         *
+         * @param value The value of 'strings'.
+         * @return This builder.
+         */
+        public com.github.fevernova.data.message.Data.Builder setStrings(java.util.List<java.lang.String> value) {
+
+            validate(fields()[8], value);
+            this.strings = value;
+            fieldSetFlags()[8] = true;
+            return this;
+        }
+
+
+        /**
+         * Checks whether the 'strings' field has been set.
+         *
+         * @return True if the 'strings' field has been set, false otherwise.
+         */
+        public boolean hasStrings() {
+
+            return fieldSetFlags()[8];
+        }
+
+
+        /**
+         * Clears the value of the 'strings' field.
+         *
+         * @return This builder.
+         */
+        public com.github.fevernova.data.message.Data.Builder clearStrings() {
+
+            strings = null;
+            fieldSetFlags()[8] = false;
+            return this;
+        }
+
+
+        /**
+         * Gets the value of the 'ints' field.
+         *
+         * @return The value.
+         */
+        public java.util.List<java.lang.Integer> getInts() {
+
+            return ints;
+        }
+
+
+        /**
+         * Sets the value of the 'ints' field.
+         *
+         * @param value The value of 'ints'.
+         * @return This builder.
+         */
+        public com.github.fevernova.data.message.Data.Builder setInts(java.util.List<java.lang.Integer> value) {
+
+            validate(fields()[9], value);
+            this.ints = value;
+            fieldSetFlags()[9] = true;
+            return this;
+        }
+
+
+        /**
+         * Checks whether the 'ints' field has been set.
+         *
+         * @return True if the 'ints' field has been set, false otherwise.
+         */
+        public boolean hasInts() {
+
+            return fieldSetFlags()[9];
+        }
+
+
+        /**
+         * Clears the value of the 'ints' field.
+         *
+         * @return This builder.
+         */
+        public com.github.fevernova.data.message.Data.Builder clearInts() {
+
+            ints = null;
+            fieldSetFlags()[9] = false;
+            return this;
+        }
+
+
+        /**
+         * Gets the value of the 'doubles' field.
+         *
+         * @return The value.
+         */
+        public java.util.List<java.lang.Double> getDoubles() {
+
+            return doubles;
+        }
+
+
+        /**
+         * Sets the value of the 'doubles' field.
+         *
+         * @param value The value of 'doubles'.
+         * @return This builder.
+         */
+        public com.github.fevernova.data.message.Data.Builder setDoubles(java.util.List<java.lang.Double> value) {
+
+            validate(fields()[10], value);
+            this.doubles = value;
+            fieldSetFlags()[10] = true;
+            return this;
+        }
+
+
+        /**
+         * Checks whether the 'doubles' field has been set.
+         *
+         * @return True if the 'doubles' field has been set, false otherwise.
+         */
+        public boolean hasDoubles() {
+
+            return fieldSetFlags()[10];
+        }
+
+
+        /**
+         * Clears the value of the 'doubles' field.
+         *
+         * @return This builder.
+         */
+        public com.github.fevernova.data.message.Data.Builder clearDoubles() {
+
+            doubles = null;
+            fieldSetFlags()[10] = false;
+            return this;
+        }
+
+
+        /**
+         * Gets the value of the 'floats' field.
+         *
+         * @return The value.
+         */
+        public java.util.List<java.lang.Float> getFloats() {
+
+            return floats;
+        }
+
+
+        /**
+         * Sets the value of the 'floats' field.
+         *
+         * @param value The value of 'floats'.
+         * @return This builder.
+         */
+        public com.github.fevernova.data.message.Data.Builder setFloats(java.util.List<java.lang.Float> value) {
+
+            validate(fields()[11], value);
+            this.floats = value;
+            fieldSetFlags()[11] = true;
+            return this;
+        }
+
+
+        /**
+         * Checks whether the 'floats' field has been set.
+         *
+         * @return True if the 'floats' field has been set, false otherwise.
+         */
+        public boolean hasFloats() {
+
+            return fieldSetFlags()[11];
+        }
+
+
+        /**
+         * Clears the value of the 'floats' field.
+         *
+         * @return This builder.
+         */
+        public com.github.fevernova.data.message.Data.Builder clearFloats() {
+
+            floats = null;
+            fieldSetFlags()[11] = false;
+            return this;
+        }
+
+
+        /**
+         * Gets the value of the 'bytes' field.
+         *
+         * @return The value.
+         */
+        public java.util.List<java.nio.ByteBuffer> getBytes() {
+
+            return bytes;
+        }
+
+
+        /**
+         * Sets the value of the 'bytes' field.
+         *
+         * @param value The value of 'bytes'.
+         * @return This builder.
+         */
+        public com.github.fevernova.data.message.Data.Builder setBytes(java.util.List<java.nio.ByteBuffer> value) {
+
+            validate(fields()[12], value);
+            this.bytes = value;
+            fieldSetFlags()[12] = true;
+            return this;
+        }
+
+
+        /**
+         * Checks whether the 'bytes' field has been set.
+         *
+         * @return True if the 'bytes' field has been set, false otherwise.
+         */
+        public boolean hasBytes() {
+
+            return fieldSetFlags()[12];
+        }
+
+
+        /**
+         * Clears the value of the 'bytes' field.
+         *
+         * @return This builder.
+         */
+        public com.github.fevernova.data.message.Data.Builder clearBytes() {
+
+            bytes = null;
+            fieldSetFlags()[12] = false;
+            return this;
+        }
+
+
+        /**
+         * Gets the value of the 'booleans' field.
+         *
+         * @return The value.
+         */
+        public java.util.List<java.lang.Boolean> getBooleans() {
+
+            return booleans;
+        }
+
+
+        /**
+         * Sets the value of the 'booleans' field.
+         *
+         * @param value The value of 'booleans'.
+         * @return This builder.
+         */
+        public com.github.fevernova.data.message.Data.Builder setBooleans(java.util.List<java.lang.Boolean> value) {
+
+            validate(fields()[13], value);
+            this.booleans = value;
+            fieldSetFlags()[13] = true;
+            return this;
+        }
+
+
+        /**
+         * Checks whether the 'booleans' field has been set.
+         *
+         * @return True if the 'booleans' field has been set, false otherwise.
+         */
+        public boolean hasBooleans() {
+
+            return fieldSetFlags()[13];
+        }
+
+
+        /**
+         * Clears the value of the 'booleans' field.
+         *
+         * @return This builder.
+         */
+        public com.github.fevernova.data.message.Data.Builder clearBooleans() {
+
+            booleans = null;
+            fieldSetFlags()[13] = false;
+            return this;
+        }
+
+
+        /**
+         * Gets the value of the 'meta' field.
+         *
+         * @return The value.
+         */
+        public java.nio.ByteBuffer getMeta() {
+
+            return meta;
+        }
+
+
+        /**
+         * Sets the value of the 'meta' field.
+         *
+         * @param value The value of 'meta'.
+         * @return This builder.
+         */
+        public com.github.fevernova.data.message.Data.Builder setMeta(java.nio.ByteBuffer value) {
+
+            validate(fields()[14], value);
+            this.meta = value;
+            fieldSetFlags()[14] = true;
+            return this;
+        }
+
+
+        /**
+         * Checks whether the 'meta' field has been set.
+         *
+         * @return True if the 'meta' field has been set, false otherwise.
+         */
+        public boolean hasMeta() {
+
+            return fieldSetFlags()[14];
+        }
+
+
+        /**
+         * Clears the value of the 'meta' field.
+         *
+         * @return This builder.
+         */
+        public com.github.fevernova.data.message.Data.Builder clearMeta() {
+
+            meta = null;
+            fieldSetFlags()[14] = false;
+            return this;
+        }
+
+
+        @Override
+        @SuppressWarnings("unchecked")
+        public Data build() {
+
+            try {
+                Data record = new Data();
+                record.nid = fieldSetFlags()[0] ? this.nid : (java.lang.Long) defaultValue(fields()[0]);
+                record.sid = fieldSetFlags()[1] ? this.sid : (java.lang.String) defaultValue(fields()[1]);
+                record.opt = fieldSetFlags()[2] ? this.opt : (com.github.fevernova.data.message.Opt) defaultValue(fields()[2]);
+                record.timestamp = fieldSetFlags()[3] ? this.timestamp : (java.lang.Long) defaultValue(fields()[3]);
+                record.tags = fieldSetFlags()[4] ? this.tags : (java.util.Map<java.lang.String, java.lang.String>) defaultValue(fields()[4]);
+                record.metaId = fieldSetFlags()[5] ? this.metaId : (java.lang.Long) defaultValue(fields()[5]);
+                record.updatesLong = fieldSetFlags()[6] ? this.updatesLong : (java.lang.Long) defaultValue(fields()[6]);
+                record.longs = fieldSetFlags()[7] ? this.longs : (java.util.List<java.lang.Long>) defaultValue(fields()[7]);
+                record.strings = fieldSetFlags()[8] ? this.strings : (java.util.List<java.lang.String>) defaultValue(fields()[8]);
+                record.ints = fieldSetFlags()[9] ? this.ints : (java.util.List<java.lang.Integer>) defaultValue(fields()[9]);
+                record.doubles = fieldSetFlags()[10] ? this.doubles : (java.util.List<java.lang.Double>) defaultValue(fields()[10]);
+                record.floats = fieldSetFlags()[11] ? this.floats : (java.util.List<java.lang.Float>) defaultValue(fields()[11]);
+                record.bytes = fieldSetFlags()[12] ? this.bytes : (java.util.List<java.nio.ByteBuffer>) defaultValue(fields()[12]);
+                record.booleans = fieldSetFlags()[13] ? this.booleans : (java.util.List<java.lang.Boolean>) defaultValue(fields()[13]);
+                record.meta = fieldSetFlags()[14] ? this.meta : (java.nio.ByteBuffer) defaultValue(fields()[14]);
+                return record;
+            } catch (org.apache.avro.AvroMissingFieldException e) {
+                throw e;
+            } catch (java.lang.Exception e) {
+                throw new org.apache.avro.AvroRuntimeException(e);
             }
         }
     }

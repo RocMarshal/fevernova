@@ -4,7 +4,6 @@ package com.github.fevernova.hdfs.serialization;
 import com.github.fevernova.framework.common.Configurable;
 import com.github.fevernova.framework.common.context.TaskContext;
 import com.github.fevernova.framework.common.data.Data;
-import com.github.fevernova.framework.common.data.DataEvent;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;

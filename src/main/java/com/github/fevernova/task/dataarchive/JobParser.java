@@ -36,11 +36,11 @@ public class JobParser extends AbstractParser<byte[], ListData> {
 
     private final List<ColumnInfo> columnInfos = Lists.newArrayList();
 
+    private final Map<Long, List<Triple<ColumnInfo, Meta.MetaEntity, MethodType>>> cachedHandlers = Maps.newHashMap();
+
     private long currentMetaId = -1;
 
     private List<Triple<ColumnInfo, Meta.MetaEntity, MethodType>> handlers = Lists.newArrayList();
-
-    private final Map<Long, List<Triple<ColumnInfo, Meta.MetaEntity, MethodType>>> cachedHandlers = Maps.newHashMap();
 
 
     public JobParser(GlobalContext globalContext, TaskContext taskContext, int index, int inputsNum, ChannelProxy channelProxy) {

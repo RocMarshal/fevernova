@@ -63,6 +63,28 @@ public class MysqlDataSource {
     }
 
 
+    public static String matchCharset(String charset) {
+
+        if (charset == null) {
+            return null;
+        }
+        switch (charset.toLowerCase()) {
+            case "utf8":
+            case "utf8mb4":
+                return "UTF-8";
+            case "latin1":
+            case "ascii":
+                return "Windows-1252";
+            case "ucs2":
+                return "UTF-16";
+            case "ujis":
+                return "EUC-JP";
+            default:
+                return charset;
+        }
+    }
+
+
     public void initJDBC() throws Exception {
 
         this.jdbcUrl = "jdbc:mysql://" + this.host + ":" + this.port;
@@ -254,28 +276,6 @@ public class MysqlDataSource {
             }
         });
         return result;
-    }
-
-
-    public static String matchCharset(String charset) {
-
-        if (charset == null) {
-            return null;
-        }
-        switch (charset.toLowerCase()) {
-            case "utf8":
-            case "utf8mb4":
-                return "UTF-8";
-            case "latin1":
-            case "ascii":
-                return "Windows-1252";
-            case "ucs2":
-                return "UTF-16";
-            case "ujis":
-                return "EUC-JP";
-            default:
-                return charset;
-        }
     }
 
 

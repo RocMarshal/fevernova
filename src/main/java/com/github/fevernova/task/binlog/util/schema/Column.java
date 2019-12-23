@@ -6,8 +6,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.ToString;
 
-import java.nio.charset.Charset;
-
 
 @Getter
 @Builder
