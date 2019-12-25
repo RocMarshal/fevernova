@@ -212,7 +212,7 @@ import java.util.stream.Collectors;
     public void recovery(List<StateValue> stateValues) {
 
         this.components.forEach(component -> {
-            if (component.isFirst()) {
+            if (component.needRecovery()) {
                 List<StateValue> ts = stateValues.stream().filter(stateValue -> stateValue.getComponentType() == component.getComponentType())
                         .collect(Collectors.toList());
                 if (CollectionUtils.isNotEmpty(ts)) {

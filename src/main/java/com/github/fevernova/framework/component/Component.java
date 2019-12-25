@@ -149,6 +149,12 @@ public abstract class Component extends LifecycleAwareExtension {
     }
 
 
+    public boolean needRecovery() {
+
+        return isFirst();
+    }
+
+
     protected abstract void snapshotWhenBarrier(BarrierData barrierData);
 
     protected abstract void distributeBarrier(BarrierData barrierData);

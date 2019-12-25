@@ -8,7 +8,6 @@ import net.openhft.chronicle.bytes.BytesIn;
 import net.openhft.chronicle.bytes.BytesOut;
 import net.openhft.chronicle.bytes.WriteBytesMarshallable;
 import org.apache.commons.lang3.Validate;
-import org.eclipse.collections.api.block.procedure.primitive.IntObjectProcedure;
 import org.eclipse.collections.impl.map.mutable.primitive.IntObjectHashMap;
 import org.jetbrains.annotations.NotNull;
 import org.roaringbitmap.RoaringBitmap;
@@ -64,7 +63,7 @@ public class Window implements WriteBytesMarshallable, Comparable<Window> {
             }
         }
         this.bitmapsCache = Maps.newHashMap();
-        this.bitmaps.forEachKeyValue((IntObjectProcedure<RoaringBitmap>) (each, parameter) -> bitmapsCache.put(each, parameter));
+        this.bitmaps.forEachKeyValue((each, parameter) -> bitmapsCache.put(each, parameter));
     }
 
 

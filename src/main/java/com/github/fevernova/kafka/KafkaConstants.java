@@ -8,6 +8,8 @@ public class KafkaConstants {
 
     public static final String KAFKA_ = "kafka.";
 
+    public static final String TOPIC = "topic";
+
     public static final String TOPICS = "topics";
 
     public static final String PARTITIONS = "partitions";

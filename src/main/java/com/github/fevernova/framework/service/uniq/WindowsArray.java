@@ -5,7 +5,6 @@ import com.google.common.collect.Maps;
 import net.openhft.chronicle.bytes.BytesIn;
 import net.openhft.chronicle.bytes.BytesOut;
 import net.openhft.chronicle.bytes.WriteBytesMarshallable;
-import org.eclipse.collections.api.block.procedure.primitive.IntObjectProcedure;
 import org.eclipse.collections.impl.map.mutable.primitive.IntObjectHashMap;
 
 import java.util.Map;
@@ -43,7 +42,7 @@ public class WindowsArray implements WriteBytesMarshallable {
         this.windowNum = windowNum;
         this.windows = SerializationUtils.readIntMap(bytes, bytesIn -> new Window(bytes));
         this.windowsCache = Maps.newHashMapWithExpectedSize(windowNum);
-        this.windows.forEachKeyValue((IntObjectProcedure<Window>) (each, parameter) -> windowsCache.put(each, parameter));
+        this.windows.forEachKeyValue((each, parameter) -> windowsCache.put(each, parameter));
     }
 
 
@@ -77,6 +76,6 @@ public class WindowsArray implements WriteBytesMarshallable {
     @Override public void writeMarshallable(BytesOut bytes) {
 
         SerializationUtils.marshallIntMap(this.windows, bytes);
-        this.windows.forEachKeyValue((IntObjectProcedure<Window>) (each, parameter) -> windowsCache.put(each, parameter));
+        this.windows.forEachKeyValue((each, parameter) -> windowsCache.put(each, parameter));
     }
 }

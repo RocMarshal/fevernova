@@ -11,7 +11,6 @@ import net.openhft.chronicle.bytes.ReadBytesMarshallable;
 import net.openhft.chronicle.bytes.WriteBytesMarshallable;
 import net.openhft.chronicle.core.io.IORuntimeException;
 import org.apache.commons.lang3.Validate;
-import org.eclipse.collections.api.block.procedure.primitive.IntObjectProcedure;
 import org.eclipse.collections.impl.map.mutable.primitive.IntObjectHashMap;
 
 import java.util.Map;
@@ -19,6 +18,8 @@ import java.util.Map;
 
 public class SlideWindowFilter implements WriteBytesMarshallable, ReadBytesMarshallable {
 
+
+    public static final String CONS_NAME = "SlideWindowFilter";
 
     private final GlobalContext globalContext;
 
@@ -80,6 +81,6 @@ public class SlideWindowFilter implements WriteBytesMarshallable, ReadBytesMarsh
     @Override public void readMarshallable(BytesIn bytes) throws IORuntimeException {
 
         this.filter = SerializationUtils.readIntMap(bytes, bytesIn -> new WindowsArray(span, windowNum, bytesIn));
-        this.filter.forEachKeyValue((IntObjectProcedure<WindowsArray>) (each, parameter) -> filterCache.put(each, parameter));
+        this.filter.forEachKeyValue((each, parameter) -> filterCache.put(each, parameter));
     }
 }
