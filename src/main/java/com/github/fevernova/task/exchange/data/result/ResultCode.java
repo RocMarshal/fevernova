@@ -6,6 +6,7 @@ public enum ResultCode {
     PLACE(100),
 
     CANCEL(200),
+    CANCEL_IOC(201),
 
     MATCH(300),
 
