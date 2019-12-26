@@ -80,9 +80,6 @@ public class OrderBooks implements WriteBytesMarshallable {
 
     private List<OrderMatch> matchAsk(OrderCommand orderCommand) {
 
-        if (OrderType.IOC == orderCommand.getOrderType()) {
-            orderCommand.setPrice(-1L);
-        }
         Order order = new Order(orderCommand);
         OrderArray orderArray = getOrderArray(orderCommand.getPrice(), OrderAction.ASK, this.askPriceTree);
         orderArray.addOrder(order);
@@ -103,9 +100,6 @@ public class OrderBooks implements WriteBytesMarshallable {
 
     private List<OrderMatch> matchBid(OrderCommand orderCommand) {
 
-        if (OrderType.IOC == orderCommand.getOrderType()) {
-            orderCommand.setPrice(Long.MAX_VALUE - 1);
-        }
         Order order = new Order(orderCommand);
         OrderArray orderArray = getOrderArray(orderCommand.getPrice(), OrderAction.BID, this.bidPriceTree);
         orderArray.addOrder(order);
