@@ -84,7 +84,7 @@ public class OrderArray implements WriteBytesMarshallable {
 
     public List<OrderMatch> meet(OrderArray other, int symbolId, long matchPrice) {
 
-        List<OrderMatch> result = Lists.newArrayList();
+        List<OrderMatch> result = Lists.newLinkedList();
         do {
             Order thisOrder = this.queue.getFirst();
             Order thatOrder = other.getQueue().getFirst();

@@ -51,7 +51,7 @@ public class T_Exchange {
 
     private List<OrderMatch> parser(OrderCommand orderCommand) {
 
-        List<OrderMatch> result = Lists.newArrayList();
+        List<OrderMatch> result = Lists.newLinkedList();
         final OrderMatch orderMatch = new OrderMatch();
         orderMatch.from(orderCommand);
         result.add(orderMatch);

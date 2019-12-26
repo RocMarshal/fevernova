@@ -71,10 +71,9 @@ public class OrderBooks implements WriteBytesMarshallable {
 
         if (OrderAction.ASK == orderCommand.getOrderAction()) {
             return matchAsk(orderCommand);
-        } else if (OrderAction.BID == orderCommand.getOrderAction()) {
+        } else {
             return matchBid(orderCommand);
         }
-        return Lists.newArrayList();
     }
 
 
@@ -131,10 +130,10 @@ public class OrderBooks implements WriteBytesMarshallable {
 
     private List<OrderMatch> matchOrders() {
 
-        List<OrderMatch> result = Lists.newArrayList();
         if (this.askPrice > this.bidPrice) {
-            return result;
+            return Lists.newLinkedList();
         }
+        List<OrderMatch> result = Lists.newLinkedList();
         while (this.askPrice <= this.bidPrice && this.askSize > 0 && this.bidSize > 0) {
             OrderArray bid = this.bidPriceTree.firstEntry().getValue();
             long bidTmpSize = bid.getSize();
@@ -180,14 +179,14 @@ public class OrderBooks implements WriteBytesMarshallable {
             orderMatch.setResultCode(ResultCode.CANCEL);
             if (OrderAction.ASK == orderCommand.getOrderAction()) {
                 cancelAsk(order);
-            } else if (OrderAction.BID == orderCommand.getOrderAction()) {
+            } else {
                 cancelBid(order);
             }
         }
     }
 
 
-    public void cancelBid(Order order) {
+    private void cancelBid(Order order) {
 
         this.bidSize -= order.getRemainSize();
         OrderArray orderArray = order.getLink();
@@ -196,7 +195,7 @@ public class OrderBooks implements WriteBytesMarshallable {
     }
 
 
-    public void cancelAsk(Order order) {
+    private void cancelAsk(Order order) {
 
         this.askSize -= order.getRemainSize();
         OrderArray orderArray = order.getLink();
