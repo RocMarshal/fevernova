@@ -114,7 +114,7 @@ public class JobSource extends AbstractSource<byte[], OrderCommand> implements C
                             case "timestamp":
                                 data.setTimestamp((long) val);
                                 break;
-                            case "action":
+                            case "orderAction":
                                 data.setOrderAction(OrderAction.of((int) val));
                                 break;
                             case "orderType":
