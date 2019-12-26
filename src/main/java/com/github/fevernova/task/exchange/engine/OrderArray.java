@@ -9,7 +9,6 @@ import lombok.Getter;
 import net.openhft.chronicle.bytes.BytesIn;
 import net.openhft.chronicle.bytes.BytesOut;
 import net.openhft.chronicle.bytes.WriteBytesMarshallable;
-import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.LinkedList;
@@ -56,10 +55,19 @@ public class OrderArray implements WriteBytesMarshallable {
     }
 
 
-    public void remove(Order order, long delta) {
+    public void remove(Order order) {
 
         this.queue.remove(order);
+        this.size -= order.getRemainSize();
+    }
+
+
+    public void decr(Order order, long delta) {
+
         this.size -= delta;
+        if (order.getRemainSize() == 0) {
+            this.queue.remove(order);
+        }
     }
 
 
@@ -74,39 +82,19 @@ public class OrderArray implements WriteBytesMarshallable {
     }
 
 
-    public Order poll() {
-
-        Validate.isTrue(!this.queue.isEmpty());
-        return this.queue.getFirst();
-    }
-
-
     public List<OrderMatch> meet(OrderArray other, int symbolId) {
 
         List<OrderMatch> result = Lists.newArrayList();
-        while (!other.isEmpty()) {
-            Order thisOrder = poll();
-            long thisOrderSize = thisOrder.getRemainSize();
-            Order thatOrder = other.poll();
-            long thatOrderSize = thatOrder.getRemainSize();
+        do {
+            Order thisOrder = this.queue.getFirst();
+            Order thatOrder = other.getQueue().getFirst();
             Pair<OrderMatch, OrderMatch> pair = thisOrder.meet(thatOrder, symbolId, this.price);//TODO price规则待定
             result.add(pair.getKey());
             result.add(pair.getValue());
-            if (thatOrder.KO()) {
-                other.remove(thatOrder, thatOrderSize);
-            }
-            if (thisOrder.KO()) {
-                remove(thisOrder, thisOrderSize);
-            }
-        }
+            other.decr(thatOrder, pair.getRight().getMatchFilledSize());
+            decr(thisOrder, pair.getLeft().getMatchFilledSize());
+        } while (other.getSize() > 0L);
         return result;
-    }
-
-
-    public boolean isEmpty() {
-
-        Validate.isTrue((this.size > 0 ^ this.queue.isEmpty()));
-        return this.size == 0L && this.queue.isEmpty();
     }
 
 

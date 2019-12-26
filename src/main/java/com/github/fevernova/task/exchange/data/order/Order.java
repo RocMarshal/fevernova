@@ -77,12 +77,6 @@ public class Order implements WriteBytesMarshallable {
     }
 
 
-    public boolean KO() {
-
-        return this.remainSize == 0;
-    }
-
-
     @Override public void writeMarshallable(BytesOut bytes) {
 
         bytes.writeLong(this.orderId);

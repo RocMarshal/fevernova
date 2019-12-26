@@ -118,7 +118,12 @@ public class OrderBooks implements WriteBytesMarshallable {
             long bidTmpSize = bid.getSize();
             OrderArray ask = this.askPriceTree.firstEntry().getValue();
             long askTmpSize = ask.getSize();
-            result.addAll(bid.getSize() > ask.getSize() ? bid.meet(ask, this.symbolId) : ask.meet(bid, this.symbolId));
+
+            if (bidTmpSize > askTmpSize) {
+                result.addAll(bid.meet(ask, this.symbolId));
+            } else {
+                result.addAll(ask.meet(bid, this.symbolId));
+            }
             adjustBidOrderArray(bid);
             adjustAskOrderArray(ask);
             this.bidSize -= (bidTmpSize - bid.getSize());
@@ -155,7 +160,7 @@ public class OrderBooks implements WriteBytesMarshallable {
 
         this.bidSize -= order.getRemainSize();
         OrderArray orderArray = order.getLink();
-        orderArray.remove(order, order.getRemainSize());
+        orderArray.remove(order);
         adjustBidOrderArray(orderArray);
     }
 
@@ -164,14 +169,14 @@ public class OrderBooks implements WriteBytesMarshallable {
 
         this.askSize -= order.getRemainSize();
         OrderArray orderArray = order.getLink();
-        orderArray.remove(order, order.getRemainSize());
+        orderArray.remove(order);
         adjustAskOrderArray(orderArray);
     }
 
 
     private void adjustBidOrderArray(OrderArray orderArray) {
 
-        if (orderArray.isEmpty()) {
+        if (orderArray.getSize() == 0L) {
             this.bidPriceTree.remove(orderArray.getPrice());
             if (this.bidPrice == orderArray.getPrice()) {
                 Long newPrice = this.bidPriceTree.ceilingKey(this.bidPrice);
@@ -183,7 +188,7 @@ public class OrderBooks implements WriteBytesMarshallable {
 
     private void adjustAskOrderArray(OrderArray orderArray) {
 
-        if (orderArray.isEmpty()) {
+        if (orderArray.getSize() == 0L) {
             this.askPriceTree.remove(orderArray.getPrice());
             if (this.askPrice == orderArray.getPrice()) {
                 Long newPrice = this.askPriceTree.ceilingKey(this.askPrice);
