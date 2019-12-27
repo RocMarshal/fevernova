@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.Map;
 
 
-public class OrderBooksEngine implements WriteBytesMarshallable, ReadBytesMarshallable {
+public final class OrderBooksEngine implements WriteBytesMarshallable, ReadBytesMarshallable {
 
 
     public static final String CONS_NAME = "OrderBooksEngine";
@@ -26,6 +26,8 @@ public class OrderBooksEngine implements WriteBytesMarshallable, ReadBytesMarsha
     private IntObjectHashMap<OrderBooks> symbols;
 
     private Map<Integer, OrderBooks> symbolsCache;
+
+    private OrderBooks lastOrderBooks;
 
 
     public OrderBooksEngine(GlobalContext globalContext, TaskContext taskContext) {
@@ -51,12 +53,17 @@ public class OrderBooksEngine implements WriteBytesMarshallable, ReadBytesMarsha
 
     private OrderBooks getOrderBooks(OrderCommand orderCommand) {
 
-        Integer symbolId = orderCommand.getSymbolId();
+        int symbolId = orderCommand.getSymbolId();
+
+        if (this.lastOrderBooks != null && this.lastOrderBooks.getSymbolId() == symbolId) {
+            return this.lastOrderBooks;
+        }
         OrderBooks orderBooks = this.symbolsCache.get(symbolId);
         if (orderBooks == null) {
             orderBooks = new OrderBooks(symbolId);
             this.symbols.put(symbolId, orderBooks);
             this.symbolsCache.put(symbolId, orderBooks);
+            this.lastOrderBooks = orderBooks;
         }
         return orderBooks;
     }

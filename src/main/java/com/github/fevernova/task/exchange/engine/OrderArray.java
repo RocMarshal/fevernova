@@ -9,14 +9,13 @@ import lombok.Getter;
 import net.openhft.chronicle.bytes.BytesIn;
 import net.openhft.chronicle.bytes.BytesOut;
 import net.openhft.chronicle.bytes.WriteBytesMarshallable;
-import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.LinkedList;
 import java.util.List;
 
 
 @Getter
-public class OrderArray implements WriteBytesMarshallable {
+public final class OrderArray implements WriteBytesMarshallable {
 
 
     private final LinkedList<Order> queue = Lists.newLinkedList();
@@ -30,12 +29,13 @@ public class OrderArray implements WriteBytesMarshallable {
 
     public OrderArray(BytesIn bytes) {
 
-        this.orderAction = OrderAction.of(bytes.readInt());
+        this.orderAction = OrderAction.of(bytes.readByte());
         this.price = bytes.readLong();
-        this.size = bytes.readLong();
         int length = bytes.readInt();
         for (int i = 0; i < length; i++) {
-            this.queue.add(new Order(bytes, this));
+            Order order = new Order(bytes, this);
+            this.queue.add(order);
+            this.size += order.getRemainSize();
         }
     }
 
@@ -82,27 +82,24 @@ public class OrderArray implements WriteBytesMarshallable {
     }
 
 
-    public List<OrderMatch> meet(OrderArray other, int symbolId, long matchPrice) {
+    public void meet(OrderArray other, int symbolId, long matchPrice, List<OrderMatch> result) {
 
-        List<OrderMatch> result = Lists.newLinkedList();
         do {
             Order thisOrder = this.queue.getFirst();
             Order thatOrder = other.getQueue().getFirst();
-            Pair<OrderMatch, OrderMatch> pair = thisOrder.meet(thatOrder, symbolId, matchPrice);
-            result.add(pair.getKey());
-            result.add(pair.getValue());
-            other.decr(thatOrder, pair.getRight().getMatchFilledSize());
-            decr(thisOrder, pair.getLeft().getMatchFilledSize());
+            long delta = Math.min(thisOrder.getRemainSize(), thatOrder.getRemainSize());
+            result.add(thisOrder.decrement(symbolId, matchPrice, delta, thatOrder.getOrderId()));
+            result.add(thatOrder.decrement(symbolId, matchPrice, delta, thisOrder.getOrderId()));
+            other.decr(thatOrder, delta);
+            this.decr(thisOrder, delta);
         } while (other.getSize() > 0L);
-        return result;
     }
 
 
     @Override public void writeMarshallable(BytesOut bytes) {
 
-        bytes.writeInt(this.orderAction.code);
+        bytes.writeByte(this.orderAction.code);
         bytes.writeLong(this.price);
-        bytes.writeLong(this.size);
         bytes.writeInt(this.queue.size());
         this.queue.forEach(order -> order.writeMarshallable(bytes));
     }

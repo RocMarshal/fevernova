@@ -151,14 +151,10 @@ public class T_Exchange {
         for (int i = 0; i < 1_0000; i++) {
             for (int m = 1; m < 101; m++) {
                 bidCMD.setPrice(m);
+                askCMD.setPrice(101 - m);
                 for (int x = 0; x < 100; x++) {
                     bidSum += parser(bidCMD).size();
                     bidCMD.setOrderId(bidCMD.getOrderId() + 2);
-                }
-            }
-            for (int n = 100; n > 0; n--) {
-                askCMD.setPrice(n);
-                for (int x = 0; x < 100; x++) {
                     askSum += parser(askCMD).size();
                     askCMD.setOrderId(askCMD.getOrderId() + 2);
                 }

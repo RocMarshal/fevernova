@@ -9,28 +9,35 @@ import com.github.fevernova.task.exchange.data.result.OrderMatch;
 import com.github.fevernova.task.exchange.data.result.ResultCode;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import lombok.Getter;
 import net.openhft.chronicle.bytes.BytesIn;
 import net.openhft.chronicle.bytes.BytesOut;
 import net.openhft.chronicle.bytes.WriteBytesMarshallable;
 
 import java.util.List;
+import java.util.Map;
 import java.util.TreeMap;
 
 
-public class OrderBooks implements WriteBytesMarshallable {
+public final class OrderBooks implements WriteBytesMarshallable {
 
 
     private final TreeMap<Long, OrderArray> askPriceTree = Maps.newTreeMap(Long::compareTo);
 
     private final TreeMap<Long, OrderArray> bidPriceTree = Maps.newTreeMap((l1, l2) -> 0 - l1.compareTo(l2));
 
+    @Getter
     private final int symbolId;
 
     private long askPrice = Long.MAX_VALUE;//卖的最低价
 
+    private OrderArray askMinOrderArray;
+
     private long askSize = 0L;//当前卖出量
 
     private long bidPrice = 0L;//买的最高价
+
+    private OrderArray bidMaxOrderArray;
 
     private long bidSize = 0L;//当前买入量
 
@@ -54,6 +61,9 @@ public class OrderBooks implements WriteBytesMarshallable {
 
         loadPriceTree(bytes, this.askPriceTree);
         loadPriceTree(bytes, this.bidPriceTree);
+
+        this.askMinOrderArray = this.askPriceTree.get(this.askPrice);
+        this.bidMaxOrderArray = this.bidPriceTree.get(this.bidPrice);
     }
 
 
@@ -80,9 +90,21 @@ public class OrderBooks implements WriteBytesMarshallable {
     private List<OrderMatch> matchAsk(OrderCommand orderCommand) {
 
         Order order = new Order(orderCommand);
-        OrderArray orderArray = getOrderArray(orderCommand.getPrice(), OrderAction.ASK, this.askPriceTree);
+        OrderArray orderArray;
+        if (this.askPrice == orderCommand.getPrice()) {
+            orderArray = this.askMinOrderArray;
+        } else {
+            orderArray = this.askPriceTree.get(orderCommand.getPrice());
+            if (orderArray == null) {
+                orderArray = new OrderArray(OrderAction.ASK, orderCommand.getPrice());
+                this.askPriceTree.put(orderCommand.getPrice(), orderArray);
+            }
+            if (orderCommand.getPrice() < this.askPrice) {
+                this.askPrice = orderCommand.getPrice();
+                this.askMinOrderArray = orderArray;
+            }
+        }
         orderArray.addOrder(order);
-        this.askPrice = Math.min(this.askPrice, orderArray.getPrice());
         this.askSize += order.getRemainSize();
         List<OrderMatch> result = matchOrders();
         if (OrderType.IOC == orderCommand.getOrderType() && order.getRemainSize() > 0) {
@@ -100,9 +122,21 @@ public class OrderBooks implements WriteBytesMarshallable {
     private List<OrderMatch> matchBid(OrderCommand orderCommand) {
 
         Order order = new Order(orderCommand);
-        OrderArray orderArray = getOrderArray(orderCommand.getPrice(), OrderAction.BID, this.bidPriceTree);
+        OrderArray orderArray;
+        if (this.bidPrice == orderCommand.getPrice()) {
+            orderArray = this.bidMaxOrderArray;
+        } else {
+            orderArray = this.bidPriceTree.get(orderCommand.getPrice());
+            if (orderArray == null) {
+                orderArray = new OrderArray(OrderAction.BID, orderCommand.getPrice());
+                this.bidPriceTree.put(orderArray.getPrice(), orderArray);
+            }
+            if (orderCommand.getPrice() > this.bidPrice) {
+                this.bidPrice = orderCommand.getPrice();
+                this.bidMaxOrderArray = orderArray;
+            }
+        }
         orderArray.addOrder(order);
-        this.bidPrice = Math.max(this.bidPrice, orderArray.getPrice());
         this.bidSize += order.getRemainSize();
         List<OrderMatch> result = matchOrders();
         if (OrderType.IOC == orderCommand.getOrderType() && order.getRemainSize() > 0) {
@@ -117,17 +151,6 @@ public class OrderBooks implements WriteBytesMarshallable {
     }
 
 
-    private static OrderArray getOrderArray(long price, OrderAction orderAction, TreeMap<Long, OrderArray> priceTree) {
-
-        OrderArray orderArray = priceTree.get(price);
-        if (orderArray == null) {
-            orderArray = new OrderArray(orderAction, price);
-            priceTree.put(price, orderArray);
-        }
-        return orderArray;
-    }
-
-
     private List<OrderMatch> matchOrders() {
 
         if (this.askPrice > this.bidPrice) {
@@ -135,11 +158,6 @@ public class OrderBooks implements WriteBytesMarshallable {
         }
         List<OrderMatch> result = Lists.newLinkedList();
         while (this.askPrice <= this.bidPrice && this.askSize > 0 && this.bidSize > 0) {
-            OrderArray bid = this.bidPriceTree.firstEntry().getValue();
-            long bidTmpSize = bid.getSize();
-            OrderArray ask = this.askPriceTree.firstEntry().getValue();
-            long askTmpSize = ask.getSize();
-
             //限价撮合的定价逻辑
             if (this.askPrice == this.bidPrice) {
                 this.lastMatchPrice = this.askPrice;
@@ -148,16 +166,17 @@ public class OrderBooks implements WriteBytesMarshallable {
             } else if (this.lastMatchPrice >= this.bidPrice) {
                 this.lastMatchPrice = this.bidPrice;
             }
-
+            long bidTmpSize = this.bidMaxOrderArray.getSize();
+            long askTmpSize = this.askMinOrderArray.getSize();
             if (bidTmpSize > askTmpSize) {
-                result.addAll(bid.meet(ask, this.symbolId, this.lastMatchPrice));
+                this.bidMaxOrderArray.meet(this.askMinOrderArray, this.symbolId, this.lastMatchPrice, result);
             } else {
-                result.addAll(ask.meet(bid, this.symbolId, this.lastMatchPrice));
+                this.askMinOrderArray.meet(this.bidMaxOrderArray, this.symbolId, this.lastMatchPrice, result);
             }
-            adjustBidOrderArray(bid);
-            adjustAskOrderArray(ask);
-            this.bidSize -= (bidTmpSize - bid.getSize());
-            this.askSize -= (askTmpSize - ask.getSize());
+            this.bidSize -= (bidTmpSize - this.bidMaxOrderArray.getSize());
+            this.askSize -= (askTmpSize - this.askMinOrderArray.getSize());
+            adjustBidOrderArray(this.bidMaxOrderArray);
+            adjustAskOrderArray(this.askMinOrderArray);
         }
         return result;
     }
@@ -209,8 +228,9 @@ public class OrderBooks implements WriteBytesMarshallable {
         if (orderArray.getSize() == 0L) {
             this.bidPriceTree.remove(orderArray.getPrice());
             if (this.bidPrice == orderArray.getPrice()) {
-                Long newPrice = this.bidPriceTree.ceilingKey(this.bidPrice);
-                this.bidPrice = (newPrice == null ? 0L : newPrice);
+                Map.Entry<Long, OrderArray> tme = this.bidPriceTree.ceilingEntry(this.bidPrice);
+                this.bidPrice = (tme == null ? 0L : tme.getKey());
+                this.bidMaxOrderArray = (tme == null ? null : tme.getValue());
             }
         }
     }
@@ -221,8 +241,9 @@ public class OrderBooks implements WriteBytesMarshallable {
         if (orderArray.getSize() == 0L) {
             this.askPriceTree.remove(orderArray.getPrice());
             if (this.askPrice == orderArray.getPrice()) {
-                Long newPrice = this.askPriceTree.ceilingKey(this.askPrice);
-                this.askPrice = (newPrice == null ? Long.MAX_VALUE : newPrice);
+                Map.Entry<Long, OrderArray> tme = this.askPriceTree.ceilingEntry(this.askPrice);
+                this.askPrice = (tme == null ? Long.MAX_VALUE : tme.getKey());
+                this.askMinOrderArray = (tme == null ? null : tme.getValue());
             }
         }
     }

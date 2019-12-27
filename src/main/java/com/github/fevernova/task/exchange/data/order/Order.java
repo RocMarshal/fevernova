@@ -10,13 +10,12 @@ import lombok.Setter;
 import net.openhft.chronicle.bytes.BytesIn;
 import net.openhft.chronicle.bytes.BytesOut;
 import net.openhft.chronicle.bytes.WriteBytesMarshallable;
-import org.apache.commons.lang3.tuple.Pair;
 
 
 @Getter
 @Setter
 @NoArgsConstructor
-public class Order implements WriteBytesMarshallable {
+public final class Order implements WriteBytesMarshallable {
 
 
     private long orderId;
@@ -57,16 +56,7 @@ public class Order implements WriteBytesMarshallable {
     }
 
 
-    public Pair<OrderMatch, OrderMatch> meet(Order other, int symbolId, long price) {
-
-        long delta = Math.min(this.remainSize, other.getRemainSize());
-        OrderMatch thisOrderMatch = decrement(symbolId, price, delta, other.getOrderId());
-        OrderMatch thatOrderMatch = other.decrement(symbolId, price, delta, this.orderId);
-        return Pair.of(thisOrderMatch, thatOrderMatch);
-    }
-
-
-    private OrderMatch decrement(int symbolId, long price, long delta, long otherOrderId) {
+    public OrderMatch decrement(int symbolId, long price, long delta, long otherOrderId) {
 
         this.remainSize -= delta;
         this.filledSize += delta;
