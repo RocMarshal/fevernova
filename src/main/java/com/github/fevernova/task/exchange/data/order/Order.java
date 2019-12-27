@@ -3,7 +3,6 @@ package com.github.fevernova.task.exchange.data.order;
 
 import com.github.fevernova.task.exchange.data.cmd.OrderCommand;
 import com.github.fevernova.task.exchange.data.result.OrderMatch;
-import com.github.fevernova.task.exchange.engine.OrderArray;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -30,10 +29,8 @@ public final class Order implements WriteBytesMarshallable {
 
     private int version;
 
-    private OrderArray link;
 
-
-    public Order(BytesIn bytes, OrderArray link) {
+    public Order(BytesIn bytes) {
 
         this.orderId = bytes.readLong();
         this.userId = bytes.readLong();
@@ -41,7 +38,6 @@ public final class Order implements WriteBytesMarshallable {
         this.remainSize = bytes.readLong();
         this.filledSize = bytes.readLong();
         this.version = bytes.readInt();
-        this.link = link;
     }
 
 
@@ -56,13 +52,13 @@ public final class Order implements WriteBytesMarshallable {
     }
 
 
-    public OrderMatch decrement(int symbolId, long price, long delta, long otherOrderId) {
+    public OrderMatch decrement(int symbolId, OrderAction orderAction, long price, long delta, long otherOrderId) {
 
         this.remainSize -= delta;
         this.filledSize += delta;
         this.version++;
         OrderMatch result = new OrderMatch();
-        result.from(this, symbolId, price, delta, otherOrderId);
+        result.from(this, symbolId, orderAction, price, delta, otherOrderId);
         return result;
     }
 

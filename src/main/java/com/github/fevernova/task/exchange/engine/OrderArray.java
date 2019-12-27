@@ -33,7 +33,7 @@ public final class OrderArray implements WriteBytesMarshallable {
         this.price = bytes.readLong();
         int length = bytes.readInt();
         for (int i = 0; i < length; i++) {
-            Order order = new Order(bytes, this);
+            Order order = new Order(bytes);
             this.queue.add(order);
             this.size += order.getRemainSize();
         }
@@ -49,7 +49,6 @@ public final class OrderArray implements WriteBytesMarshallable {
 
     public void addOrder(Order order) {
 
-        order.setLink(this);
         this.queue.add(order);
         this.size += order.getRemainSize();
     }
@@ -88,8 +87,8 @@ public final class OrderArray implements WriteBytesMarshallable {
             Order thisOrder = this.queue.getFirst();
             Order thatOrder = other.getQueue().getFirst();
             long delta = Math.min(thisOrder.getRemainSize(), thatOrder.getRemainSize());
-            result.add(thisOrder.decrement(symbolId, matchPrice, delta, thatOrder.getOrderId()));
-            result.add(thatOrder.decrement(symbolId, matchPrice, delta, thisOrder.getOrderId()));
+            result.add(thisOrder.decrement(symbolId, this.orderAction, matchPrice, delta, thatOrder.getOrderId()));
+            result.add(thatOrder.decrement(symbolId, other.orderAction, matchPrice, delta, thisOrder.getOrderId()));
             other.decr(thatOrder, delta);
             this.decr(thisOrder, delta);
         } while (other.getSize() > 0L);

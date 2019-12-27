@@ -80,13 +80,13 @@ public class OrderMatch implements Data {
     }
 
 
-    public void from(Order order, int symbolId, long price, long matchFilledSize, long matchOrderId) {
+    public void from(Order order, int symbolId, OrderAction orderAction, long price, long matchFilledSize, long matchOrderId) {
 
         this.orderId = order.getOrderId();
         this.symbolId = symbolId;
         this.userId = order.getUserId();
         this.timestamp = Util.nowMS();
-        this.orderAction = order.getLink().getOrderAction();
+        this.orderAction = orderAction;
         this.orderType = order.getOrderType();
         this.price = price;
         this.totalSize = order.getRemainSize() + order.getFilledSize();
