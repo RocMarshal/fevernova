@@ -112,6 +112,7 @@ public final class OrderBooks implements WriteBytesMarshallable {
             OrderMatch orderMatch = new OrderMatch();
             orderMatch.from(orderCommand);
             orderMatch.setVersion(order.getVersion());
+            orderMatch.setAccFilledSize(order.getFilledSize());
             orderMatch.setResultCode(ResultCode.CANCEL_IOC);
             result.add(orderMatch);
         }
@@ -144,6 +145,7 @@ public final class OrderBooks implements WriteBytesMarshallable {
             OrderMatch orderMatch = new OrderMatch();
             orderMatch.from(orderCommand);
             orderMatch.setVersion(order.getVersion());
+            orderMatch.setAccFilledSize(order.getFilledSize());
             orderMatch.setResultCode(ResultCode.CANCEL_IOC);
             result.add(orderMatch);
         }

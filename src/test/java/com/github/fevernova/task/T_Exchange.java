@@ -17,11 +17,8 @@ import com.github.fevernova.task.exchange.data.order.OrderType;
 import com.github.fevernova.task.exchange.data.result.OrderMatch;
 import com.github.fevernova.task.exchange.data.result.ResultCode;
 import com.github.fevernova.task.exchange.engine.OrderBooksEngine;
-import com.google.common.collect.Lists;
 import org.junit.Before;
 import org.junit.Test;
-
-import java.util.List;
 
 
 public class T_Exchange {
@@ -49,24 +46,24 @@ public class T_Exchange {
     }
 
 
-    private List<OrderMatch> parser(OrderCommand orderCommand) {
+    private int parser(OrderCommand orderCommand) {
 
-        List<OrderMatch> result = Lists.newLinkedList();
+        int r = 0;
         final OrderMatch orderMatch = new OrderMatch();
         orderMatch.from(orderCommand);
-        result.add(orderMatch);
+        r++;
 
         if (OrderCommandType.PLACE_ORDER == orderCommand.getOrderCommandType()) {
             if (!this.slideWindowFilter.unique(orderCommand.getSymbolId(), orderCommand.getOrderId(), orderCommand.getTimestamp())) {
                 orderMatch.setResultCode(ResultCode.INVALID_PLACE_DUPLICATE_ORDER_ID);
             } else {
                 orderMatch.setResultCode(ResultCode.PLACE);
-                result.addAll(this.orderBooksEngine.placeOrder(orderCommand));
+                r += this.orderBooksEngine.placeOrder(orderCommand).size();
             }
         } else if (OrderCommandType.CANCEL_ORDER == orderCommand.getOrderCommandType()) {
             this.orderBooksEngine.cancelOrder(orderCommand, orderMatch);
         }
-        return result;
+        return r;
     }
 
 
@@ -153,9 +150,9 @@ public class T_Exchange {
                 bidCMD.setPrice(m);
                 askCMD.setPrice(101 - m);
                 for (int x = 0; x < 100; x++) {
-                    bidSum += parser(bidCMD).size();
+                    bidSum += parser(bidCMD);
                     bidCMD.setOrderId(bidCMD.getOrderId() + 2);
-                    askSum += parser(askCMD).size();
+                    askSum += parser(askCMD);
                     askCMD.setOrderId(askCMD.getOrderId() + 2);
                 }
             }
