@@ -54,19 +54,10 @@ public final class OrderArray implements WriteBytesMarshallable {
     }
 
 
-    public void remove(Order order) {
+    public void removeOrder(Order order) {
 
         this.queue.remove(order);
         this.size -= order.getRemainSize();
-    }
-
-
-    public void decr(Order order, long delta) {
-
-        this.size -= delta;
-        if (order.getRemainSize() == 0) {
-            this.queue.remove(order);
-        }
     }
 
 
@@ -81,17 +72,32 @@ public final class OrderArray implements WriteBytesMarshallable {
     }
 
 
-    public void meet(OrderArray other, int symbolId, long matchPrice, List<OrderMatch> result) {
+    public void meet(OrderArray that, int symbolId, long matchPrice, List<OrderMatch> result) {
 
         do {
             Order thisOrder = this.queue.getFirst();
-            Order thatOrder = other.getQueue().getFirst();
+            Order thatOrder = that.queue.getFirst();
             long delta = Math.min(thisOrder.getRemainSize(), thatOrder.getRemainSize());
-            result.add(thisOrder.decrement(symbolId, this.orderAction, matchPrice, delta, thatOrder.getOrderId()));
-            result.add(thatOrder.decrement(symbolId, other.orderAction, matchPrice, delta, thisOrder.getOrderId()));
-            other.decr(thatOrder, delta);
-            this.decr(thisOrder, delta);
-        } while (other.getSize() > 0L);
+            thisOrder.decrement(delta);
+            thatOrder.decrement(delta);
+            OrderMatch thisOrderMatch = new OrderMatch();
+            OrderMatch thatOrderMatch = new OrderMatch();
+            thisOrderMatch.from(thisOrder, symbolId, this.orderAction, matchPrice, delta, thatOrder.getOrderId());
+            thatOrderMatch.from(thatOrder, symbolId, that.orderAction, matchPrice, delta, thisOrder.getOrderId());
+            result.add(thisOrderMatch);
+            result.add(thatOrderMatch);
+            that.decrement(thatOrder, delta);
+            this.decrement(thisOrder, delta);
+        } while (that.getSize() > 0L);
+    }
+
+
+    private void decrement(Order order, long delta) {
+
+        this.size -= delta;
+        if (order.getRemainSize() == 0) {
+            this.queue.remove(order);
+        }
     }
 
 

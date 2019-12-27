@@ -89,7 +89,6 @@ public final class OrderBooks implements WriteBytesMarshallable {
 
     private List<OrderMatch> matchAsk(OrderCommand orderCommand) {
 
-        Order order = new Order(orderCommand);
         OrderArray orderArray;
         if (this.askPrice == orderCommand.getPrice()) {
             orderArray = this.askMinOrderArray;
@@ -104,16 +103,14 @@ public final class OrderBooks implements WriteBytesMarshallable {
                 }
             }
         }
+        Order order = new Order(orderCommand);
         orderArray.addOrder(order);
         this.askSize += order.getRemainSize();
         List<OrderMatch> result = matchOrders();
         if (OrderType.IOC == orderCommand.getOrderType() && order.getRemainSize() > 0) {
             cancelAsk(order, orderArray);
             OrderMatch orderMatch = new OrderMatch();
-            orderMatch.from(orderCommand);
-            orderMatch.setVersion(order.getVersion());
-            orderMatch.setAccFilledSize(order.getFilledSize());
-            orderMatch.setResultCode(ResultCode.CANCEL_IOC);
+            orderMatch.from(orderCommand, order);
             result.add(orderMatch);
         }
         return result;
@@ -122,7 +119,6 @@ public final class OrderBooks implements WriteBytesMarshallable {
 
     private List<OrderMatch> matchBid(OrderCommand orderCommand) {
 
-        Order order = new Order(orderCommand);
         OrderArray orderArray;
         if (this.bidPrice == orderCommand.getPrice()) {
             orderArray = this.bidMaxOrderArray;
@@ -137,16 +133,14 @@ public final class OrderBooks implements WriteBytesMarshallable {
                 }
             }
         }
+        Order order = new Order(orderCommand);
         orderArray.addOrder(order);
         this.bidSize += order.getRemainSize();
         List<OrderMatch> result = matchOrders();
         if (OrderType.IOC == orderCommand.getOrderType() && order.getRemainSize() > 0) {
             cancelBid(order, orderArray);
             OrderMatch orderMatch = new OrderMatch();
-            orderMatch.from(orderCommand);
-            orderMatch.setVersion(order.getVersion());
-            orderMatch.setAccFilledSize(order.getFilledSize());
-            orderMatch.setResultCode(ResultCode.CANCEL_IOC);
+            orderMatch.from(orderCommand, order);
             result.add(orderMatch);
         }
         return result;
@@ -210,7 +204,7 @@ public final class OrderBooks implements WriteBytesMarshallable {
     private void cancelBid(Order order, OrderArray orderArray) {
 
         this.bidSize -= order.getRemainSize();
-        orderArray.remove(order);
+        orderArray.removeOrder(order);
         adjustBidOrderArray(orderArray);
     }
 
@@ -218,7 +212,7 @@ public final class OrderBooks implements WriteBytesMarshallable {
     private void cancelAsk(Order order, OrderArray orderArray) {
 
         this.askSize -= order.getRemainSize();
-        orderArray.remove(order);
+        orderArray.removeOrder(order);
         adjustAskOrderArray(orderArray);
     }
 

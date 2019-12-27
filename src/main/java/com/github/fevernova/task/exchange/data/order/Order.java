@@ -2,7 +2,6 @@ package com.github.fevernova.task.exchange.data.order;
 
 
 import com.github.fevernova.task.exchange.data.cmd.OrderCommand;
-import com.github.fevernova.task.exchange.data.result.OrderMatch;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -52,14 +51,11 @@ public final class Order implements WriteBytesMarshallable {
     }
 
 
-    public OrderMatch decrement(int symbolId, OrderAction orderAction, long price, long delta, long otherOrderId) {
+    public void decrement(long delta) {
 
         this.remainSize -= delta;
         this.filledSize += delta;
         this.version++;
-        OrderMatch result = new OrderMatch();
-        result.from(this, symbolId, orderAction, price, delta, otherOrderId);
-        return result;
     }
 
 
