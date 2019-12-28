@@ -3,8 +3,6 @@ package com.github.fevernova.task.exchange;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.github.fevernova.io.data.message.DataContainer;
-import com.github.fevernova.io.data.message.SerializerHelper;
 import com.github.fevernova.framework.common.context.GlobalContext;
 import com.github.fevernova.framework.common.context.TaskContext;
 import com.github.fevernova.framework.common.data.BarrierData;
@@ -27,6 +25,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.*;
 import org.apache.kafka.common.TopicPartition;
 
+import java.nio.ByteBuffer;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -49,8 +48,6 @@ public class JobSource extends AbstractSource<byte[], OrderCommand> implements C
     private String topic;
 
     private long pollTimeOut;
-
-    private SerializerHelper serializer = new SerializerHelper();
 
 
     public JobSource(GlobalContext globalContext, TaskContext taskContext, int index, int inputsNum, ChannelProxy channelProxy) {
@@ -94,40 +91,17 @@ public class JobSource extends AbstractSource<byte[], OrderCommand> implements C
             for (TopicPartition topicPartition : tmpPartitions) {
                 List<ConsumerRecord<byte[], byte[]>> recordList = records.records(topicPartition);
                 recordList.forEach(ele -> {
-                    DataContainer dataContainer = this.serializer.deserialize(null, ele.value());
                     final OrderCommand data = feedOne(ele.key());
-                    dataContainer.iterate((metaEntity, change, val, oldVal) -> {
-
-                        switch (metaEntity.getColumnName()) {
-                            case "orderCommandType":
-                                data.setOrderCommandType(OrderCommandType.of((int) val));
-                                break;
-                            case "orderId":
-                                data.setOrderId((long) val);
-                                break;
-                            case "symbolId":
-                                data.setSymbolId((int) val);
-                                break;
-                            case "userId":
-                                data.setUserId((long) val);
-                                break;
-                            case "timestamp":
-                                data.setTimestamp((long) val);
-                                break;
-                            case "orderAction":
-                                data.setOrderAction(OrderAction.of((int) val));
-                                break;
-                            case "orderType":
-                                data.setOrderType(OrderType.of((int) val));
-                                break;
-                            case "price":
-                                data.setPrice((long) val);
-                                break;
-                            case "size":
-                                data.setSize((long) val);
-                                break;
-                        }
-                    });
+                    ByteBuffer byteBuffer = ByteBuffer.wrap(ele.value());
+                    data.setOrderCommandType(OrderCommandType.of(byteBuffer.get()));
+                    data.setOrderId(byteBuffer.getLong());
+                    data.setSymbolId(byteBuffer.getInt());
+                    data.setUserId(byteBuffer.getLong());
+                    data.setTimestamp(byteBuffer.getLong());
+                    data.setOrderAction(OrderAction.of(byteBuffer.get()));
+                    data.setOrderType(OrderType.of(byteBuffer.get()));
+                    data.setPrice(byteBuffer.getLong());
+                    data.setSize(byteBuffer.getLong());
                     push();
                 });
                 super.handleRows.inc(recordList.size());

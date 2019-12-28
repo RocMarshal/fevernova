@@ -2,8 +2,8 @@ package com.github.fevernova.task;
 
 
 import com.github.fevernova.Common;
-import com.github.fevernova.io.data.message.*;
 import com.github.fevernova.framework.common.Util;
+import com.github.fevernova.io.data.message.*;
 import com.github.fevernova.task.exchange.data.cmd.OrderCommand;
 import com.github.fevernova.task.exchange.data.cmd.OrderCommandType;
 import com.github.fevernova.task.exchange.data.order.OrderAction;
@@ -11,6 +11,7 @@ import com.github.fevernova.task.exchange.data.order.OrderType;
 import com.google.common.collect.Lists;
 import org.junit.Test;
 
+import java.nio.ByteBuffer;
 import java.util.List;
 
 
@@ -126,6 +127,46 @@ public class T_CMD {
         for (int i = 0; i < 1_0000_000; i++) {
             serializerHelper.deserialize(null, bytes);
         }
+        long et = Util.nowMS();
+        System.out.println(et - st);
+    }
+
+
+    @Test
+    public void T_binaryCMD() {
+
+        ByteBuffer byteBuffer = ByteBuffer.allocate(47);
+        byteBuffer.put((byte) 0);
+        byteBuffer.putLong(1234567890L);
+        byteBuffer.putInt(1);
+        byteBuffer.putLong(1234567890L);
+        byteBuffer.putLong(1234567890L);
+        byteBuffer.put((byte) 1);
+        byteBuffer.put((byte) 0);
+        byteBuffer.putLong(1000L);
+        byteBuffer.putLong(10000L);
+        byte[] r = byteBuffer.array();
+
+        Common.warn();
+        long st = Util.nowMS();
+        long x = 0;
+        for (int i = 0; i < 1_0000_0000; i++) {
+            byte[] m = new byte[47];
+            System.arraycopy(r, 0, m, 0, 47);
+            ByteBuffer dx = ByteBuffer.wrap(m);
+            OrderCommand data = new OrderCommand();
+            data.setOrderCommandType(OrderCommandType.of(dx.get()));
+            data.setOrderId(dx.getLong());
+            data.setSymbolId(dx.getInt());
+            data.setUserId(dx.getLong());
+            data.setTimestamp(dx.getLong());
+            data.setOrderAction(OrderAction.of(dx.get()));
+            data.setOrderType(OrderType.of(dx.get()));
+            data.setPrice(dx.getLong());
+            data.setSize(dx.getLong());
+            x += data.getSize();
+        }
+        System.out.println(x);
         long et = Util.nowMS();
         System.out.println(et - st);
     }
