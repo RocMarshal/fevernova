@@ -1,7 +1,7 @@
 package com.github.fevernova.task.binlog.data;
 
 
-import com.github.fevernova.data.message.DataContainer;
+import com.github.fevernova.io.data.message.DataContainer;
 import com.github.fevernova.framework.common.data.Data;
 import lombok.Getter;
 import lombok.Setter;

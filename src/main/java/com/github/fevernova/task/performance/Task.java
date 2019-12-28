@@ -10,7 +10,7 @@ import com.github.fevernova.framework.service.config.TaskConfig;
 import com.github.fevernova.framework.task.BaseTask;
 import com.github.fevernova.framework.task.Manager;
 import com.github.fevernova.framework.task.TaskTopology;
-import com.github.fevernova.kafka.data.KafkaDataFactory;
+import com.github.fevernova.io.kafka.data.KafkaDataFactory;
 
 import java.util.concurrent.atomic.AtomicInteger;
 

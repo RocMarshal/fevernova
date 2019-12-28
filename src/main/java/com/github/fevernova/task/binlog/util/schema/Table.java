@@ -1,7 +1,7 @@
 package com.github.fevernova.task.binlog.util.schema;
 
 
-import com.github.fevernova.data.message.Meta;
+import com.github.fevernova.io.data.message.Meta;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;

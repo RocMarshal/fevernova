@@ -5,7 +5,7 @@ import com.github.fevernova.framework.common.context.GlobalContext;
 import com.github.fevernova.framework.common.context.TaskContext;
 import com.github.fevernova.framework.component.channel.ChannelProxy;
 import com.github.fevernova.framework.component.source.AbstractSource;
-import com.github.fevernova.kafka.data.KafkaData;
+import com.github.fevernova.io.kafka.data.KafkaData;
 
 
 public class JobSource extends AbstractSource<Integer, KafkaData> {

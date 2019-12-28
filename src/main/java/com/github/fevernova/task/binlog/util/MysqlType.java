@@ -1,14 +1,14 @@
 package com.github.fevernova.task.binlog.util;
 
 
-import com.github.fevernova.data.TypeRouter;
-import com.github.fevernova.data.message.DataType;
-import com.github.fevernova.data.type.MethodType;
-import com.github.fevernova.data.type.impl.*;
-import com.github.fevernova.data.type.impl.date.UDate;
-import com.github.fevernova.data.type.impl.date.UDateTime;
-import com.github.fevernova.data.type.impl.date.UTime;
-import com.github.fevernova.data.type.impl.date.UYear;
+import com.github.fevernova.io.data.TypeRouter;
+import com.github.fevernova.io.data.message.DataType;
+import com.github.fevernova.io.data.type.MethodType;
+import com.github.fevernova.io.data.type.impl.*;
+import com.github.fevernova.io.data.type.impl.date.UDate;
+import com.github.fevernova.io.data.type.impl.date.UDateTime;
+import com.github.fevernova.io.data.type.impl.date.UTime;
+import com.github.fevernova.io.data.type.impl.date.UYear;
 
 
 public class MysqlType {

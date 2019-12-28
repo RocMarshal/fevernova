@@ -3,8 +3,8 @@ package com.github.fevernova.task.binlog.util;
 
 import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.druid.pool.DruidDataSourceFactory;
-import com.github.fevernova.data.TypeRouter;
-import com.github.fevernova.data.message.Meta;
+import com.github.fevernova.io.data.TypeRouter;
+import com.github.fevernova.io.data.message.Meta;
 import com.github.fevernova.framework.common.Util;
 import com.github.fevernova.framework.common.context.TaskContext;
 import com.github.fevernova.task.binlog.util.schema.Column;

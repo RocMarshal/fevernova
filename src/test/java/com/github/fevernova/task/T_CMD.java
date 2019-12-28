@@ -2,7 +2,7 @@ package com.github.fevernova.task;
 
 
 import com.github.fevernova.Common;
-import com.github.fevernova.data.message.*;
+import com.github.fevernova.io.data.message.*;
 import com.github.fevernova.framework.common.Util;
 import com.github.fevernova.task.exchange.data.cmd.OrderCommand;
 import com.github.fevernova.task.exchange.data.cmd.OrderCommandType;

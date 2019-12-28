@@ -9,7 +9,7 @@ import com.github.fevernova.framework.common.data.BarrierData;
 import com.github.fevernova.framework.component.ComponentType;
 import com.github.fevernova.framework.service.state.BinaryFileIdentity;
 import com.github.fevernova.framework.service.state.storage.FSStorage;
-import com.github.fevernova.framework.service.uniq.SlideWindowFilter;
+import com.github.fevernova.task.exchange.uniq.SlideWindowFilter;
 import com.github.fevernova.task.exchange.data.cmd.OrderCommand;
 import com.github.fevernova.task.exchange.data.cmd.OrderCommandType;
 import com.github.fevernova.task.exchange.data.order.OrderAction;

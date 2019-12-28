@@ -9,7 +9,7 @@ import com.github.fevernova.framework.component.channel.ChannelProxy;
 import com.github.fevernova.framework.service.barrier.listener.BarrierCoordinatorListener;
 import com.github.fevernova.framework.service.checkpoint.CheckPointSaverPlus;
 import com.github.fevernova.framework.service.state.StateValue;
-import com.github.fevernova.kafka.data.KafkaCheckPoint;
+import com.github.fevernova.io.kafka.data.KafkaCheckPoint;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.concurrent.atomic.AtomicBoolean;

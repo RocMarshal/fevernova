@@ -10,7 +10,6 @@ import com.github.fevernova.framework.common.data.BarrierData;
 import com.github.fevernova.framework.service.state.AchieveClean;
 import com.github.fevernova.framework.service.state.BinaryFileIdentity;
 import com.github.fevernova.framework.service.state.StateValue;
-import com.github.fevernova.framework.service.uniq.WireToOutputStream2;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import net.openhft.chronicle.bytes.ReadBytesMarshallable;

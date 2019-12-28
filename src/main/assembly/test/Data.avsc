@@ -1,5 +1,5 @@
 {
-    "namespace":"com.github.fevernova.data.message",
+    "namespace":"com.github.fevernova.io.data.message",
     "type":"record",
     "name":"Data",
     "fields":[

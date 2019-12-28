@@ -3,7 +3,7 @@ package com.github.fevernova.task.exchange.engine;
 
 import com.github.fevernova.framework.common.context.GlobalContext;
 import com.github.fevernova.framework.common.context.TaskContext;
-import com.github.fevernova.framework.service.uniq.SerializationUtils;
+import com.github.fevernova.task.exchange.uniq.SerializationUtils;
 import com.github.fevernova.task.exchange.data.cmd.OrderCommand;
 import com.github.fevernova.task.exchange.data.result.OrderMatch;
 import com.google.common.collect.Maps;

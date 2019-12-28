@@ -2,11 +2,11 @@ package com.github.fevernova.task.dataarchive;
 
 
 import com.alibaba.fastjson.JSON;
-import com.github.fevernova.data.Mapping;
-import com.github.fevernova.data.message.DataContainer;
-import com.github.fevernova.data.message.Meta;
-import com.github.fevernova.data.message.SerializerHelper;
-import com.github.fevernova.data.type.MethodType;
+import com.github.fevernova.io.data.Mapping;
+import com.github.fevernova.io.data.message.DataContainer;
+import com.github.fevernova.io.data.message.Meta;
+import com.github.fevernova.io.data.message.SerializerHelper;
+import com.github.fevernova.io.data.type.MethodType;
 import com.github.fevernova.framework.common.Util;
 import com.github.fevernova.framework.common.context.GlobalContext;
 import com.github.fevernova.framework.common.context.TaskContext;
@@ -14,7 +14,7 @@ import com.github.fevernova.framework.common.data.Data;
 import com.github.fevernova.framework.common.data.broadcast.BroadcastData;
 import com.github.fevernova.framework.component.channel.ChannelProxy;
 import com.github.fevernova.framework.component.parser.AbstractParser;
-import com.github.fevernova.kafka.data.KafkaData;
+import com.github.fevernova.io.kafka.data.KafkaData;
 import com.github.fevernova.task.dataarchive.data.ListData;
 import com.github.fevernova.task.dataarchive.schema.ColumnInfo;
 import com.github.fevernova.task.dataarchive.schema.SchemaData;

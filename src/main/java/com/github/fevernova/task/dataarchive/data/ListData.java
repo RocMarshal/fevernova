@@ -1,7 +1,7 @@
 package com.github.fevernova.task.dataarchive.data;
 
 
-import com.github.fevernova.data.type.MethodType;
+import com.github.fevernova.io.data.type.MethodType;
 import com.github.fevernova.framework.common.data.Data;
 import lombok.Getter;
 import lombok.Setter;

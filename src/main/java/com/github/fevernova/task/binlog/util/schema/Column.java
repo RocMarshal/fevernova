@@ -1,7 +1,7 @@
 package com.github.fevernova.task.binlog.util.schema;
 
 
-import com.github.fevernova.data.TypeRouter;
+import com.github.fevernova.io.data.TypeRouter;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.ToString;

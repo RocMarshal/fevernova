@@ -1,8 +1,8 @@
 package com.github.fevernova.task.dataarchive.schema;
 
 
-import com.github.fevernova.data.type.UData;
-import com.github.fevernova.hdfs.orc.OrcTypeEnum;
+import com.github.fevernova.io.data.type.UData;
+import com.github.fevernova.io.hdfs.orc.OrcTypeEnum;
 import lombok.Builder;
 import lombok.Getter;
 

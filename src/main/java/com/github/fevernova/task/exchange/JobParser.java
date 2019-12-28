@@ -14,7 +14,7 @@ import com.github.fevernova.framework.service.checkpoint.ICheckPointSaver;
 import com.github.fevernova.framework.service.checkpoint.MapCheckPoint;
 import com.github.fevernova.framework.service.state.BinaryFileIdentity;
 import com.github.fevernova.framework.service.state.StateValue;
-import com.github.fevernova.framework.service.uniq.SlideWindowFilter;
+import com.github.fevernova.task.exchange.uniq.SlideWindowFilter;
 import com.github.fevernova.framework.task.Manager;
 import com.github.fevernova.task.exchange.data.cmd.OrderCommand;
 import com.github.fevernova.task.exchange.data.cmd.OrderCommandType;

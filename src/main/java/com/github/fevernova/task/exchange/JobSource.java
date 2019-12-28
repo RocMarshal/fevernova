@@ -3,8 +3,8 @@ package com.github.fevernova.task.exchange;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.github.fevernova.data.message.DataContainer;
-import com.github.fevernova.data.message.SerializerHelper;
+import com.github.fevernova.io.data.message.DataContainer;
+import com.github.fevernova.io.data.message.SerializerHelper;
 import com.github.fevernova.framework.common.context.GlobalContext;
 import com.github.fevernova.framework.common.context.TaskContext;
 import com.github.fevernova.framework.common.data.BarrierData;
@@ -14,9 +14,9 @@ import com.github.fevernova.framework.service.barrier.listener.BarrierCoordinato
 import com.github.fevernova.framework.service.checkpoint.CheckPointSaver;
 import com.github.fevernova.framework.service.checkpoint.ICheckPointSaver;
 import com.github.fevernova.framework.service.state.StateValue;
-import com.github.fevernova.kafka.KafkaConstants;
-import com.github.fevernova.kafka.KafkaUtil;
-import com.github.fevernova.kafka.data.KafkaCheckPoint;
+import com.github.fevernova.io.kafka.KafkaConstants;
+import com.github.fevernova.io.kafka.KafkaUtil;
+import com.github.fevernova.io.kafka.data.KafkaCheckPoint;
 import com.github.fevernova.task.exchange.data.cmd.OrderCommand;
 import com.github.fevernova.task.exchange.data.cmd.OrderCommandType;
 import com.github.fevernova.task.exchange.data.order.OrderAction;
