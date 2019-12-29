@@ -14,13 +14,14 @@ import com.github.fevernova.framework.service.checkpoint.ICheckPointSaver;
 import com.github.fevernova.framework.service.checkpoint.MapCheckPoint;
 import com.github.fevernova.framework.service.state.BinaryFileIdentity;
 import com.github.fevernova.framework.service.state.StateValue;
-import com.github.fevernova.task.exchange.uniq.SlideWindowFilter;
 import com.github.fevernova.framework.task.Manager;
+import com.github.fevernova.io.kafka.data.KafkaData;
 import com.github.fevernova.task.exchange.data.cmd.OrderCommand;
 import com.github.fevernova.task.exchange.data.cmd.OrderCommandType;
 import com.github.fevernova.task.exchange.data.result.OrderMatch;
 import com.github.fevernova.task.exchange.data.result.ResultCode;
 import com.github.fevernova.task.exchange.engine.OrderBooksEngine;
+import com.github.fevernova.task.exchange.uniq.SlideWindowFilter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.Validate;
 
@@ -63,7 +64,9 @@ public class JobParser extends AbstractParser<Integer, OrderMatch> implements Ba
 
     @Override protected void handleEvent(Data event) {
 
-        OrderCommand orderCommand = (OrderCommand) event;
+        KafkaData kafkaData = (KafkaData) event;
+        OrderCommand orderCommand = new OrderCommand();
+        orderCommand.from(kafkaData.getValue());
         final OrderMatch orderMatch = feedOne(orderCommand.getSymbolId());
         orderMatch.from(orderCommand);
         if (OrderCommandType.PLACE_ORDER == orderCommand.getOrderCommandType()) {

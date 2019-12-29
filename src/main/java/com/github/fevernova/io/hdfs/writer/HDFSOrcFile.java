@@ -1,10 +1,10 @@
 package com.github.fevernova.io.hdfs.writer;
 
 
-import com.github.fevernova.io.data.type.MethodType;
 import com.github.fevernova.framework.common.context.GlobalContext;
 import com.github.fevernova.framework.common.context.TaskContext;
 import com.github.fevernova.framework.common.data.Data;
+import com.github.fevernova.io.data.type.MethodType;
 import com.github.fevernova.io.hdfs.orc.OrcTypeEnum;
 import com.github.fevernova.task.dataarchive.data.ListData;
 import com.github.fevernova.task.dataarchive.schema.ColumnInfo;

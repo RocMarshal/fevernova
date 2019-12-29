@@ -1,16 +1,16 @@
 package com.github.fevernova.task.binlog;
 
 
-import com.github.fevernova.io.data.TypeRouter;
-import com.github.fevernova.io.data.message.DataContainer;
-import com.github.fevernova.io.data.message.Meta;
-import com.github.fevernova.io.data.message.Opt;
 import com.github.fevernova.framework.common.Util;
 import com.github.fevernova.framework.common.context.GlobalContext;
 import com.github.fevernova.framework.common.context.TaskContext;
 import com.github.fevernova.framework.common.data.Data;
 import com.github.fevernova.framework.component.channel.ChannelProxy;
 import com.github.fevernova.framework.component.parser.AbstractParser;
+import com.github.fevernova.io.data.TypeRouter;
+import com.github.fevernova.io.data.message.DataContainer;
+import com.github.fevernova.io.data.message.Meta;
+import com.github.fevernova.io.data.message.Opt;
 import com.github.fevernova.task.binlog.data.BinlogData;
 import com.github.fevernova.task.binlog.data.MessageData;
 import com.github.fevernova.task.binlog.util.MysqlDataSource;

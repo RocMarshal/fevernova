@@ -1,7 +1,9 @@
 package com.github.fevernova.io.hdfs;
 
 
-import lombok.*;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.ToString;
 
 
 @Getter

@@ -1,13 +1,13 @@
 package com.github.fevernova.task.binlog;
 
 
-import com.github.fevernova.io.data.message.SerializerHelper;
 import com.github.fevernova.framework.common.LogProxy;
 import com.github.fevernova.framework.common.context.GlobalContext;
 import com.github.fevernova.framework.common.context.TaskContext;
 import com.github.fevernova.framework.common.data.BarrierData;
 import com.github.fevernova.framework.common.data.Data;
 import com.github.fevernova.framework.component.sink.AbstractSink;
+import com.github.fevernova.io.data.message.SerializerHelper;
 import com.github.fevernova.io.kafka.KafkaConstants;
 import com.github.fevernova.io.kafka.KafkaUtil;
 import com.github.fevernova.task.binlog.data.MessageData;

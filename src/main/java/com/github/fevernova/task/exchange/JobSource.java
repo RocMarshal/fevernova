@@ -15,17 +15,13 @@ import com.github.fevernova.framework.service.state.StateValue;
 import com.github.fevernova.io.kafka.KafkaConstants;
 import com.github.fevernova.io.kafka.KafkaUtil;
 import com.github.fevernova.io.kafka.data.KafkaCheckPoint;
-import com.github.fevernova.task.exchange.data.cmd.OrderCommand;
-import com.github.fevernova.task.exchange.data.cmd.OrderCommandType;
-import com.github.fevernova.task.exchange.data.order.OrderAction;
-import com.github.fevernova.task.exchange.data.order.OrderType;
+import com.github.fevernova.io.kafka.data.KafkaData;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.*;
 import org.apache.kafka.common.TopicPartition;
 
-import java.nio.ByteBuffer;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -34,7 +30,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 
 @Slf4j
-public class JobSource extends AbstractSource<byte[], OrderCommand> implements ConsumerRebalanceListener, BarrierCoordinatorListener {
+public class JobSource extends AbstractSource<byte[], KafkaData> implements ConsumerRebalanceListener, BarrierCoordinatorListener {
 
 
     protected ICheckPointSaver<KafkaCheckPoint> checkpoints;
@@ -91,17 +87,12 @@ public class JobSource extends AbstractSource<byte[], OrderCommand> implements C
             for (TopicPartition topicPartition : tmpPartitions) {
                 List<ConsumerRecord<byte[], byte[]>> recordList = records.records(topicPartition);
                 recordList.forEach(ele -> {
-                    final OrderCommand data = feedOne(ele.key());
-                    ByteBuffer byteBuffer = ByteBuffer.wrap(ele.value());
-                    data.setOrderCommandType(OrderCommandType.of(byteBuffer.get()));
-                    data.setOrderId(byteBuffer.getLong());
-                    data.setSymbolId(byteBuffer.getInt());
-                    data.setUserId(byteBuffer.getLong());
-                    data.setTimestamp(byteBuffer.getLong());
-                    data.setOrderAction(OrderAction.of(byteBuffer.get()));
-                    data.setOrderType(OrderType.of(byteBuffer.get()));
-                    data.setPrice(byteBuffer.getLong());
-                    data.setSize(byteBuffer.getLong());
+                    final KafkaData data = feedOne(ele.key());
+                    data.setTopic(ele.topic());
+                    data.setKey(ele.key());
+                    data.setValue(ele.value());
+                    data.setPartitionId(ele.partition());
+                    data.setTimestamp(ele.timestamp());
                     push();
                 });
                 super.handleRows.inc(recordList.size());

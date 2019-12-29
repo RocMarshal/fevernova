@@ -1,18 +1,20 @@
 package com.github.fevernova.task.exchange.data.cmd;
 
 
-import com.github.fevernova.framework.common.data.Data;
 import com.github.fevernova.task.exchange.data.order.OrderAction;
 import com.github.fevernova.task.exchange.data.order.OrderType;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.apache.commons.lang3.Validate;
+
+import java.nio.ByteBuffer;
 
 
 @Getter
 @Setter
 @ToString
-public class OrderCommand implements Data {
+public class OrderCommand {
 
 
     private OrderCommandType orderCommandType;
@@ -34,22 +36,20 @@ public class OrderCommand implements Data {
     private long size;
 
 
-    @Override public void clearData() {
+    public void from(byte[] bytes) {
 
-        this.orderCommandType = null;
-        this.orderId = 0L;
-        this.symbolId = 0;
-        this.userId = 0L;
-        this.timestamp = 0L;
-        this.orderAction = null;
-        this.orderType = null;
-        this.price = 0L;
-        this.size = 0L;
+        ByteBuffer byteBuffer = ByteBuffer.wrap(bytes);
+        byte version = byteBuffer.get();
+        Validate.isTrue(version == 0);
+        this.orderCommandType = OrderCommandType.of(byteBuffer.get());
+        this.orderId = byteBuffer.getLong();
+        this.symbolId = byteBuffer.getInt();
+        this.userId = byteBuffer.getLong();
+        this.timestamp = byteBuffer.getLong();
+        this.orderAction = OrderAction.of(byteBuffer.get());
+        this.orderType = OrderType.of(byteBuffer.get());
+        this.price = byteBuffer.getLong();
+        this.size = byteBuffer.getLong();
     }
 
-
-    @Override public byte[] getBytes() {
-
-        return new byte[0];
-    }
 }

@@ -40,6 +40,8 @@ public class OrderMatch implements Data {
 
     private long matchOrderId;
 
+    private long matchOrderUserId;
+
     private int version;
 
     private ResultCode resultCode;
@@ -58,6 +60,7 @@ public class OrderMatch implements Data {
         this.accFilledSize = orderMatch.getAccFilledSize();
         this.matchFilledSize = orderMatch.getMatchFilledSize();
         this.matchOrderId = orderMatch.getMatchOrderId();
+        this.matchOrderUserId = orderMatch.getMatchOrderUserId();
         this.version = orderMatch.getVersion();
         this.resultCode = orderMatch.getResultCode();
     }
@@ -76,6 +79,7 @@ public class OrderMatch implements Data {
         //this.accFilledSize = 0L;
         //this.matchFilledSize = 0L;
         //this.matchOrderId = 0L;
+        //this.matchOrderUserId = 0L;
         //this.version = 0;
     }
 
@@ -93,12 +97,13 @@ public class OrderMatch implements Data {
         this.accFilledSize = order.getFilledSize();
         //this.matchFilledSize = 0L;
         //this.matchOrderId = 0L;
+        //this.matchOrderUserId = 0L;
         this.version = order.getVersion();
         this.resultCode = ResultCode.CANCEL_IOC;
     }
 
 
-    public void from(Order order, int symbolId, OrderAction orderAction, long price, long matchFilledSize, long matchOrderId) {
+    public void from(Order order, int symbolId, OrderAction orderAction, long price, long matchFilledSize, Order thatOrder) {
 
         this.orderId = order.getOrderId();
         this.symbolId = symbolId;
@@ -110,7 +115,8 @@ public class OrderMatch implements Data {
         this.totalSize = order.getRemainSize() + order.getFilledSize();
         this.accFilledSize = order.getFilledSize();
         this.matchFilledSize = matchFilledSize;
-        this.matchOrderId = matchOrderId;
+        this.matchOrderId = thatOrder.getOrderId();
+        this.matchOrderUserId = thatOrder.getUserId();
         this.version = order.getVersion();
         this.resultCode = ResultCode.MATCH;
     }
@@ -129,6 +135,7 @@ public class OrderMatch implements Data {
         this.accFilledSize = 0L;
         this.matchFilledSize = 0L;
         this.matchOrderId = 0L;
+        this.matchOrderUserId = 0L;
         this.version = 0;
         this.resultCode = null;
     }
