@@ -4,10 +4,14 @@ package com.github.shyiko.mysql.binlog.event.deserialization;
 import com.github.shyiko.mysql.binlog.event.TableMapEventData;
 import com.github.shyiko.mysql.binlog.event.UpdateRowsEventData;
 import com.github.shyiko.mysql.binlog.io.ByteArrayInputStream;
+import com.google.common.collect.Lists;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.*;
+import java.util.AbstractMap;
+import java.util.BitSet;
+import java.util.List;
+import java.util.Map;
 
 
 public class UpdateRowsEventDataDeserializerV2 extends AbstractRowsEventDataDeserializerV2<UpdateRowsEventData> {
@@ -47,18 +51,15 @@ public class UpdateRowsEventDataDeserializerV2 extends AbstractRowsEventDataDese
     }
 
 
-    private List<Map.Entry<Serializable[], Serializable[]>> deserializeRows(UpdateRowsEventData eventData,
-                                                                            ByteArrayInputStream inputStream) throws IOException {
+    private List<Map.Entry<Serializable[], Serializable[]>> deserializeRows(UpdateRowsEventData eventData, ByteArrayInputStream inputStream)
+            throws IOException {
 
         long tableId = eventData.getTableId();
-        BitSet includedColumnsBeforeUpdate = eventData.getIncludedColumnsBeforeUpdate(),
-                includedColumns = eventData.getIncludedColumns();
-        List<Map.Entry<Serializable[], Serializable[]>> rows =
-                new ArrayList<Map.Entry<Serializable[], Serializable[]>>();
+        BitSet includedColumnsBeforeUpdate = eventData.getIncludedColumnsBeforeUpdate(), includedColumns = eventData.getIncludedColumns();
+        List<Map.Entry<Serializable[], Serializable[]>> rows = Lists.newArrayListWithCapacity(2);
         while (inputStream.available() > 0) {
-            rows.add(new AbstractMap.SimpleEntry<Serializable[], Serializable[]>(
-                    deserializeRow(tableId, includedColumnsBeforeUpdate, inputStream),
-                    deserializeRow(tableId, includedColumns, inputStream)
+            rows.add(new AbstractMap.SimpleEntry<>(deserializeRow(tableId, includedColumnsBeforeUpdate, inputStream),
+                                                   deserializeRow(tableId, includedColumns, inputStream)
             ));
         }
         return rows;

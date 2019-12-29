@@ -250,4 +250,5 @@ public abstract class AbstractRowsEventDataDeserializerV2<T extends EventData> e
         }
         return timestamp;
     }
+
 }
