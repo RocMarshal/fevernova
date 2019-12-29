@@ -7,6 +7,7 @@ import com.github.fevernova.framework.common.data.BarrierData;
 import com.github.fevernova.framework.service.state.AchieveClean;
 import com.github.fevernova.framework.service.state.BinaryFileIdentity;
 import com.github.fevernova.framework.service.state.StateValue;
+import com.google.common.collect.Lists;
 import net.openhft.chronicle.bytes.ReadBytesMarshallable;
 import net.openhft.chronicle.bytes.WriteBytesMarshallable;
 
@@ -34,7 +35,7 @@ public class IgnoreStorage extends IStorage {
 
     @Override public List<StateValue> recoveryStateValue() {
 
-        return null;
+        return Lists.newArrayList();
     }
 
 
@@ -47,6 +48,5 @@ public class IgnoreStorage extends IStorage {
     @Override public void recoveryBinary(String stateFilePath, ReadBytesMarshallable obj) {
 
     }
-
 
 }

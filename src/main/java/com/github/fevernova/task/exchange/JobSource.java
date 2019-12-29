@@ -43,7 +43,7 @@ public class JobSource extends AbstractKafkaSource implements BarrierCoordinator
     }
 
 
-    @Override public StateValue getStateForRecovery(BarrierData barrierData) {
+    @Override public StateValue getStateForRecovery(BarrierData barrierData) throws Exception {
 
         KafkaCheckPoint checkPoint = super.checkpoints.getCheckPoint(barrierData.getBarrierId());
         return checkpoint2StateValue(checkPoint);

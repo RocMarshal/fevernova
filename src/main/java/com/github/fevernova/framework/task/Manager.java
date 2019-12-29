@@ -19,7 +19,6 @@ import com.github.fevernova.framework.service.state.StateValue;
 import com.google.common.collect.Maps;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.CollectionUtils;
 
 import java.util.List;
 
@@ -41,10 +40,10 @@ public class Manager {
     protected final AlignService alignService;
 
     @Getter
-    protected final MonitorService monitorService;
+    protected final StateService stateService;
 
     @Getter
-    protected final StateService stateService;
+    protected final MonitorService monitorService;
 
     @Getter
     protected final Schedulerd scheduler;
@@ -84,7 +83,7 @@ public class Manager {
 
     public void register(TaskTopology taskTopology) {
 
-        log.info("Manager register . ");
+        log.info("Manager register .");
         this.taskTopology = taskTopology;
         this.barrierService.register(taskTopology);
         this.monitorService.register(taskTopology);
@@ -93,12 +92,9 @@ public class Manager {
 
     public void recovery() {
 
+        log.info("Manager recovery .");
         if (this.stateService.isSupportRecovery()) {
             List<StateValue> stateValueList = this.stateService.recoveryStateValue();
-            if (CollectionUtils.isEmpty(stateValueList)) {
-                log.info("no states for recovery . ");
-                return;
-            }
             this.taskTopology.recovery(stateValueList);
         }
     }
@@ -116,7 +112,7 @@ public class Manager {
 
     public void close() throws Exception {
 
-        log.info("Manager close . ");
+        log.info("Manager close .");
         this.scheduler.close();
         this.taskTopology.close();
     }
@@ -124,13 +120,13 @@ public class Manager {
 
     public void updateTaskTopology(ComponentType component, ComponentChangeMode change) {
 
-        log.info("Manager updateTaskTopology : {} will be {}" + component, change);
+        log.info("Manager updateTaskTopology : {} will be {}", component, change);
         try {
             this.scheduler.pauseJob(Schedulerd.SCHEDULER_BARRIER);
             this.taskTopology.sourcePause();
             //通过发送barrier的方式，等待下游消费完毕所有数据
-            BarrierData barrierData = barrierService.generateBarrier();
-            while (barrierService.isBarrierRunning(barrierData)) {
+            BarrierData barrierData = this.barrierService.generateBarrier();
+            while (this.barrierService.isBarrierRunning(barrierData)) {
                 Util.sleepMS(1);
             }
             this.taskTopology.change(component, change);

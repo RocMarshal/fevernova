@@ -92,7 +92,7 @@ public abstract class AbstractHDFSBatchSink extends AbstractBatchSink implements
     }
 
 
-    @Override public StateValue getStateForRecovery(BarrierData barrierData) {
+    @Override public StateValue getStateForRecovery(BarrierData barrierData) throws Exception {
 
         HDFSCheckPoint checkPoint = this.checkpoints.getCheckPoint(barrierData.getBarrierId());
         StateValue stateValue = new StateValue();

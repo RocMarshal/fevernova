@@ -19,7 +19,7 @@ public class MapCheckPoint implements CheckPoint {
 
     public MapCheckPoint() {
 
-        this.values = Maps.newHashMap();
+        this.values = Maps.newConcurrentMap();
     }
 
 

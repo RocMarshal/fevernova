@@ -78,8 +78,7 @@ public class BarrierService implements BarrierServiceCallBack {
             this.barrierCompletedListeners.add((BarrierCompletedListener) component);
         }
         if (component instanceof BarrierCoordinatorListener) {
-            BarrierCoordinatorListener coordinatorCPListener = (BarrierCoordinatorListener) component;
-            this.barrierCoordinatorListeners.add(coordinatorCPListener);
+            this.barrierCoordinatorListeners.add((BarrierCoordinatorListener) component);
         }
     }
 
@@ -128,15 +127,15 @@ public class BarrierService implements BarrierServiceCallBack {
     protected void notifyListeners(final BarrierData barrierData) {
 
         Thread thread = new Thread(() -> {
-            if (!barrierCoordinatorListeners.isEmpty()) {
+            if (!this.barrierCoordinatorListeners.isEmpty()) {
                 try {
-                    List<Boolean> coordinatorCollectResult = Lists.newArrayList();
-                    for (BarrierCoordinatorListener barrierCoordinatorListener : barrierCoordinatorListeners) {
+                    final List<Boolean> coordinatorCollectResult = Lists.newArrayList();
+                    for (BarrierCoordinatorListener barrierCoordinatorListener : this.barrierCoordinatorListeners) {
                         coordinatorCollectResult.add(barrierCoordinatorListener.collect(barrierData));
                     }
                     boolean coordinatorResult = coordinatorCollectResult.stream().allMatch(result -> result);
                     if (coordinatorResult) {
-                        List<StateValue> stateValues = Lists.newArrayList();
+                        final List<StateValue> stateValues = Lists.newArrayList();
                         for (BarrierCoordinatorListener barrierCoordinatorListener : barrierCoordinatorListeners) {
                             stateValues.add(barrierCoordinatorListener.getStateForRecovery(barrierData));
                         }
@@ -169,6 +168,5 @@ public class BarrierService implements BarrierServiceCallBack {
             this.globalContext.fatalError("BarrierService.notifyListeners error : ", e);
         }
     }
-
 
 }

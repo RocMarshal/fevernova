@@ -58,7 +58,7 @@ public class UnitCounter extends Counter {
 
     public String getRegisterName(Named named) {
 
-        return named.render(true) + "-" + name;
+        return named.render(true) + "-" + this.name;
     }
 
 }

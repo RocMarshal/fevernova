@@ -114,7 +114,7 @@ public class JobParser extends AbstractParser<Integer, OrderMatch> implements Ba
     }
 
 
-    @Override public StateValue getStateForRecovery(BarrierData barrierData) {
+    @Override public StateValue getStateForRecovery(BarrierData barrierData) throws Exception {
 
         MapCheckPoint checkPoint = this.checkpoints.getCheckPoint(barrierData.getBarrierId());
         StateValue stateValue = new StateValue();

@@ -38,24 +38,31 @@ public class MetricReporter extends ScheduledReporter {
 
         Map<ComponentType, Map<String, List<MetricData>>> mapResult = Maps.newHashMap();
         counters.entrySet().forEach(entry -> {
-
             UnitCounter unitCounter = (UnitCounter) entry.getValue();
-            MetricData metricData =
-                    MetricData.builder().metricKey(entry.getKey()).metricName(unitCounter.getName()).componentType(unitCounter.getComponentType())
-                            .unit(unitCounter.getUnit()).value(unitCounter.getCountAndReset()).build();
-
-            if (!mapResult.containsKey(metricData.getComponentType())) {
-                mapResult.put(metricData.getComponentType(), Maps.newHashMap());
-            }
+            MetricData metricData = MetricData.builder()
+                    .metricKey(entry.getKey())
+                    .metricName(unitCounter.getName())
+                    .componentType(unitCounter.getComponentType())
+                    .unit(unitCounter.getUnit())
+                    .value(unitCounter.getCountAndReset())
+                    .build();
 
             Map<String, List<MetricData>> metricByName = mapResult.get(metricData.getComponentType());
-
-            if (!metricByName.containsKey(metricData.getMetricName())) {
-                metricByName.put(metricData.getMetricName(), Lists.newArrayList());
+            if (metricByName == null) {
+                metricByName = Maps.newHashMap();
+                mapResult.put(metricData.getComponentType(), metricByName);
             }
 
-            metricByName.get(metricData.getMetricName()).add(metricData);
-            log.info(metricData.toString());
+            List<MetricData> metrics = metricByName.get(metricData.getMetricName());
+            if (metrics == null) {
+                metrics = Lists.newArrayList();
+                metricByName.put(metricData.getMetricName(), metrics);
+            }
+
+            metrics.add(metricData);
+            if (log.isInfoEnabled()) {
+                log.info(metricData.toString());
+            }
         });
 
         Manager.getInstance().getMonitorService().handleMetrics(mapResult);

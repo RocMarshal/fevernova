@@ -320,7 +320,7 @@ public class JobSource extends AbstractSource<String, BinlogData>
     }
 
 
-    @Override public StateValue getStateForRecovery(BarrierData barrierData) {
+    @Override public StateValue getStateForRecovery(BarrierData barrierData) throws Exception {
 
         MysqlCheckPoint mysqlCheckPoint = this.checkpoints.getCheckPoint(barrierData.getBarrierId());
         StateValue stateValue = new StateValue();

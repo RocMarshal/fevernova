@@ -55,7 +55,6 @@ public class Schedulerd implements AutoCloseable {
         long firstTime = (Util.nowMS() / (intervalSec * 1000) + 1) * (intervalSec * 1000);
         Trigger trigger = TriggerBuilder.newTrigger().startAt(new Date(firstTime))
                 .withSchedule(SimpleScheduleBuilder.simpleSchedule().withIntervalInSeconds(intervalSec).repeatForever()).build();
-
         this.scheduler.scheduleJob(jobDetail, trigger);
         log.info(jobKey.getName() + " job has been added to scheduler");
     }

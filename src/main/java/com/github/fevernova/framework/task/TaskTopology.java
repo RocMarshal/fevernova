@@ -21,7 +21,6 @@ import com.google.common.collect.Lists;
 import com.lmax.disruptor.EventProcessor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.Validate;
 
 import java.util.List;
@@ -29,6 +28,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 
 @Slf4j public class TaskTopology implements AutoCloseable {
@@ -76,10 +76,10 @@ import java.util.stream.Collectors;
     protected final ThreadPoolExecutor executors;
 
     @Getter
-    protected List<Agent> agents;
+    protected final List<Agent> agents = Lists.newArrayList();
 
     @Getter
-    protected MetricEvaluate metricEvaluate;
+    protected final MetricEvaluate metricEvaluate;
 
 
     public TaskTopology(GlobalContext globalContext, TaskContext taskContext, TaskConfig taskConfig) throws Exception {
@@ -104,39 +104,18 @@ import java.util.stream.Collectors;
         this.inputEventFactory = new DataEventFactory(taskConfig.getInputDataFactoryClass().getConstructor().newInstance());
         this.outputEventFactory = new DataEventFactory(taskConfig.getOutputDataFactoryClass().getConstructor().newInstance());
 
-        generateTaskTopology();
-        generateAgent();
-        initChannelProxyAndComponent();
-    }
+        IntStream.range(0, this.taskConfig.getSinkParallelism()).forEach(value -> addSink(value));
+        IntStream.range(0, this.taskConfig.getParserParallelism()).forEach(value -> addParser(value));
+        IntStream.range(0, this.taskConfig.getSourceParallelism()).forEach(value -> addSource(value));
 
+        this.agents.add(new Agent(ComponentType.SOURCE, this.taskConfig.getSourceParallelism(), 1, this.taskConfig.getSourceAvailbleNum()));
+        this.agents.add(new Agent(ComponentType.PARSER, this.taskConfig.getParserParallelism(), 1, this.taskConfig.getParserAvailbleNum()));
+        this.agents.add(new Agent(ComponentType.SINK, this.taskConfig.getSinkParallelism(), 1, this.taskConfig.getSinkAvailbleNum()));
+        this.metricEvaluate = this.taskConfig.getMetricEvaluateClass().newInstance();
 
-    private void generateAgent() {
-
-        Agent sourceAgent = new Agent(ComponentType.SOURCE, this.taskConfig.getSourceParallelism(), 1, this.taskConfig.getSourceAvailbleNum());
-        Agent parserAgent = new Agent(ComponentType.PARSER, this.taskConfig.getParserParallelism(), 1, this.taskConfig.getParserAvailbleNum());
-        Agent sinkAgent = new Agent(ComponentType.SINK, this.taskConfig.getSinkParallelism(), 1, this.taskConfig.getSinkAvailbleNum());
-        this.agents = Lists.newArrayList(sinkAgent, parserAgent, sourceAgent);
-
-        try {
-            this.metricEvaluate = this.taskConfig.getMetricEvaluateClass().newInstance();
-        } catch (Exception e) {
-            log.error("TaskTopology metricEvaluate Error : ", e);
-            Validate.isTrue(false);
-        }
-    }
-
-
-    private void generateTaskTopology() {
-
-        for (int i = 0; i < this.taskConfig.getSinkParallelism(); i++) {
-            addSink(i);
-        }
-        for (int i = 0; i < this.taskConfig.getParserParallelism(); i++) {
-            addParser(i);
-        }
-        for (int i = 0; i < this.taskConfig.getSourceParallelism(); i++) {
-            addSource(i);
-        }
+        this.inputProxys.forEach(channelProxy -> channelProxy.init());
+        this.outputProxys.forEach(channelProxy -> channelProxy.init());
+        this.components.forEach(component -> component.init());
 
     }
 
@@ -201,23 +180,13 @@ import java.util.stream.Collectors;
     }
 
 
-    private void initChannelProxyAndComponent() {
-
-        this.inputProxys.forEach(channelProxy -> channelProxy.init());
-        this.outputProxys.forEach(channelProxy -> channelProxy.init());
-        this.components.forEach(component -> component.init());
-    }
-
-
     public void recovery(List<StateValue> stateValues) {
 
         this.components.forEach(component -> {
             if (component.needRecovery()) {
                 List<StateValue> ts = stateValues.stream().filter(stateValue -> stateValue.getComponentType() == component.getComponentType())
                         .collect(Collectors.toList());
-                if (CollectionUtils.isNotEmpty(ts)) {
-                    component.onRecovery(ts);
-                }
+                component.onRecovery(ts);
             }
         });
     }
@@ -243,15 +212,25 @@ import java.util.stream.Collectors;
 
     public void sourcePause() {
 
-        log.info("TaskTopology Source Pause . ");
+        log.info("TaskTopology Source Pause .");
         this.sources.forEach(source -> source.onPause());
     }
 
 
     public void sourceResume() {
 
-        log.info("TaskTopology Source Resume . ");
+        log.info("TaskTopology Source Resume .");
         this.sources.forEach(source -> source.onResume());
+    }
+
+
+    public void change(ComponentType component, ComponentChangeMode change) {
+
+        if (component == ComponentType.PARSER) {
+            changeParserAvailableNum(change);
+        } else if (component == ComponentType.SINK) {
+            changeSinkAvailableNum(change);
+        }
     }
 
 
@@ -271,16 +250,6 @@ import java.util.stream.Collectors;
             this.taskConfig.getSinkAvailbleNum().incrementAndGet();
         } else {
             this.taskConfig.getSinkAvailbleNum().decrementAndGet();
-        }
-    }
-
-
-    public void change(ComponentType component, ComponentChangeMode change) {
-
-        if (component == ComponentType.PARSER) {
-            changeParserAvailableNum(change);
-        } else if (component == ComponentType.SINK) {
-            changeSinkAvailableNum(change);
         }
     }
 }

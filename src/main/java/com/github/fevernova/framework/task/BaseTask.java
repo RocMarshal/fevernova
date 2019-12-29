@@ -19,13 +19,13 @@ import org.apache.commons.lang3.Validate;
 public abstract class BaseTask {
 
 
-    protected final GlobalContext globalContext;
-
     protected final TaskContext context;
 
     protected final Named named;
 
     protected final long createTime;
+
+    protected final GlobalContext globalContext;
 
     protected Manager manager;
 
@@ -36,8 +36,8 @@ public abstract class BaseTask {
         this.named = Named.builder().taskName(Constants.PROJECT_NAME).moduleName(context.getName()).moduleType(getClass().getSimpleName()).build();
         EventBus eventBus = new EventBus(this.named.render(true));
         eventBus.register(this);
-        this.globalContext = GlobalContext.builder().eventBus(eventBus).customContext(Maps.newConcurrentMap()).jobTags(tags).build();
         this.createTime = Util.nowMS();
+        this.globalContext = GlobalContext.builder().eventBus(eventBus).customContext(Maps.newConcurrentMap()).jobTags(tags).build();
         Validate.isTrue(this.globalContext.getJobTags().getUnit() >= 1 && this.globalContext.getJobTags().getUnit() <= 5);
     }
 
@@ -75,21 +75,16 @@ public abstract class BaseTask {
     public synchronized void close() {
 
         log.info("Task Close .");
-        Thread thread = new Thread() {
+        Thread thread = new Thread(() -> {
 
-
-            @Override
-            public void run() {
-
-                try {
-                    Thread.sleep(10 * 1000);
-                } catch (Exception e) {
-                    log.error("Task close error : ", e);
-                } finally {
-                    System.exit(0);
-                }
+            try {
+                Thread.sleep(10 * 1000);
+            } catch (Exception e) {
+                log.error("Task close error : ", e);
+            } finally {
+                System.exit(0);
             }
-        };
+        });
         thread.start();
         try {
             this.globalContext.getEventBus().unregister(this);
