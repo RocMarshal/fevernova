@@ -1,49 +1,34 @@
 package com.github.fevernova.task.mirrormaker;
 
 
-import com.alibaba.fastjson.JSON;
 import com.github.fevernova.framework.common.Util;
 import com.github.fevernova.framework.common.context.GlobalContext;
 import com.github.fevernova.framework.common.context.TaskContext;
 import com.github.fevernova.framework.common.data.BarrierData;
 import com.github.fevernova.framework.component.channel.ChannelProxy;
-import com.github.fevernova.framework.component.source.AbstractSource;
 import com.github.fevernova.framework.service.barrier.listener.BarrierCompletedListener;
 import com.github.fevernova.framework.service.checkpoint.CheckPointSaver;
-import com.github.fevernova.framework.service.checkpoint.ICheckPointSaver;
+import com.github.fevernova.io.kafka.AbstractKafkaSource;
 import com.github.fevernova.io.kafka.KafkaConstants;
-import com.github.fevernova.io.kafka.KafkaUtil;
 import com.github.fevernova.io.kafka.data.KafkaCheckPoint;
 import com.github.fevernova.io.kafka.data.KafkaData;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.kafka.clients.consumer.*;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.clients.consumer.ConsumerRecords;
+import org.apache.kafka.clients.consumer.OffsetAndMetadata;
 import org.apache.kafka.common.TopicPartition;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.locks.ReentrantLock;
 
 
 @Slf4j
-public class JobSource extends AbstractSource<byte[], KafkaData> implements ConsumerRebalanceListener, BarrierCompletedListener {
+public class JobSource extends AbstractKafkaSource implements BarrierCompletedListener {
 
-
-    protected ICheckPointSaver<KafkaCheckPoint> checkpoints;
-
-    private TaskContext kafkaContext;
-
-    private KafkaConsumer<byte[], byte[]> kafkaConsumer;
-
-    private ReentrantLock kafkaLock = new ReentrantLock();
-
-    private List<String> topics;
-
-    private long pollTimeOut;
 
     private List<TopicPartition> partitions = Lists.newArrayList();
 
@@ -53,12 +38,9 @@ public class JobSource extends AbstractSource<byte[], KafkaData> implements Cons
     public JobSource(GlobalContext globalContext, TaskContext taskContext, int index, int inputsNum, ChannelProxy channelProxy) {
 
         super(globalContext, taskContext, index, inputsNum, channelProxy);
-        this.topics = Util.splitStringWithFilter(super.taskContext.get(KafkaConstants.TOPICS), ",", null);
-        this.destTopics = Maps.newHashMapWithExpectedSize(this.topics.size());
-        this.kafkaContext = new TaskContext(KafkaConstants.KAFKA, super.taskContext.getSubProperties(KafkaConstants.KAFKA_));
-        this.pollTimeOut = super.taskContext.getLong(KafkaConstants.POLLTIMEOUT, 5000L);
-        this.checkpoints = new CheckPointSaver<>();
-        this.topics.forEach(topic -> {
+        super.checkpoints = new CheckPointSaver<>();
+        this.destTopics = Maps.newHashMapWithExpectedSize(super.topics.size());
+        super.topics.forEach(topic -> {
             TaskContext topicContext = new TaskContext(topic, super.taskContext.getSubProperties(topic + "."));
             String destTopic = topicContext.getString("desttopic");
             this.destTopics.put(topic, destTopic);
@@ -71,88 +53,35 @@ public class JobSource extends AbstractSource<byte[], KafkaData> implements Cons
     }
 
 
-    @Override public void init() {
-
-        super.init();
-        this.kafkaConsumer = KafkaUtil.createConsumer(this.kafkaContext);
-    }
-
-
     @Override
     public void onStart() {
 
         super.onStart();
         if (this.partitions.isEmpty()) {
-            this.kafkaConsumer.subscribe(this.topics, this);
+            super.kafkaConsumer.subscribe(super.topics, this);
         } else {
-            this.kafkaConsumer.assign(this.partitions);
+            super.kafkaConsumer.assign(this.partitions);
         }
     }
 
 
-    @Override
-    public void work() {
+    @Override protected void kafkaRecords(ConsumerRecords<byte[], byte[]> records) {
 
-        ConsumerRecords<byte[], byte[]> records;
-        this.kafkaLock.lock();
-        try {
-            records = this.kafkaConsumer.poll(this.pollTimeOut);
-        } finally {
-            this.kafkaLock.unlock();
-        }
-
-        if (records != null && !records.isEmpty()) {
-            Set<TopicPartition> tmpPartitions = records.partitions();
-            for (TopicPartition topicPartition : tmpPartitions) {
-                List<ConsumerRecord<byte[], byte[]>> recordList = records.records(topicPartition);
-                String destTopic = this.destTopics.get(topicPartition.topic());
-                recordList.forEach(ele -> {
-                    KafkaData data = feedOne(ele.key());
-                    data.setTopic(ele.topic());
-                    data.setDestTopic(destTopic);
-                    data.setKey(ele.key());
-                    data.setValue(ele.value());
-                    data.setPartitionId(ele.partition());
-                    data.setTimestamp(ele.timestamp());
-                    push();
-                });
-                super.handleRows.inc(recordList.size());
-            }
-        }
-    }
-
-
-    @Override
-    protected void snapshotWhenBarrier(BarrierData barrierData) {
-
-        KafkaCheckPoint checkPoint = new KafkaCheckPoint();
-        this.kafkaLock.lock();
-        try {
-            this.kafkaConsumer.assignment().forEach(topicPartition -> checkPoint.put(topicPartition.topic(), topicPartition.partition(), kafkaConsumer
-                    .position(new TopicPartition(topicPartition.topic(), topicPartition.partition()))));
-        } catch (Throwable e) {
-            log.error("JobSource Snapshot Error : ", e);
-        } finally {
-            this.kafkaLock.unlock();
-        }
-        this.checkpoints.put(barrierData.getBarrierId(), checkPoint);
-    }
-
-
-    @Override
-    public void onPartitionsRevoked(Collection<TopicPartition> partitions) {
-
-        if (log.isInfoEnabled()) {
-            log.info("kafka partition update : " + JSON.toJSONString(partitions));
-        }
-    }
-
-
-    @Override
-    public void onPartitionsAssigned(Collection<TopicPartition> partitions) {
-
-        if (log.isInfoEnabled()) {
-            log.info("kafka partition update : " + JSON.toJSONString(partitions));
+        Set<TopicPartition> tmpPartitions = records.partitions();
+        for (TopicPartition topicPartition : tmpPartitions) {
+            List<ConsumerRecord<byte[], byte[]>> recordList = records.records(topicPartition);
+            String destTopic = this.destTopics.get(topicPartition.topic());
+            recordList.forEach(ele -> {
+                KafkaData data = feedOne(ele.key());
+                data.setTopic(ele.topic());
+                data.setDestTopic(destTopic);
+                data.setKey(ele.key());
+                data.setValue(ele.value());
+                data.setPartitionId(ele.partition());
+                data.setTimestamp(ele.timestamp());
+                push();
+            });
+            super.handleRows.inc(recordList.size());
         }
     }
 
@@ -160,21 +89,10 @@ public class JobSource extends AbstractSource<byte[], KafkaData> implements Cons
     @Override
     public void completed(BarrierData barrierData) throws Exception {
 
-        KafkaCheckPoint checkPoint = this.checkpoints.remove(barrierData.getBarrierId());
-        Map<String, Map<Integer, Long>> offsets = checkPoint.getOffsets();
-        if (log.isInfoEnabled()) {
-            log.info("commit offset : " + JSON.toJSONString(offsets));
-        }
-        if (offsets.isEmpty()) {
-            return;
-        }
-        Map<TopicPartition, OffsetAndMetadata> params = Maps.newHashMap();
-        offsets.forEach((topic, offset) -> offset.forEach((k, v) -> params.put(new TopicPartition(topic, k), new OffsetAndMetadata(v))));
-        this.kafkaLock.lock();
-        try {
-            this.kafkaConsumer.commitSync(params);
-        } finally {
-            this.kafkaLock.unlock();
+        KafkaCheckPoint checkPoint = super.checkpoints.remove(barrierData.getBarrierId());
+        Map<TopicPartition, OffsetAndMetadata> params = checkpoint2Params(checkPoint);
+        if (!params.isEmpty()) {
+            commitKafkaOffset(params);
         }
     }
 }

@@ -51,12 +51,7 @@ public class JobSource extends com.github.fevernova.task.mirrormaker.JobSource i
     @Override public StateValue getStateForRecovery(BarrierData barrierData) {
 
         KafkaCheckPoint checkPoint = super.checkpoints.getCheckPoint(barrierData.getBarrierId());
-        StateValue stateValue = new StateValue();
-        stateValue.setComponentType(super.componentType);
-        stateValue.setComponentTotalNum(super.total);
-        stateValue.setCompomentIndex(super.index);
-        stateValue.setValue(checkPoint);
-        return stateValue;
+        return checkpoint2StateValue(checkPoint);
     }
 
 
