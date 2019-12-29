@@ -27,10 +27,12 @@ public class AlignService {
 
     public Aligner getAligner(String name, int parties) {
 
-        if (!map.containsKey(name)) {
-            map.put(name, new Aligner(parties));
+        Aligner aligner = this.map.get(name);
+        if (aligner == null) {
+            aligner = new Aligner(parties);
+            this.map.put(name, aligner);
         }
-        return map.get(name);
+        return aligner;
     }
 
 }
