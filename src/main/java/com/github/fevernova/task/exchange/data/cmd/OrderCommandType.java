@@ -4,7 +4,8 @@ package com.github.fevernova.task.exchange.data.cmd;
 public enum OrderCommandType {
 
     PLACE_ORDER(0),
-    CANCEL_ORDER(1);
+    CANCEL_ORDER(1),
+    MISS_ORDER(2);
 
     public byte code;
 

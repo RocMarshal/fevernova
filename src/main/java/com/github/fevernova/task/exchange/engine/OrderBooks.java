@@ -191,7 +191,7 @@ public final class OrderBooks implements WriteBytesMarshallable {
             orderMatch.setResultCode(ResultCode.INVALID_CANCEL_NO_ORDER_ID);
             return;
         } else {
-            orderMatch.setResultCode(ResultCode.CANCEL);
+            orderMatch.setResultCode(ResultCode.CANCEL_USER);
             if (OrderAction.ASK == orderCommand.getOrderAction()) {
                 cancelAsk(order, orderArray);
             } else {
