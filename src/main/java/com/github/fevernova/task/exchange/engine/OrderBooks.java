@@ -16,6 +16,7 @@ import net.openhft.chronicle.bytes.WriteBytesMarshallable;
 
 import java.util.List;
 import java.util.Map;
+import java.util.NavigableMap;
 import java.util.TreeMap;
 
 
@@ -89,6 +90,22 @@ public final class OrderBooks implements WriteBytesMarshallable {
 
     private List<OrderMatch> matchAsk(OrderCommand orderCommand) {
 
+        if (OrderType.FOK == orderCommand.getOrderType()) {
+            long tmpSize = 0;
+            if (orderCommand.getPrice() <= this.bidPrice) {
+                NavigableMap<Long, OrderArray> subMap = this.bidPriceTree.subMap(this.bidPrice, true, orderCommand.getPrice(), true);
+                tmpSize = subMap.entrySet().stream().mapToLong(value -> value.getValue().getSize()).sum();
+            }
+            if (orderCommand.getSize() > tmpSize) {
+                OrderMatch orderMatch = new OrderMatch();
+                orderMatch.from(orderCommand);
+                orderMatch.setResultCode(ResultCode.CANCEL_FOK);
+                List<OrderMatch> result = Lists.newLinkedList();
+                result.add(orderMatch);
+                return result;
+            }
+        }
+
         OrderArray orderArray;
         if (this.askPrice == orderCommand.getPrice()) {
             orderArray = this.askMinOrderArray;
@@ -118,6 +135,22 @@ public final class OrderBooks implements WriteBytesMarshallable {
 
 
     private List<OrderMatch> matchBid(OrderCommand orderCommand) {
+
+        if (OrderType.FOK == orderCommand.getOrderType()) {
+            long tmpSize = 0;
+            if (orderCommand.getPrice() >= this.askPrice) {
+                NavigableMap<Long, OrderArray> subMap = this.askPriceTree.subMap(this.askPrice, true, orderCommand.getPrice(), true);
+                tmpSize = subMap.entrySet().stream().mapToLong(value -> value.getValue().getSize()).sum();
+            }
+            if (orderCommand.getSize() > tmpSize) {
+                OrderMatch orderMatch = new OrderMatch();
+                orderMatch.from(orderCommand);
+                orderMatch.setResultCode(ResultCode.CANCEL_FOK);
+                List<OrderMatch> result = Lists.newLinkedList();
+                result.add(orderMatch);
+                return result;
+            }
+        }
 
         OrderArray orderArray;
         if (this.bidPrice == orderCommand.getPrice()) {

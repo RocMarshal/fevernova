@@ -8,6 +8,7 @@ public enum ResultCode {
     CANCEL(200),
     CANCEL_USER(201),
     CANCEL_IOC(202),
+    CANCEL_FOK(203),
 
     MATCH(300),
 
