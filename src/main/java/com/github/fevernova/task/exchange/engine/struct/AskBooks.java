@@ -1,7 +1,6 @@
 package com.github.fevernova.task.exchange.engine.struct;
 
 
-import com.github.fevernova.task.exchange.data.order.OrderAction;
 import com.google.common.collect.Maps;
 
 
@@ -10,7 +9,7 @@ public final class AskBooks extends Books {
 
     public AskBooks() {
 
-        super(Maps.newTreeMap(Long::compareTo), OrderAction.ASK);
+        super(Maps.newTreeMap(Long::compareTo));
     }
 
 

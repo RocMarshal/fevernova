@@ -3,7 +3,6 @@ package com.github.fevernova.task.exchange.engine.struct;
 
 import com.github.fevernova.task.exchange.data.cmd.OrderCommand;
 import com.github.fevernova.task.exchange.data.order.Order;
-import com.github.fevernova.task.exchange.data.order.OrderAction;
 import com.github.fevernova.task.exchange.data.result.OrderMatch;
 import com.github.fevernova.task.exchange.data.result.ResultCode;
 import com.github.fevernova.task.exchange.engine.OrderArray;
@@ -14,7 +13,6 @@ import net.openhft.chronicle.bytes.ReadBytesMarshallable;
 import net.openhft.chronicle.bytes.WriteBytesMarshallable;
 import net.openhft.chronicle.core.io.IORuntimeException;
 
-import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
 import java.util.TreeMap;
@@ -26,8 +24,6 @@ public abstract class Books implements WriteBytesMarshallable, ReadBytesMarshall
 
     protected final TreeMap<Long, OrderArray> priceTree;
 
-    protected OrderAction orderAction;
-
     protected long price;
 
     protected long size = 0L;//orderArray的size累加值
@@ -35,10 +31,9 @@ public abstract class Books implements WriteBytesMarshallable, ReadBytesMarshall
     protected OrderArray orderArray;//price对应的OrderArray
 
 
-    public Books(TreeMap<Long, OrderArray> priceTree, OrderAction orderAction) {
+    public Books(TreeMap<Long, OrderArray> priceTree) {
 
         this.priceTree = priceTree;
-        this.orderAction = orderAction;
         this.price = defaultPrice();
     }
 
@@ -67,10 +62,10 @@ public abstract class Books implements WriteBytesMarshallable, ReadBytesMarshall
         }
         OrderArray oa = this.priceTree.get(orderCommand.getPrice());
         if (oa == null) {
-            oa = new OrderArray(this.orderAction, orderCommand.getPrice());
-            this.priceTree.put(orderCommand.getPrice(), oa);
-            if (newPrice(orderCommand.getPrice())) {
-                this.price = orderCommand.getPrice();
+            oa = new OrderArray(orderCommand.getOrderAction(), orderCommand.getPrice());
+            this.priceTree.put(oa.getPrice(), oa);
+            if (newPrice(oa.getPrice())) {
+                this.price = oa.getPrice();
                 this.orderArray = oa;
             }
         }
@@ -87,22 +82,9 @@ public abstract class Books implements WriteBytesMarshallable, ReadBytesMarshall
     }
 
 
-    public void IOCClear(OrderCommand orderCommand, Order order, OrderArray oa, List<OrderMatch> result) {
-
-        if (order.needIOCClear()) {
-            oa.removeOrder(order);
-            adjustByOrderArray(order.getRemainSize(), oa);
-            OrderMatch orderMatch = new OrderMatch();
-            orderMatch.from(orderCommand, order);
-            result.add(orderMatch);
-        }
-    }
-
-
     public void cancel(OrderCommand orderCommand, OrderMatch orderMatch) {
 
         OrderArray oa = this.priceTree.get(orderCommand.getPrice());
-
         if (oa == null) {
             orderMatch.setResultCode(ResultCode.INVALID_CANCEL_NO_ORDER_ID);
             return;

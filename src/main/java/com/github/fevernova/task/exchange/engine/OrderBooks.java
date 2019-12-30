@@ -49,6 +49,7 @@ public final class OrderBooks implements WriteBytesMarshallable {
 
     public List<OrderMatch> match(OrderCommand orderCommand) {
 
+        List<OrderMatch> result = Lists.newLinkedList();
         Books thisBooks = OrderAction.ASK == orderCommand.getOrderAction() ? this.askBooks : this.bidBooks;
         Books thatBooks = OrderAction.ASK == orderCommand.getOrderAction() ? this.bidBooks : this.askBooks;
 
@@ -56,24 +57,29 @@ public final class OrderBooks implements WriteBytesMarshallable {
             OrderMatch orderMatch = new OrderMatch();
             orderMatch.from(orderCommand);
             orderMatch.setResultCode(ResultCode.CANCEL_FOK);
-            List<OrderMatch> result = Lists.newLinkedList();
             result.add(orderMatch);
             return result;
         }
 
         OrderArray orderArray = thisBooks.getOrCreateOrderArray(orderCommand);
         Order order = thisBooks.addOrder(orderCommand, orderArray);
-        List<OrderMatch> result = matchOrders();
-        thisBooks.IOCClear(orderCommand, order, orderArray, result);
+        matchOrders(result);
+
+        if (order.needIOCClear()) {
+            orderArray.removeOrder(order);
+            thisBooks.adjustByOrderArray(order.getRemainSize(), orderArray);
+            OrderMatch orderMatch = new OrderMatch();
+            orderMatch.from(orderCommand, order);
+            result.add(orderMatch);
+        }
         return result;
     }
 
 
-    private List<OrderMatch> matchOrders() {
+    private void matchOrders(List<OrderMatch> result) {
 
-        List<OrderMatch> result = Lists.newLinkedList();
         if (this.askBooks.getPrice() > this.bidBooks.getPrice()) {
-            return result;
+            return;
         }
         while (this.askBooks.getPrice() <= this.bidBooks.getPrice() && this.askBooks.getSize() > 0 && this.bidBooks.getSize() > 0) {
             //限价撮合的定价逻辑
@@ -84,17 +90,18 @@ public final class OrderBooks implements WriteBytesMarshallable {
             } else if (this.lastMatchPrice >= this.bidBooks.getPrice()) {
                 this.lastMatchPrice = this.bidBooks.getPrice();
             }
-            long bidTmpSize = this.bidBooks.getOrderArray().getSize();
-            long askTmpSize = this.askBooks.getOrderArray().getSize();
+            OrderArray bidOrderArray = this.bidBooks.getOrderArray();
+            OrderArray askOrderArray = this.askBooks.getOrderArray();
+            long bidTmpSize = bidOrderArray.getSize();
+            long askTmpSize = askOrderArray.getSize();
             if (bidTmpSize > askTmpSize) {
-                this.bidBooks.getOrderArray().meet(this.askBooks.getOrderArray(), this.symbolId, this.lastMatchPrice, result);
+                bidOrderArray.meet(askOrderArray, this.symbolId, this.lastMatchPrice, result);
             } else {
-                this.askBooks.getOrderArray().meet(this.bidBooks.getOrderArray(), this.symbolId, this.lastMatchPrice, result);
+                askOrderArray.meet(bidOrderArray, this.symbolId, this.lastMatchPrice, result);
             }
-            this.bidBooks.adjustByOrderArray(bidTmpSize - this.bidBooks.getOrderArray().getSize(), this.bidBooks.getOrderArray());
-            this.askBooks.adjustByOrderArray(askTmpSize - this.askBooks.getOrderArray().getSize(), this.askBooks.getOrderArray());
+            this.bidBooks.adjustByOrderArray(bidTmpSize - bidOrderArray.getSize(), bidOrderArray);
+            this.askBooks.adjustByOrderArray(askTmpSize - askOrderArray.getSize(), askOrderArray);
         }
-        return result;
     }
 
 
