@@ -38,7 +38,7 @@ public class Task extends BaseTask {
     @Override public BaseTask init() throws Exception {
 
         super.init();
-        super.manager = Manager.getInstance(this.globalContext, this.context);
+        super.manager = Manager.getInstance(super.globalContext, super.context);
         TaskConfig taskConfig = TaskConfig.builder()
                 .sourceClass(JobSource.class)
                 .parserClass(JobParser.class)
@@ -48,8 +48,8 @@ public class Task extends BaseTask {
                 .inputSelectorClass(BytesSelector.class)
                 .outputSelectorClass(IntSelector.class)
                 .sourceParallelism(2)
-                .parserParallelism(this.globalContext.getJobTags().getUnit())
-                .sinkParallelism(this.globalContext.getJobTags().getUnit() + 1)
+                .parserParallelism(super.globalContext.getJobTags().getUnit())
+                .sinkParallelism(super.globalContext.getJobTags().getUnit() + 1)
                 .sourceAvailbleNum(new AtomicInteger(2))
                 .parserAvailbleNum(new AtomicInteger(this.parserInitParallelism))
                 .sinkAvailbleNum(new AtomicInteger(this.sinkInitParallelism))
@@ -57,7 +57,7 @@ public class Task extends BaseTask {
                 .outputDynamicBalance(false)
                 .metricEvaluateClass(NoMetricEvaluate.class)
                 .build();
-        TaskTopology taskTopology = new TaskTopology(globalContext, this.context, taskConfig);
+        TaskTopology taskTopology = new TaskTopology(super.globalContext, super.context, taskConfig);
         super.manager.register(taskTopology);
         return this;
     }

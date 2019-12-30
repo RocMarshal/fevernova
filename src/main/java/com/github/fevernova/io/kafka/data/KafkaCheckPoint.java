@@ -37,8 +37,7 @@ public class KafkaCheckPoint implements CheckPoint {
 
     @Override public void parseFromJSON(JSONObject jsonObject) {
 
-        jsonObject.forEach((s, o) -> {
-
+        jsonObject.getJSONObject("offsets").forEach((s, o) -> {
             Map<Integer, Long> t = Maps.newHashMap();
             ((JSONObject) o).forEach((s1, o1) -> t.put(Integer.valueOf(s1), Long.valueOf(o1.toString())));
             offsets.put(s, t);

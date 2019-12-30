@@ -30,7 +30,7 @@ public class Task extends BaseTask {
         context.put(Constants.INPUTCHANNEL_ + Constants.SIZE, "1024");
         context.put(Constants.OUTPUTCHANNEL_ + Constants.SIZE, "512");
 
-        int unit = this.globalContext.getJobTags().getUnit();
+        int unit = super.globalContext.getJobTags().getUnit();
         this.parserInitParallelism = context.getInteger(Constants.PARSER_ + Constants.PARALLELISM, Math.min(unit, 2));
         this.sinkInitParallelism = context.getInteger(Constants.SINK_ + Constants.PARALLELISM, unit);
     }
@@ -39,7 +39,7 @@ public class Task extends BaseTask {
     @Override public BaseTask init() throws Exception {
 
         super.init();
-        super.manager = Manager.getInstance(this.globalContext, this.context);
+        super.manager = Manager.getInstance(super.globalContext, super.context);
         TaskConfig taskConfig = TaskConfig.builder()
                 .sourceClass(JobSource.class)
                 .parserClass(JobParser.class)
@@ -58,7 +58,7 @@ public class Task extends BaseTask {
                 .outputDynamicBalance(false)
                 .metricEvaluateClass(NoMetricEvaluate.class)
                 .build();
-        TaskTopology taskTopology = new TaskTopology(globalContext, this.context, taskConfig);
+        TaskTopology taskTopology = new TaskTopology(super.globalContext, super.context, taskConfig);
         super.manager.register(taskTopology);
         return this;
     }

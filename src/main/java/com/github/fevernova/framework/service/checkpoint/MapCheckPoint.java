@@ -25,6 +25,6 @@ public class MapCheckPoint implements CheckPoint {
 
     @Override public void parseFromJSON(JSONObject jsonObject) {
 
-        jsonObject.forEach((s, o) -> values.put(s, o != null ? o.toString() : null));
+        jsonObject.getJSONObject("values").forEach((s, o) -> values.put(s, o != null ? o.toString() : null));
     }
 }

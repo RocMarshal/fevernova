@@ -4,6 +4,7 @@ package com.github.fevernova;
 import com.github.fevernova.framework.common.context.GlobalContext;
 import com.github.fevernova.framework.common.context.JobTags;
 import com.github.fevernova.framework.common.context.TaskContext;
+import com.google.common.collect.Maps;
 
 
 public class Common {
@@ -22,7 +23,7 @@ public class Common {
                 .podTotalNum(3)
                 .podIndex(0)
                 .build();
-        return GlobalContext.builder().jobTags(jobTags).build();
+        return GlobalContext.builder().jobTags(jobTags).customContext(Maps.newConcurrentMap()).build();
     }
 
 
