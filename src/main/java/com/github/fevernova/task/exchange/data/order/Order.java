@@ -59,6 +59,12 @@ public final class Order implements WriteBytesMarshallable {
     }
 
 
+    public boolean needIOCClear() {
+
+        return this.orderType == OrderType.IOC && this.remainSize > 0;
+    }
+
+
     @Override public void writeMarshallable(BytesOut bytes) {
 
         bytes.writeLong(this.orderId);

@@ -9,7 +9,6 @@ import com.github.fevernova.framework.common.data.BarrierData;
 import com.github.fevernova.framework.component.ComponentType;
 import com.github.fevernova.framework.service.state.BinaryFileIdentity;
 import com.github.fevernova.framework.service.state.storage.FSStorage;
-import com.github.fevernova.task.exchange.uniq.SlideWindowFilter;
 import com.github.fevernova.task.exchange.data.cmd.OrderCommand;
 import com.github.fevernova.task.exchange.data.cmd.OrderCommandType;
 import com.github.fevernova.task.exchange.data.order.OrderAction;
@@ -17,6 +16,7 @@ import com.github.fevernova.task.exchange.data.order.OrderType;
 import com.github.fevernova.task.exchange.data.result.OrderMatch;
 import com.github.fevernova.task.exchange.data.result.ResultCode;
 import com.github.fevernova.task.exchange.engine.OrderBooksEngine;
+import com.github.fevernova.task.exchange.uniq.SlideWindowFilter;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -101,7 +101,7 @@ public class T_Exchange {
             parser(askCMD);
         }
 
-        this.fsStorage.saveBinary(this.binaryFileIdentity, new BarrierData(1L, Util.nowMS()), this.orderBooksEngine);
+        this.fsStorage.saveBinary(this.binaryFileIdentity, new BarrierData(1L, 0L), this.orderBooksEngine);
     }
 
 
@@ -110,7 +110,7 @@ public class T_Exchange {
 
         this.orderBooksEngine = new OrderBooksEngine(null, null);
         this.fsStorage
-                .recoveryBinary("/tmp/fevernova/testtype-testid/3-0/data/parser_3_1_OrderBooksEngine_1577344355846_1.bin", this.orderBooksEngine);
+                .recoveryBinary("/tmp/fevernova/testtype-testid/3-0/data/parser_3_1_OrderBooksEngine_0_1.bin", this.orderBooksEngine);
         System.out.println(this.orderBooksEngine);
 
     }
