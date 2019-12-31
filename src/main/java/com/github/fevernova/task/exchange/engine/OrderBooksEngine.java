@@ -3,6 +3,7 @@ package com.github.fevernova.task.exchange.engine;
 
 import com.github.fevernova.framework.common.context.GlobalContext;
 import com.github.fevernova.framework.common.context.TaskContext;
+import com.github.fevernova.framework.component.DataProvider;
 import com.github.fevernova.task.exchange.data.cmd.OrderCommand;
 import com.github.fevernova.task.exchange.data.result.OrderMatch;
 import com.github.fevernova.task.exchange.uniq.SerializationUtils;
@@ -14,7 +15,6 @@ import net.openhft.chronicle.bytes.WriteBytesMarshallable;
 import net.openhft.chronicle.core.io.IORuntimeException;
 import org.eclipse.collections.impl.map.mutable.primitive.IntObjectHashMap;
 
-import java.util.List;
 import java.util.Map;
 
 
@@ -37,10 +37,10 @@ public final class OrderBooksEngine implements WriteBytesMarshallable, ReadBytes
     }
 
 
-    public List<OrderMatch> placeOrder(OrderCommand orderCommand) {
+    public void placeOrder(OrderCommand orderCommand, DataProvider<Integer, OrderMatch> provider) {
 
         OrderBooks orderBooks = getOrderBooks(orderCommand);
-        return orderBooks.match(orderCommand);
+        orderBooks.match(orderCommand, provider);
     }
 
 

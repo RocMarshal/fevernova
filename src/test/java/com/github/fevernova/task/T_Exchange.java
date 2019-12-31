@@ -7,6 +7,7 @@ import com.github.fevernova.framework.common.context.GlobalContext;
 import com.github.fevernova.framework.common.context.TaskContext;
 import com.github.fevernova.framework.common.data.BarrierData;
 import com.github.fevernova.framework.component.ComponentType;
+import com.github.fevernova.framework.component.DataProvider;
 import com.github.fevernova.framework.service.state.BinaryFileIdentity;
 import com.github.fevernova.framework.service.state.storage.FSStorage;
 import com.github.fevernova.task.exchange.data.cmd.OrderCommand;
@@ -17,6 +18,7 @@ import com.github.fevernova.task.exchange.data.result.OrderMatch;
 import com.github.fevernova.task.exchange.data.result.ResultCode;
 import com.github.fevernova.task.exchange.engine.OrderBooksEngine;
 import com.github.fevernova.task.exchange.uniq.SlideWindowFilter;
+import org.apache.commons.lang3.Validate;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -33,6 +35,9 @@ public class T_Exchange {
     private BinaryFileIdentity binaryFileIdentity;
 
 
+    private DataProvider<Integer, OrderMatch> provider;
+
+
     @Before
     public void init() {
 
@@ -43,25 +48,51 @@ public class T_Exchange {
         this.fsStorage = new FSStorage(globalContext, taskContext);
         this.binaryFileIdentity =
                 BinaryFileIdentity.builder().componentType(ComponentType.PARSER).total(3).index(1).identity(OrderBooksEngine.CONS_NAME).build();
+        this.provider = new DataProvider<Integer, OrderMatch>() {
+
+
+            private OrderMatch orderMatch = new OrderMatch();
+
+            private boolean flag = false;
+
+
+            @Override public OrderMatch feedOne(Integer key) {
+
+                Validate.isTrue(!flag);
+                flag = true;
+                return orderMatch;
+            }
+
+
+            @Override public void push() {
+
+                Validate.isTrue(flag);
+                flag = false;
+                orderMatch.clearData();
+            }
+        };
     }
 
 
     private int parser(OrderCommand orderCommand) {
 
         int r = 0;
-        final OrderMatch orderMatch = new OrderMatch();
+        final OrderMatch orderMatch = provider.feedOne(orderCommand.getSymbolId());
         orderMatch.from(orderCommand);
         r++;
 
         if (OrderCommandType.PLACE_ORDER == orderCommand.getOrderCommandType()) {
             if (!this.slideWindowFilter.unique(orderCommand.getSymbolId(), orderCommand.getOrderId(), orderCommand.getTimestamp())) {
                 orderMatch.setResultCode(ResultCode.INVALID_PLACE_DUPLICATE_ORDER_ID);
+                provider.push();
             } else {
                 orderMatch.setResultCode(ResultCode.PLACE);
-                r += this.orderBooksEngine.placeOrder(orderCommand).size();
+                provider.push();
+                this.orderBooksEngine.placeOrder(orderCommand, this.provider);
             }
         } else if (OrderCommandType.CANCEL_ORDER == orderCommand.getOrderCommandType()) {
             this.orderBooksEngine.cancelOrder(orderCommand, orderMatch);
+            provider.push();
         }
         return r;
     }

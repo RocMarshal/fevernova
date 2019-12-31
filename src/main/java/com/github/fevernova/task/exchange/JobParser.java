@@ -75,13 +75,8 @@ public class JobParser extends AbstractParser<Integer, OrderMatch> implements Ba
                 push();
             } else {
                 orderMatch.setResultCode(ResultCode.PLACE);
-                List<OrderMatch> result = this.matchEngine.placeOrder(orderCommand);
                 push();
-                result.forEach(ele -> {
-                    OrderMatch orderMatch1 = feedOne(orderCommand.getSymbolId());
-                    orderMatch1.from(ele);
-                    push();
-                });
+                this.matchEngine.placeOrder(orderCommand, this);
             }
         } else if (OrderCommandType.CANCEL_ORDER == orderCommand.getOrderCommandType()) {
             this.matchEngine.cancelOrder(orderCommand, orderMatch);

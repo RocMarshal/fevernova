@@ -6,12 +6,13 @@ import com.github.fevernova.framework.common.context.TaskContext;
 import com.github.fevernova.framework.common.data.BarrierData;
 import com.github.fevernova.framework.common.data.Data;
 import com.github.fevernova.framework.common.data.broadcast.BroadcastData;
+import com.github.fevernova.framework.component.DataProvider;
 import com.github.fevernova.framework.component.Processor;
 import com.github.fevernova.framework.component.channel.ChannelProxy;
 import org.apache.commons.lang3.Validate;
 
 
-public abstract class AbstractParser<K, V extends Data> extends Processor {
+public abstract class AbstractParser<K, V extends Data> extends Processor implements DataProvider<K, V> {
 
 
     protected ChannelProxy<K, V> channelProxy;
@@ -24,13 +25,15 @@ public abstract class AbstractParser<K, V extends Data> extends Processor {
     }
 
 
-    protected V feedOne(K key) {
+    @Override
+    public V feedOne(K key) {
 
         return this.channelProxy.feed(key);
     }
 
 
-    protected void push() {
+    @Override
+    public void push() {
 
         this.channelProxy.push();
     }

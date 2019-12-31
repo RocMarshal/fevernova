@@ -1,6 +1,7 @@
 package com.github.fevernova.task.exchange.engine;
 
 
+import com.github.fevernova.framework.component.DataProvider;
 import com.github.fevernova.task.exchange.data.cmd.OrderCommand;
 import com.github.fevernova.task.exchange.data.order.Order;
 import com.github.fevernova.task.exchange.data.order.OrderAction;
@@ -10,13 +11,10 @@ import com.github.fevernova.task.exchange.data.result.ResultCode;
 import com.github.fevernova.task.exchange.engine.struct.AskBooks;
 import com.github.fevernova.task.exchange.engine.struct.BidBooks;
 import com.github.fevernova.task.exchange.engine.struct.Books;
-import com.google.common.collect.Lists;
 import lombok.Getter;
 import net.openhft.chronicle.bytes.BytesIn;
 import net.openhft.chronicle.bytes.BytesOut;
 import net.openhft.chronicle.bytes.WriteBytesMarshallable;
-
-import java.util.List;
 
 
 public final class OrderBooks implements WriteBytesMarshallable {
@@ -47,37 +45,35 @@ public final class OrderBooks implements WriteBytesMarshallable {
     }
 
 
-    public List<OrderMatch> match(OrderCommand orderCommand) {
+    public void match(OrderCommand orderCommand, DataProvider<Integer, OrderMatch> provider) {
 
-        List<OrderMatch> result = Lists.newLinkedList();
         Books thisBooks = OrderAction.ASK == orderCommand.getOrderAction() ? this.askBooks : this.bidBooks;
         Books thatBooks = OrderAction.ASK == orderCommand.getOrderAction() ? this.bidBooks : this.askBooks;
 
         if (OrderType.FOK == orderCommand.getOrderType() && !thatBooks.canMatchAll(orderCommand)) {
-            OrderMatch orderMatch = new OrderMatch();
+            OrderMatch orderMatch = provider.feedOne(orderCommand.getSymbolId());
             orderMatch.from(orderCommand);
             orderMatch.setResultCode(ResultCode.CANCEL_FOK);
-            result.add(orderMatch);
-            return result;
+            provider.push();
+            return;
         }
 
         OrderArray orderArray = thisBooks.getOrCreateOrderArray(orderCommand);
         Order order = new Order(orderCommand);
         orderArray.addOrder(order);
-        matchOrders(result);
+        matchOrders(provider);
 
         if (order.needIOCClear()) {
             orderArray.removeOrder(order);
             thisBooks.adjustByOrderArray(orderArray);
-            OrderMatch orderMatch = new OrderMatch();
+            OrderMatch orderMatch = provider.feedOne(orderCommand.getSymbolId());
             orderMatch.from(orderCommand, order);
-            result.add(orderMatch);
+            provider.push();
         }
-        return result;
     }
 
 
-    private void matchOrders(List<OrderMatch> result) {
+    private void matchOrders(DataProvider<Integer, OrderMatch> provider) {
 
         while (!this.askBooks.newPrice(this.bidBooks.getPrice())) {
             //限价撮合的定价逻辑
@@ -91,9 +87,9 @@ public final class OrderBooks implements WriteBytesMarshallable {
             OrderArray bidOrderArray = this.bidBooks.getOrderArray();
             OrderArray askOrderArray = this.askBooks.getOrderArray();
             if (bidOrderArray.getSize() > askOrderArray.getSize()) {
-                bidOrderArray.meet(askOrderArray, this.symbolId, this.lastMatchPrice, result);
+                bidOrderArray.meet(askOrderArray, this.symbolId, this.lastMatchPrice, provider);
             } else {
-                askOrderArray.meet(bidOrderArray, this.symbolId, this.lastMatchPrice, result);
+                askOrderArray.meet(bidOrderArray, this.symbolId, this.lastMatchPrice, provider);
             }
             this.bidBooks.adjustByOrderArray(bidOrderArray);
             this.askBooks.adjustByOrderArray(askOrderArray);

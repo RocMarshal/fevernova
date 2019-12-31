@@ -1,6 +1,7 @@
 package com.github.fevernova.task.exchange.engine;
 
 
+import com.github.fevernova.framework.component.DataProvider;
 import com.github.fevernova.task.exchange.data.order.Order;
 import com.github.fevernova.task.exchange.data.order.OrderAction;
 import com.github.fevernova.task.exchange.data.result.OrderMatch;
@@ -11,7 +12,6 @@ import net.openhft.chronicle.bytes.BytesOut;
 import net.openhft.chronicle.bytes.WriteBytesMarshallable;
 
 import java.util.LinkedList;
-import java.util.List;
 
 
 @Getter
@@ -72,7 +72,7 @@ public final class OrderArray implements WriteBytesMarshallable {
     }
 
 
-    public void meet(OrderArray that, int symbolId, long matchPrice, List<OrderMatch> result) {
+    public void meet(OrderArray that, int symbolId, long matchPrice, DataProvider<Integer, OrderMatch> provider) {
 
         do {
             Order thisOrder = this.queue.getFirst();
@@ -80,14 +80,14 @@ public final class OrderArray implements WriteBytesMarshallable {
             long delta = Math.min(thisOrder.getRemainSize(), thatOrder.getRemainSize());
             thisOrder.decrement(delta);
             thatOrder.decrement(delta);
-            OrderMatch thisOrderMatch = new OrderMatch();
-            OrderMatch thatOrderMatch = new OrderMatch();
-            thisOrderMatch.from(thisOrder, symbolId, this.orderAction, matchPrice, delta, thatOrder);
-            thatOrderMatch.from(thatOrder, symbolId, that.orderAction, matchPrice, delta, thisOrder);
-            result.add(thisOrderMatch);
-            result.add(thatOrderMatch);
             that.decrement(thatOrder, delta);
             this.decrement(thisOrder, delta);
+            OrderMatch thisOrderMatch = provider.feedOne(symbolId);
+            thisOrderMatch.from(thisOrder, symbolId, this.orderAction, matchPrice, delta, thatOrder);
+            provider.push();
+            OrderMatch thatOrderMatch = provider.feedOne(symbolId);
+            thatOrderMatch.from(thatOrder, symbolId, that.orderAction, matchPrice, delta, thisOrder);
+            provider.push();
         } while (that.getSize() > 0L);
     }
 
