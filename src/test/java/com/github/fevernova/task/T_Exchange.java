@@ -17,14 +17,8 @@ import com.github.fevernova.task.exchange.data.result.OrderMatch;
 import com.github.fevernova.task.exchange.data.result.ResultCode;
 import com.github.fevernova.task.exchange.engine.OrderBooksEngine;
 import com.github.fevernova.task.exchange.uniq.SlideWindowFilter;
-import com.google.common.collect.Maps;
 import org.junit.Before;
 import org.junit.Test;
-
-import java.util.Map;
-import java.util.NavigableMap;
-import java.util.TreeMap;
-import java.util.stream.LongStream;
 
 
 public class T_Exchange {
@@ -166,30 +160,5 @@ public class T_Exchange {
         long et = Util.nowMS();
         System.out.println(et - st);
         System.out.println(bidSum + "-" + askSum);
-    }
-
-
-    @Test
-    public void T_tree() {
-
-        TreeMap<Long, Long> treeMap = Maps.newTreeMap(Long::compareTo);
-        LongStream.range(1, 1000).forEach(value -> treeMap.put(value, 5L));
-        Common.warn();
-        long st = Util.nowMS();
-        long t = 0L;
-        for (int i = 0; i < 1_0000_0000; i++) {
-            NavigableMap<Long, Long> subMap = treeMap.subMap(10L, true, 50L, true);
-            long r = 0L;
-            for (Map.Entry<Long, Long> entry : subMap.entrySet()) {
-                r += entry.getValue();
-                t += entry.getValue();
-                if (r >= 20L) {
-                    break;
-                }
-            }
-        }
-        long et = Util.nowMS();
-        System.out.println(et - st);
-        System.out.println(t);
     }
 }

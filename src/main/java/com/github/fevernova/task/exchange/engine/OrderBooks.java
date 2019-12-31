@@ -62,12 +62,13 @@ public final class OrderBooks implements WriteBytesMarshallable {
         }
 
         OrderArray orderArray = thisBooks.getOrCreateOrderArray(orderCommand);
-        Order order = thisBooks.addOrder(orderCommand, orderArray);
+        Order order = new Order(orderCommand);
+        orderArray.addOrder(order);
         matchOrders(result);
 
         if (order.needIOCClear()) {
             orderArray.removeOrder(order);
-            thisBooks.adjustByOrderArray(order.getRemainSize(), orderArray);
+            thisBooks.adjustByOrderArray(orderArray);
             OrderMatch orderMatch = new OrderMatch();
             orderMatch.from(orderCommand, order);
             result.add(orderMatch);
@@ -78,10 +79,7 @@ public final class OrderBooks implements WriteBytesMarshallable {
 
     private void matchOrders(List<OrderMatch> result) {
 
-        if (this.askBooks.getPrice() > this.bidBooks.getPrice()) {
-            return;
-        }
-        while (this.askBooks.getPrice() <= this.bidBooks.getPrice() && this.askBooks.getSize() > 0 && this.bidBooks.getSize() > 0) {
+        while (!this.askBooks.newPrice(this.bidBooks.getPrice())) {
             //限价撮合的定价逻辑
             if (this.askBooks.getPrice() == this.bidBooks.getPrice()) {
                 this.lastMatchPrice = this.askBooks.getPrice();
@@ -92,15 +90,13 @@ public final class OrderBooks implements WriteBytesMarshallable {
             }
             OrderArray bidOrderArray = this.bidBooks.getOrderArray();
             OrderArray askOrderArray = this.askBooks.getOrderArray();
-            long bidTmpSize = bidOrderArray.getSize();
-            long askTmpSize = askOrderArray.getSize();
-            if (bidTmpSize > askTmpSize) {
+            if (bidOrderArray.getSize() > askOrderArray.getSize()) {
                 bidOrderArray.meet(askOrderArray, this.symbolId, this.lastMatchPrice, result);
             } else {
                 askOrderArray.meet(bidOrderArray, this.symbolId, this.lastMatchPrice, result);
             }
-            this.bidBooks.adjustByOrderArray(bidTmpSize - bidOrderArray.getSize(), bidOrderArray);
-            this.askBooks.adjustByOrderArray(askTmpSize - askOrderArray.getSize(), askOrderArray);
+            this.bidBooks.adjustByOrderArray(bidOrderArray);
+            this.askBooks.adjustByOrderArray(askOrderArray);
         }
     }
 

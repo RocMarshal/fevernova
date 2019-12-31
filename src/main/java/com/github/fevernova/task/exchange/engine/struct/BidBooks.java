@@ -19,7 +19,7 @@ public final class BidBooks extends Books {
     }
 
 
-    @Override protected boolean newPrice(long tmpPrice) {
+    @Override public boolean newPrice(long tmpPrice) {
 
         return tmpPrice > super.price;
     }

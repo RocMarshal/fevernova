@@ -26,8 +26,6 @@ public abstract class Books implements WriteBytesMarshallable, ReadBytesMarshall
 
     protected long price;
 
-    protected long size = 0L;//orderArray的size累加值
-
     protected OrderArray orderArray;//price对应的OrderArray
 
 
@@ -41,15 +39,12 @@ public abstract class Books implements WriteBytesMarshallable, ReadBytesMarshall
     protected abstract long defaultPrice();
 
 
-    protected abstract boolean newPrice(long tmpPrice);
+    public abstract boolean newPrice(long tmpPrice);
 
 
     public boolean canMatchAll(OrderCommand orderCommand) {
 
         if (newPrice(orderCommand.getPrice())) {
-            return false;
-        }
-        if (orderCommand.getSize() > this.size) {
             return false;
         }
         NavigableMap<Long, OrderArray> subMap = this.priceTree.subMap(this.price, true, orderCommand.getPrice(), true);
@@ -82,15 +77,6 @@ public abstract class Books implements WriteBytesMarshallable, ReadBytesMarshall
     }
 
 
-    public Order addOrder(OrderCommand orderCommand, OrderArray oa) {
-
-        Order order = new Order(orderCommand);
-        oa.addOrder(order);
-        this.size += order.getRemainSize();
-        return order;
-    }
-
-
     public void cancel(OrderCommand orderCommand, OrderMatch orderMatch) {
 
         OrderArray oa = this.priceTree.get(orderCommand.getPrice());
@@ -105,13 +91,12 @@ public abstract class Books implements WriteBytesMarshallable, ReadBytesMarshall
         }
         orderMatch.setResultCode(ResultCode.CANCEL_USER);
         oa.removeOrder(order);
-        adjustByOrderArray(order.getRemainSize(), oa);
+        adjustByOrderArray(oa);
     }
 
 
-    public void adjustByOrderArray(long delta, OrderArray oa) {
+    public void adjustByOrderArray(OrderArray oa) {
 
-        this.size -= delta;
         if (oa.getSize() == 0L) {
             this.priceTree.remove(oa.getPrice());
             if (this.price == oa.getPrice()) {
@@ -131,7 +116,6 @@ public abstract class Books implements WriteBytesMarshallable, ReadBytesMarshall
             this.priceTree.put(orderArray.getPrice(), orderArray);
         }
         this.price = bytes.readLong();
-        this.size = bytes.readLong();
         this.orderArray = this.priceTree.get(this.price);
     }
 
@@ -141,6 +125,5 @@ public abstract class Books implements WriteBytesMarshallable, ReadBytesMarshall
         bytes.writeInt(this.priceTree.size());
         this.priceTree.values().forEach(orderArray -> orderArray.writeMarshallable(bytes));
         bytes.writeLong(this.price);
-        bytes.writeLong(this.size);
     }
 }
