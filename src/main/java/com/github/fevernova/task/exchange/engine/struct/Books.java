@@ -49,9 +49,18 @@ public abstract class Books implements WriteBytesMarshallable, ReadBytesMarshall
         if (newPrice(orderCommand.getPrice())) {
             return false;
         }
+        if (orderCommand.getSize() > this.size) {
+            return false;
+        }
         NavigableMap<Long, OrderArray> subMap = this.priceTree.subMap(this.price, true, orderCommand.getPrice(), true);
-        long tmpSize = subMap.entrySet().stream().mapToLong(value -> value.getValue().getSize()).sum();
-        return orderCommand.getSize() <= tmpSize;
+        long acc = 0L;
+        for (Map.Entry<Long, OrderArray> entry : subMap.entrySet()) {
+            acc += entry.getValue().getSize();
+            if (acc >= orderCommand.getSize()) {
+                return true;
+            }
+        }
+        return false;
     }
 
 
