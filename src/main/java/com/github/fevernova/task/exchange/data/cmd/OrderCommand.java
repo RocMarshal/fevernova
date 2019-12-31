@@ -52,4 +52,20 @@ public class OrderCommand {
         this.size = byteBuffer.getLong();
     }
 
+
+    public byte[] to() {
+
+        ByteBuffer byteBuffer = ByteBuffer.allocate(48);
+        byteBuffer.put((byte) 0);
+        byteBuffer.put(this.orderCommandType.code);
+        byteBuffer.putLong(this.orderId);
+        byteBuffer.putInt(this.symbolId);
+        byteBuffer.putLong(this.userId);
+        byteBuffer.putLong(this.timestamp);
+        byteBuffer.put(this.orderAction.code);
+        byteBuffer.put(this.orderType.code);
+        byteBuffer.putLong(this.price);
+        byteBuffer.putLong(this.size);
+        return byteBuffer.array();
+    }
 }
