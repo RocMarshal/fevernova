@@ -19,9 +19,9 @@ public class KafkaData implements Data {
 
     private byte[] value;
 
-    private int partitionId;
+    private int partitionId = -1;
 
-    private long timestamp;
+    private long timestamp = 0L;
 
 
     @Override public void clearData() {
@@ -31,7 +31,7 @@ public class KafkaData implements Data {
         this.key = null;
         this.value = null;
         this.partitionId = -1;
-        this.timestamp = 0;
+        this.timestamp = 0L;
     }
 
 

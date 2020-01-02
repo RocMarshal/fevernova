@@ -2,6 +2,7 @@ package com.github.fevernova.framework.service.scheduler;
 
 
 import com.github.fevernova.framework.common.Util;
+import com.github.fevernova.framework.common.context.ContextObject;
 import com.github.fevernova.framework.common.context.GlobalContext;
 import com.github.fevernova.framework.common.context.TaskContext;
 import lombok.extern.slf4j.Slf4j;
@@ -16,24 +17,19 @@ import java.util.Properties;
 
 
 @Slf4j
-public class Schedulerd implements AutoCloseable {
+public class Schedulerd extends ContextObject implements AutoCloseable {
 
 
     public static final String SCHEDULER_BARRIER = "scheduler.barrier";
 
     public static final String SCHEDULER_MONITOR = "scheduler.monitor";
 
-    private GlobalContext globalContext;
-
-    private TaskContext taskContext;
-
     private Scheduler scheduler;
 
 
     public Schedulerd(GlobalContext globalContext, TaskContext taskContext) {
 
-        this.globalContext = globalContext;
-        this.taskContext = taskContext;
+        super(globalContext, taskContext);
         try {
             Properties properties = new Properties();
             InputStream in = Thread.currentThread().getContextClassLoader().getResourceAsStream("quartz.properties");

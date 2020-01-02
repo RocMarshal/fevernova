@@ -15,6 +15,7 @@ import com.github.fevernova.task.exchange.data.cmd.OrderCommandType;
 import com.github.fevernova.task.exchange.data.order.OrderAction;
 import com.github.fevernova.task.exchange.data.order.OrderType;
 import com.github.fevernova.task.exchange.data.result.OrderMatch;
+import com.github.fevernova.task.exchange.data.result.OrderMatchFactory;
 import com.github.fevernova.task.exchange.data.result.ResultCode;
 import com.github.fevernova.task.exchange.engine.OrderBooksEngine;
 import com.github.fevernova.task.exchange.uniq.SlideWindowFilter;
@@ -51,7 +52,7 @@ public class T_Exchange {
         this.provider = new DataProvider<Integer, OrderMatch>() {
 
 
-            private OrderMatch orderMatch = new OrderMatch();
+            private OrderMatch orderMatch = (OrderMatch) new OrderMatchFactory().createData();
 
             private boolean flag = false;
 

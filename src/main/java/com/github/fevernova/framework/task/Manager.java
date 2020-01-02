@@ -3,6 +3,7 @@ package com.github.fevernova.framework.task;
 
 import com.github.fevernova.framework.common.Constants;
 import com.github.fevernova.framework.common.Util;
+import com.github.fevernova.framework.common.context.ContextObject;
 import com.github.fevernova.framework.common.context.GlobalContext;
 import com.github.fevernova.framework.common.context.TaskContext;
 import com.github.fevernova.framework.common.data.BarrierData;
@@ -24,14 +25,10 @@ import java.util.List;
 
 
 @Slf4j
-public class Manager {
+public class Manager extends ContextObject {
 
 
     private static Manager instance;
-
-    protected final GlobalContext globalContext;
-
-    protected final TaskContext taskContext;
 
     @Getter
     protected final BarrierService barrierService;
@@ -53,8 +50,7 @@ public class Manager {
 
     private Manager(GlobalContext globalContext, TaskContext taskContext) {
 
-        this.globalContext = globalContext;
-        this.taskContext = taskContext;
+        super(globalContext, taskContext);
         this.barrierService = new BarrierService(globalContext, new TaskContext(Constants.BARRIER, taskContext.getSubProperties(Constants.BARRIER_)));
         this.alignService = new AlignService(globalContext, new TaskContext(Constants.ALIGN, taskContext.getSubProperties(Constants.ALIGN_)));
         this.stateService = new StateService(globalContext, new TaskContext(Constants.STATE, taskContext.getSubProperties(Constants.STATE_)));

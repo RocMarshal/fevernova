@@ -46,6 +46,8 @@ public class ChannelProxy<K, V extends Data> {
 
     private boolean isExactlyOnce;
 
+    private boolean fuse = false;
+
 
     public ChannelProxy(GlobalContext globalContext, TaskContext taskContext, List<RingbufferChannel> channels, AtomicInteger availbleNum,
                         DataEventFactory dataEventFactory, ISelector selector, int index, boolean dynamicBalance) {
@@ -116,6 +118,9 @@ public class ChannelProxy<K, V extends Data> {
 
     public V feed(K key) {
 
+        Validate.isTrue(!this.fuse);
+        this.fuse = true;
+
         this.tmpChannel = selectChannel(key);
         this.sequence = this.tmpChannel.getNextSeq();
         DataEvent<V> event = this.tmpChannel.getBySeq(this.sequence);
@@ -169,6 +174,9 @@ public class ChannelProxy<K, V extends Data> {
 
 
     public void push() {
+
+        Validate.isTrue(this.fuse);
+        this.fuse = false;
 
         this.tmpChannel.pushBySeq(this.sequence);
     }

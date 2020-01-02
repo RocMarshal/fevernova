@@ -1,6 +1,7 @@
 package com.github.fevernova.task.exchange.uniq;
 
 
+import com.github.fevernova.framework.common.context.ContextObject;
 import com.github.fevernova.framework.common.context.GlobalContext;
 import com.github.fevernova.framework.common.context.TaskContext;
 import com.github.fevernova.io.hdfs.Constants;
@@ -16,14 +17,10 @@ import org.eclipse.collections.impl.map.mutable.primitive.IntObjectHashMap;
 import java.util.Map;
 
 
-public class SlideWindowFilter implements WriteBytesMarshallable, ReadBytesMarshallable {
+public class SlideWindowFilter extends ContextObject implements WriteBytesMarshallable, ReadBytesMarshallable {
 
 
     public static final String CONS_NAME = "SlideWindowFilter";
-
-    private final GlobalContext globalContext;
-
-    private final TaskContext taskContext;
 
     private final long span;
 
@@ -41,8 +38,7 @@ public class SlideWindowFilter implements WriteBytesMarshallable, ReadBytesMarsh
 
     public SlideWindowFilter(GlobalContext globalContext, TaskContext taskContext) {
 
-        this.globalContext = globalContext;
-        this.taskContext = taskContext;
+        super(globalContext, taskContext);
         this.span = taskContext.getLong("span", 60 * 1000L);
         Validate.isTrue(this.span % 60000 == 0 && Constants.MINUTE_PERIOD_SET.contains((int) (this.span / 60000)));
         this.windowNum = taskContext.getInteger("num", 10);

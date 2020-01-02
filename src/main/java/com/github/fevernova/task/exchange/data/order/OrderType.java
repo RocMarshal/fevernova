@@ -22,6 +22,8 @@ public enum OrderType {
                 return GTC;
             case 1:
                 return IOC;
+            case 2:
+                return FOK;
             default:
                 throw new IllegalArgumentException("unknown OrderType:" + code);
         }

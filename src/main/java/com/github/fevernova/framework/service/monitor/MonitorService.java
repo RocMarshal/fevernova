@@ -6,6 +6,7 @@ import com.codahale.metrics.MetricRegistry;
 import com.github.fevernova.framework.autoscale.ActionTags;
 import com.github.fevernova.framework.autoscale.Agent;
 import com.github.fevernova.framework.autoscale.Tendency;
+import com.github.fevernova.framework.common.context.ContextObject;
 import com.github.fevernova.framework.common.context.GlobalContext;
 import com.github.fevernova.framework.common.context.TaskContext;
 import com.github.fevernova.framework.component.ComponentType;
@@ -21,12 +22,8 @@ import java.util.Map;
 
 
 @Slf4j
-public class MonitorService {
+public class MonitorService extends ContextObject {
 
-
-    private GlobalContext globalContext;
-
-    private TaskContext taskContext;
 
     private MetricRegistry metrics;
 
@@ -39,8 +36,7 @@ public class MonitorService {
 
     public MonitorService(GlobalContext globalContext, TaskContext taskContext) {
 
-        this.globalContext = globalContext;
-        this.taskContext = taskContext;
+        super(globalContext, taskContext);
         this.metrics = new MetricRegistry();
         this.metricReporter = new MetricReporter(this.metrics, "metric-reporter");
     }

@@ -9,6 +9,7 @@ import com.github.fevernova.framework.common.data.Data;
 import com.github.fevernova.framework.common.data.broadcast.BroadcastData;
 import com.github.fevernova.framework.component.Component;
 import com.github.fevernova.framework.component.ComponentStatus;
+import com.github.fevernova.framework.component.DataProvider;
 import com.github.fevernova.framework.component.channel.ChannelProxy;
 import com.github.fevernova.framework.component.channel.WaitNotify;
 import com.github.fevernova.framework.service.barrier.listener.BarrierEmitListener;
@@ -20,7 +21,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 
 @Slf4j
-public abstract class AbstractSource<K, V extends Data> extends Component implements Runnable, BarrierEmitListener, WaitNotify {
+public abstract class AbstractSource<K, V extends Data> extends Component implements Runnable, BarrierEmitListener, WaitNotify, DataProvider<K, V> {
 
 
     private final ArrayBlockingQueue<BarrierData> barriersQueue = new ArrayBlockingQueue<>(10);
@@ -37,8 +38,7 @@ public abstract class AbstractSource<K, V extends Data> extends Component implem
     }
 
 
-    @Override
-    public void run() {
+    @Override public void run() {
 
         try {
             onStart();
@@ -64,20 +64,19 @@ public abstract class AbstractSource<K, V extends Data> extends Component implem
     public abstract void work();
 
 
-    protected V feedOne(K key) {
+    @Override public V feedOne(K key) {
 
         return this.channelProxy.feed(key);
     }
 
 
-    protected void push() {
+    @Override public void push() {
 
         this.channelProxy.push();
     }
 
 
-    @Override
-    public void emit(BarrierData barrierData) {
+    @Override public void emit(BarrierData barrierData) {
 
         try {
             this.barriersQueue.put(barrierData);

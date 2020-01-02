@@ -1,6 +1,7 @@
 package com.github.fevernova.framework.service.state;
 
 
+import com.github.fevernova.framework.common.context.ContextObject;
 import com.github.fevernova.framework.common.context.GlobalContext;
 import com.github.fevernova.framework.common.context.TaskContext;
 import com.github.fevernova.framework.common.data.BarrierData;
@@ -15,12 +16,8 @@ import java.util.List;
 
 
 @Slf4j
-public class StateService {
+public class StateService extends ContextObject {
 
-
-    private GlobalContext globalContext;
-
-    private TaskContext taskContext;
 
     private IStorage storage;
 
@@ -32,8 +29,7 @@ public class StateService {
 
     public StateService(GlobalContext globalContext, TaskContext taskContext) {
 
-        this.globalContext = globalContext;
-        this.taskContext = taskContext;
+        super(globalContext, taskContext);
         this.supportRecovery = taskContext.getBoolean("recovery", false);
         String type = taskContext.getString("storagetype", "Ignore");
         try {

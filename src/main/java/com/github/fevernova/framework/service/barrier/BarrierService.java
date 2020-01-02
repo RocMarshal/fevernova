@@ -2,6 +2,7 @@ package com.github.fevernova.framework.service.barrier;
 
 
 import com.github.fevernova.framework.common.Util;
+import com.github.fevernova.framework.common.context.ContextObject;
 import com.github.fevernova.framework.common.context.GlobalContext;
 import com.github.fevernova.framework.common.context.TaskContext;
 import com.github.fevernova.framework.common.data.BarrierData;
@@ -28,12 +29,8 @@ import java.util.concurrent.atomic.AtomicLong;
 
 
 @Slf4j
-public class BarrierService implements BarrierServiceCallBack {
+public class BarrierService extends ContextObject implements BarrierServiceCallBack {
 
-
-    private final GlobalContext globalContext;
-
-    private final TaskContext taskContext;
 
     @Getter
     private final boolean exactlyOnce;
@@ -55,8 +52,7 @@ public class BarrierService implements BarrierServiceCallBack {
 
     public BarrierService(GlobalContext globalContext, TaskContext taskContext) {
 
-        this.globalContext = globalContext;
-        this.taskContext = taskContext;
+        super(globalContext, taskContext);
         this.exactlyOnce = taskContext.getBoolean("exactlyonce", false);
     }
 

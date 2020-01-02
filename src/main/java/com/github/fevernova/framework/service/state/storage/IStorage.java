@@ -1,6 +1,7 @@
 package com.github.fevernova.framework.service.state.storage;
 
 
+import com.github.fevernova.framework.common.context.ContextObject;
 import com.github.fevernova.framework.common.context.GlobalContext;
 import com.github.fevernova.framework.common.context.TaskContext;
 import com.github.fevernova.framework.common.data.BarrierData;
@@ -13,18 +14,12 @@ import net.openhft.chronicle.bytes.WriteBytesMarshallable;
 import java.util.List;
 
 
-public abstract class IStorage {
-
-
-    private GlobalContext globalContext;
-
-    private TaskContext taskContext;
+public abstract class IStorage extends ContextObject {
 
 
     public IStorage(GlobalContext globalContext, TaskContext taskContext) {
 
-        this.globalContext = globalContext;
-        this.taskContext = taskContext;
+        super(globalContext, taskContext);
     }
 
 

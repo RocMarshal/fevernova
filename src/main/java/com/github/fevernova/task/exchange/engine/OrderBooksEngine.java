@@ -1,6 +1,7 @@
 package com.github.fevernova.task.exchange.engine;
 
 
+import com.github.fevernova.framework.common.context.ContextObject;
 import com.github.fevernova.framework.common.context.GlobalContext;
 import com.github.fevernova.framework.common.context.TaskContext;
 import com.github.fevernova.framework.component.DataProvider;
@@ -18,7 +19,7 @@ import org.eclipse.collections.impl.map.mutable.primitive.IntObjectHashMap;
 import java.util.Map;
 
 
-public final class OrderBooksEngine implements WriteBytesMarshallable, ReadBytesMarshallable {
+public final class OrderBooksEngine extends ContextObject implements WriteBytesMarshallable, ReadBytesMarshallable {
 
 
     public static final String CONS_NAME = "OrderBooksEngine";
@@ -32,6 +33,7 @@ public final class OrderBooksEngine implements WriteBytesMarshallable, ReadBytes
 
     public OrderBooksEngine(GlobalContext globalContext, TaskContext taskContext) {
 
+        super(globalContext, taskContext);
         this.symbols = new IntObjectHashMap<>();
         this.symbolsCache = Maps.newHashMap();
     }
