@@ -12,17 +12,19 @@ import com.github.fevernova.task.exchange.engine.struct.AskBooks;
 import com.github.fevernova.task.exchange.engine.struct.BidBooks;
 import com.github.fevernova.task.exchange.engine.struct.Books;
 import lombok.Getter;
+import lombok.Setter;
 import net.openhft.chronicle.bytes.BytesIn;
 import net.openhft.chronicle.bytes.BytesOut;
 import net.openhft.chronicle.bytes.WriteBytesMarshallable;
 
 
+@Getter
 public final class OrderBooks implements WriteBytesMarshallable {
 
 
-    @Getter
     private final int symbolId;
 
+    @Setter
     private long lastMatchPrice = 0;
 
     private final Books askBooks = new AskBooks();
