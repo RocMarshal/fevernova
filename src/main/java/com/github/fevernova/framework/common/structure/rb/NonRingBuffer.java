@@ -8,7 +8,7 @@ public class NonRingBuffer<E> implements IRingBuffer<E> {
 
 
     @Override
-    public boolean add(E e, long size) {
+    public boolean add(E e) {
 
         return true;
     }

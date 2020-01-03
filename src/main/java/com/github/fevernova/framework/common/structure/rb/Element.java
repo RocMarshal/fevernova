@@ -5,8 +5,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.Optional;
-
 
 @Getter
 @Setter
@@ -14,6 +12,6 @@ import java.util.Optional;
 public class Element<T> {
 
 
-    private Optional<T> body;
+    private T body;
 
 }

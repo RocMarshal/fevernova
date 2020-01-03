@@ -47,7 +47,7 @@ public class SimpleRingBuffer<E> implements IRingBuffer<E> {
 
 
     @Override
-    public boolean add(E o, long eventSize) {
+    public boolean add(E o) {
 
         for (; ; ) {
             long cur = WP.get();
@@ -57,7 +57,7 @@ public class SimpleRingBuffer<E> implements IRingBuffer<E> {
                 if (WP.compareAndSet(cur, cur + 1)) {
                     int sq = mod(cur);
                     Element<E> ele = RING[sq];
-                    ele.setBody(Optional.ofNullable(o));
+                    ele.setBody(o);
                     return true;
                 }
             }
@@ -71,11 +71,11 @@ public class SimpleRingBuffer<E> implements IRingBuffer<E> {
         for (; ; ) {
             long cur = RP.get();
             if (cur == WP.get()) {
-                return null;
+                return Optional.empty();
             } else {
                 if (RP.compareAndSet(cur, cur + 1)) {
                     Element<E> ele = RING[mod(cur)];
-                    Optional<E> r = ele.getBody();
+                    E r = ele.getBody();
                     if (r == null) {
                         while (r == null) {
                             Thread.yield();
@@ -83,7 +83,7 @@ public class SimpleRingBuffer<E> implements IRingBuffer<E> {
                         }
                     }
                     ele.setBody(null);
-                    return r;
+                    return Optional.of(r);
                 }
             }
         }
@@ -100,7 +100,7 @@ public class SimpleRingBuffer<E> implements IRingBuffer<E> {
     @Override
     public void clear() {
 
-        while (get() != null) {
+        while (get() != Optional.empty()) {
             // nothing
         }
     }

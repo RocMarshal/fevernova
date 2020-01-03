@@ -109,7 +109,7 @@ public class Confrontation implements Runnable {
         orderCommand.setPrice(price);
         orderCommand.setSize(size);
 
-        while (!iRingBuffer.add(orderCommand, 1)) {}
+        while (!iRingBuffer.add(orderCommand)) {}
         return orderCommand;
     }
 

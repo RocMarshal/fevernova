@@ -117,7 +117,7 @@ public class JobSource extends AbstractSource<String, BinlogData>
     @Override public void work() {
 
         Optional<Pair<String, Event>> pairOptional = this.iRingBuffer.get();
-        if (pairOptional == null) {
+        if (!pairOptional.isPresent()) {
             Util.sleepMS(1);
             waitTime(1_000_000L);
             return;
@@ -261,7 +261,7 @@ public class JobSource extends AbstractSource<String, BinlogData>
 
         Pair<String, Event> x = Pair.of(this.mysqlClient.getBinlogFilename(), event);
         int k = 0;
-        while (!this.iRingBuffer.add(x, 1)) {
+        while (!this.iRingBuffer.add(x)) {
             if (super.status == ComponentStatus.CLOSING) {
                 return;
             }

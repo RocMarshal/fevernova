@@ -47,7 +47,7 @@ public class JobSource extends AbstractSource<Integer, KafkaData> {
     @Override public void work() {
 
         Optional<OrderCommand> optional = this.iRingBuffer.get();
-        if (optional == null) {
+        if (!optional.isPresent()) {
             Util.sleepMS(1);
             waitTime(1_000_000L);
             return;

@@ -8,7 +8,7 @@ import java.util.Optional;
 public interface IRingBuffer<E> extends Serializable {
 
 
-    boolean add(E e, long size);
+    boolean add(E e);
 
     Optional<E> get();
 
