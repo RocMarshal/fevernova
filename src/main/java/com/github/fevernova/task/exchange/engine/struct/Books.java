@@ -39,12 +39,12 @@ public abstract class Books implements WriteBytesMarshallable, ReadBytesMarshall
     protected abstract long defaultPrice();
 
 
-    public abstract boolean newPrice(long tmpPrice);
+    public abstract boolean newEdgePrice(long tmpPrice);
 
 
     public boolean canMatchAll(OrderCommand orderCommand) {
 
-        if (newPrice(orderCommand.getPrice())) {
+        if (newEdgePrice(orderCommand.getPrice())) {
             return false;
         }
         NavigableMap<Long, OrderArray> subMap = this.priceTree.subMap(this.price, true, orderCommand.getPrice(), true);
@@ -68,7 +68,7 @@ public abstract class Books implements WriteBytesMarshallable, ReadBytesMarshall
         if (oa == null) {
             oa = new OrderArray(orderCommand.getOrderAction(), orderCommand.getPrice());
             this.priceTree.put(oa.getPrice(), oa);
-            if (newPrice(oa.getPrice())) {
+            if (newEdgePrice(oa.getPrice())) {
                 this.price = oa.getPrice();
                 this.orderArray = oa;
             }

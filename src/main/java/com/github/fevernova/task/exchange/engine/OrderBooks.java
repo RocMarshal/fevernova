@@ -25,9 +25,9 @@ public final class OrderBooks implements WriteBytesMarshallable {
 
     private long lastMatchPrice = 0;
 
-    private final AskBooks askBooks = new AskBooks();
+    private final Books askBooks = new AskBooks();
 
-    private final BidBooks bidBooks = new BidBooks();
+    private final Books bidBooks = new BidBooks();
 
 
     public OrderBooks(int symbolId) {
@@ -75,7 +75,7 @@ public final class OrderBooks implements WriteBytesMarshallable {
 
     private void matchOrders(DataProvider<Integer, OrderMatch> provider) {
 
-        while (!this.askBooks.newPrice(this.bidBooks.getPrice())) {
+        while (!this.askBooks.newEdgePrice(this.bidBooks.getPrice())) {
             //限价撮合的定价逻辑
             if (this.askBooks.getPrice() == this.bidBooks.getPrice()) {
                 this.lastMatchPrice = this.askBooks.getPrice();

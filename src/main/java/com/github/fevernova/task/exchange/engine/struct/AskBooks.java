@@ -19,9 +19,9 @@ public final class AskBooks extends Books {
     }
 
 
-    @Override public boolean newPrice(long tmpPrice) {
+    @Override public boolean newEdgePrice(long tmpPrice) {
 
-        return tmpPrice < super.price;
+        return super.price > tmpPrice;
     }
 
 }
