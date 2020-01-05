@@ -22,14 +22,14 @@ import java.util.TreeMap;
 public abstract class Books implements WriteBytesMarshallable, ReadBytesMarshallable {
 
 
-    protected final TreeMap<Long, OrderArray> priceTree;
+    protected final NavigableMap<Long, OrderArray> priceTree;
 
     protected long price;
 
     protected OrderArray orderArray;//price对应的OrderArray
 
 
-    public Books(TreeMap<Long, OrderArray> priceTree) {
+    public Books(NavigableMap<Long, OrderArray> priceTree) {
 
         this.priceTree = priceTree;
         this.price = defaultPrice();

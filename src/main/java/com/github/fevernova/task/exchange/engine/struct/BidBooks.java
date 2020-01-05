@@ -9,7 +9,7 @@ public final class BidBooks extends Books {
 
     public BidBooks() {
 
-        super(Maps.newTreeMap((l1, l2) -> 0 - l1.compareTo(l2)));
+        super(Maps.newTreeMap((l1, l2) -> l2.compareTo(l1)));
     }
 
 

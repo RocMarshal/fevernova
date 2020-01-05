@@ -11,6 +11,7 @@ import net.openhft.chronicle.bytes.BytesIn;
 import net.openhft.chronicle.bytes.BytesOut;
 import net.openhft.chronicle.bytes.WriteBytesMarshallable;
 
+import java.util.Deque;
 import java.util.LinkedList;
 
 
@@ -18,7 +19,7 @@ import java.util.LinkedList;
 public final class OrderArray implements WriteBytesMarshallable {
 
 
-    private final LinkedList<Order> queue = Lists.newLinkedList();
+    private final Deque<Order> queue = Lists.newLinkedList();
 
     private final OrderAction orderAction;
 

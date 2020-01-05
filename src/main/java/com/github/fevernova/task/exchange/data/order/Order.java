@@ -8,12 +8,13 @@ import lombok.Setter;
 import net.openhft.chronicle.bytes.BytesIn;
 import net.openhft.chronicle.bytes.BytesOut;
 import net.openhft.chronicle.bytes.WriteBytesMarshallable;
+import org.jetbrains.annotations.NotNull;
 
 
 @Getter
 @Setter
 @NoArgsConstructor
-public final class Order implements WriteBytesMarshallable {
+public final class Order implements WriteBytesMarshallable, Comparable<Order> {
 
 
     private long orderId;
@@ -72,5 +73,11 @@ public final class Order implements WriteBytesMarshallable {
         bytes.writeLong(this.remainSize);
         bytes.writeLong(this.filledSize);
         bytes.writeInt(this.version);
+    }
+
+
+    @Override public int compareTo(@NotNull Order o) {
+
+        return Long.compare(this.orderId, o.getOrderId());
     }
 }
