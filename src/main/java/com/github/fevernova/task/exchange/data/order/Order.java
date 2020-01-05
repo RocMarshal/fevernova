@@ -1,6 +1,7 @@
 package com.github.fevernova.task.exchange.data.order;
 
 
+import com.github.fevernova.framework.common.structure.queue.LinkedObject;
 import com.github.fevernova.task.exchange.data.cmd.OrderCommand;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -14,7 +15,7 @@ import org.jetbrains.annotations.NotNull;
 @Getter
 @Setter
 @NoArgsConstructor
-public final class Order implements WriteBytesMarshallable, Comparable<Order> {
+public final class Order extends LinkedObject<Order> implements WriteBytesMarshallable, Comparable<Order> {
 
 
     private long orderId;

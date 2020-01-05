@@ -66,7 +66,7 @@ public final class OrderBooks implements WriteBytesMarshallable {
         matchOrders(provider);
 
         if (order.needIOCClear()) {
-            orderArray.removeOrder(order);
+            orderArray.findAndRemoveOrder(order.getOrderId());
             thisBooks.adjustByOrderArray(orderArray);
             OrderMatch orderMatch = provider.feedOne(orderCommand.getSymbolId());
             orderMatch.from(orderCommand, order);

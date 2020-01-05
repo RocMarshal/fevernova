@@ -1,25 +1,22 @@
 package com.github.fevernova.task.exchange.engine;
 
 
+import com.github.fevernova.framework.common.structure.queue.LinkedQueue;
 import com.github.fevernova.framework.component.DataProvider;
 import com.github.fevernova.task.exchange.data.order.Order;
 import com.github.fevernova.task.exchange.data.order.OrderAction;
 import com.github.fevernova.task.exchange.data.result.OrderMatch;
-import com.google.common.collect.Lists;
 import lombok.Getter;
 import net.openhft.chronicle.bytes.BytesIn;
 import net.openhft.chronicle.bytes.BytesOut;
 import net.openhft.chronicle.bytes.WriteBytesMarshallable;
-
-import java.util.Deque;
-import java.util.LinkedList;
 
 
 @Getter
 public final class OrderArray implements WriteBytesMarshallable {
 
 
-    private final Deque<Order> queue = Lists.newLinkedList();
+    private final LinkedQueue<Order> queue = new LinkedQueue<>();
 
     private final OrderAction orderAction;
 
@@ -35,7 +32,7 @@ public final class OrderArray implements WriteBytesMarshallable {
         int length = bytes.readInt();
         for (int i = 0; i < length; i++) {
             Order order = new Order(bytes);
-            this.queue.add(order);
+            this.queue.offer(order);
             this.size += order.getRemainSize();
         }
     }
@@ -50,34 +47,26 @@ public final class OrderArray implements WriteBytesMarshallable {
 
     public void addOrder(Order order) {
 
-        this.queue.add(order);
+        this.queue.offer(order);
         this.size += order.getRemainSize();
     }
 
 
-    public void removeOrder(Order order) {
+    public Order findAndRemoveOrder(long orderId) {
 
-        this.queue.remove(order);
-        this.size -= order.getRemainSize();
-    }
-
-
-    public Order findOrder(long orderId) {
-
-        for (Order order : this.queue) {
-            if (order.getOrderId() == orderId) {
-                return order;
-            }
+        Order r = this.queue.findAndRemove(order -> order.getOrderId() == orderId);
+        if (r != null) {
+            this.size -= r.getRemainSize();
         }
-        return null;
+        return r;
     }
 
 
     public void meet(OrderArray that, int symbolId, long matchPrice, DataProvider<Integer, OrderMatch> provider) {
 
         do {
-            Order thisOrder = this.queue.getFirst();
-            Order thatOrder = that.queue.getFirst();
+            Order thisOrder = this.queue.peek();
+            Order thatOrder = that.queue.peek();
             long delta = Math.min(thisOrder.getRemainSize(), thatOrder.getRemainSize());
             thisOrder.decrement(delta);
             thatOrder.decrement(delta);
@@ -107,6 +96,8 @@ public final class OrderArray implements WriteBytesMarshallable {
         bytes.writeByte(this.orderAction.code);
         bytes.writeLong(this.price);
         bytes.writeInt(this.queue.size());
-        this.queue.forEach(order -> order.writeMarshallable(bytes));
+        for (Order order : this.queue) {
+            order.writeMarshallable(bytes);
+        }
     }
 }

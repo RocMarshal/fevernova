@@ -15,7 +15,6 @@ import net.openhft.chronicle.core.io.IORuntimeException;
 
 import java.util.Map;
 import java.util.NavigableMap;
-import java.util.TreeMap;
 
 
 @Getter
@@ -84,13 +83,12 @@ public abstract class Books implements WriteBytesMarshallable, ReadBytesMarshall
             orderMatch.setResultCode(ResultCode.INVALID_CANCEL_NO_ORDER_ID);
             return;
         }
-        Order order = oa.findOrder(orderCommand.getOrderId());
+        Order order = oa.findAndRemoveOrder(orderCommand.getOrderId());
         if (order == null) {
             orderMatch.setResultCode(ResultCode.INVALID_CANCEL_NO_ORDER_ID);
             return;
         }
         orderMatch.setResultCode(ResultCode.CANCEL_USER);
-        oa.removeOrder(order);
         adjustByOrderArray(oa);
     }
 
