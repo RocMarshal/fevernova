@@ -1,4 +1,4 @@
-package com.github.fevernova.task.test2kafka;
+package com.github.fevernova.task.exchangetestdata;
 
 
 import com.github.fevernova.framework.common.Constants;

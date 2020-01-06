@@ -1,7 +1,8 @@
-package com.github.fevernova.task.exchange;
+package com.github.fevernova.task.exchangetestdata;
 
 
 import com.github.fevernova.framework.common.Util;
+import com.github.fevernova.framework.common.context.TaskContext;
 import com.github.fevernova.framework.common.structure.rb.IRingBuffer;
 import com.github.fevernova.framework.component.DataProvider;
 import com.github.fevernova.task.exchange.data.cmd.OrderCommand;
@@ -33,11 +34,11 @@ public class Confrontation implements Runnable {
 
     long maxFloat = 10L;
 
-    long baseDepth = 1_000L;
+    long baseDepth;
 
-    long loopTimes = 100000000L;
+    long loopTimes;
 
-    AtomicLong resultCount = new AtomicLong(0L);
+    final AtomicLong resultCount = new AtomicLong(0L);
 
     final DataProvider<Long, OrderMatch> dataProvider = new DataProvider<Long, OrderMatch>() {
 
@@ -60,10 +61,15 @@ public class Confrontation implements Runnable {
 
     private IRingBuffer<OrderCommand> iRingBuffer;
 
+    private TaskContext taskContext;
 
-    public Confrontation(IRingBuffer<OrderCommand> iRingBuffer) {
 
+    public Confrontation(TaskContext taskContext, IRingBuffer<OrderCommand> iRingBuffer) {
+
+        this.taskContext = taskContext;
         this.iRingBuffer = iRingBuffer;
+        this.baseDepth = taskContext.getLong("basedepth", 1000L);
+        this.loopTimes = taskContext.getLong("looptimes", 1_0000_0000L);
     }
 
 
