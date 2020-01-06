@@ -48,8 +48,8 @@ public class JobSource extends AbstractSource<Integer, KafkaData> {
             return;
         }
 
-        if (LogProxy.LOG_DATA.isDebugEnabled()) {
-            LogProxy.LOG_DATA.debug(optional.get().toString());
+        if (LogProxy.LOG_DATA.isTraceEnabled()) {
+            LogProxy.LOG_DATA.trace(optional.get().toString());
         }
 
         OrderCommand orderCommand = optional.get();

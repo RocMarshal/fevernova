@@ -62,8 +62,8 @@ public class JobSink extends AbstractSink implements Callback {
     protected void handleEvent(Data event) {
 
         OrderMatch data = (OrderMatch) event;
-        if (LogProxy.LOG_DATA.isDebugEnabled()) {
-            LogProxy.LOG_DATA.debug(data.toString());
+        if (LogProxy.LOG_DATA.isTraceEnabled()) {
+            LogProxy.LOG_DATA.trace(data.toString());
         }
         if (!this.test) {
             this.uLong.from(data.getOrderId());

@@ -234,8 +234,8 @@ public class JobSource extends AbstractSource<String, BinlogData>
         if (columns == null || !Arrays.equals(columns, tmed.getColumnTypes())) {
             binlogData.setReloadSchemaCache(true);
         }
-        if (LogProxy.LOG_DATA.isDebugEnabled()) {
-            LogProxy.LOG_DATA.debug(binlogData.toString());
+        if (LogProxy.LOG_DATA.isTraceEnabled()) {
+            LogProxy.LOG_DATA.trace(binlogData.toString());
         }
         push();
         this.globalId = this.globalId + rowsNum;
