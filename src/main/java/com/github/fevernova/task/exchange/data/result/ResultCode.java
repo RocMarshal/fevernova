@@ -20,7 +20,7 @@ public enum ResultCode {
     INVALID_PLACE_DUPLICATE_ORDER_ID(-101),
     INVALID_CANCEL_NO_ORDER_ID(-102);
 
-    private int code;
+    public int code;
 
 
     ResultCode(int code) {

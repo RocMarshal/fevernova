@@ -36,6 +36,8 @@ public abstract class AbstractKafkaSource extends AbstractSource<byte[], KafkaDa
 
     protected final ReentrantLock kafkaLock = new ReentrantLock();
 
+    protected final boolean commit2Kafka;
+
     protected KafkaConsumer<byte[], byte[]> kafkaConsumer;
 
     protected ICheckPointSaver<KafkaCheckPoint> checkpoints;
@@ -47,6 +49,7 @@ public abstract class AbstractKafkaSource extends AbstractSource<byte[], KafkaDa
         this.kafkaContext = new TaskContext(KafkaConstants.KAFKA, super.taskContext.getSubProperties(KafkaConstants.KAFKA_));
         this.topics = Util.splitStringWithFilter(taskContext.get(KafkaConstants.TOPICS), ",", null);
         this.pollTimeOut = taskContext.getLong(KafkaConstants.POLLTIMEOUT, 5000L);
+        this.commit2Kafka = taskContext.getBoolean("commit2kafka", true);
     }
 
 
@@ -152,6 +155,10 @@ public abstract class AbstractKafkaSource extends AbstractSource<byte[], KafkaDa
 
 
     protected void commitKafkaOffset(Map<TopicPartition, OffsetAndMetadata> params) {
+
+        if (!this.commit2Kafka) {
+            return;
+        }
 
         this.kafkaLock.lock();
         try {

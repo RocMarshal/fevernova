@@ -47,13 +47,13 @@ public final class OrderBooks implements WriteBytesMarshallable {
     }
 
 
-    public void match(OrderCommand orderCommand, DataProvider<Integer, OrderMatch> provider) {
+    public void match(OrderCommand orderCommand, DataProvider<Long, OrderMatch> provider) {
 
         Books thisBooks = OrderAction.ASK == orderCommand.getOrderAction() ? this.askBooks : this.bidBooks;
         Books thatBooks = OrderAction.ASK == orderCommand.getOrderAction() ? this.bidBooks : this.askBooks;
 
         if (OrderType.FOK == orderCommand.getOrderType() && !thatBooks.canMatchAll(orderCommand)) {
-            OrderMatch orderMatch = provider.feedOne(orderCommand.getSymbolId());
+            OrderMatch orderMatch = provider.feedOne(orderCommand.getOrderId());
             orderMatch.from(orderCommand);
             orderMatch.setResultCode(ResultCode.CANCEL_FOK);
             provider.push();
@@ -68,14 +68,14 @@ public final class OrderBooks implements WriteBytesMarshallable {
         if (order.needIOCClear()) {
             orderArray.findAndRemoveOrder(order.getOrderId());
             thisBooks.adjustByOrderArray(orderArray);
-            OrderMatch orderMatch = provider.feedOne(orderCommand.getSymbolId());
+            OrderMatch orderMatch = provider.feedOne(orderCommand.getOrderId());
             orderMatch.from(orderCommand, order);
             provider.push();
         }
     }
 
 
-    private void matchOrders(DataProvider<Integer, OrderMatch> provider) {
+    private void matchOrders(DataProvider<Long, OrderMatch> provider) {
 
         while (!this.askBooks.newEdgePrice(this.bidBooks.getPrice())) {
             //限价撮合的定价逻辑

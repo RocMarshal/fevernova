@@ -39,7 +39,7 @@ public final class OrderBooksEngine extends ContextObject implements WriteBytesM
     }
 
 
-    public void placeOrder(OrderCommand orderCommand, DataProvider<Integer, OrderMatch> provider) {
+    public void placeOrder(OrderCommand orderCommand, DataProvider<Long, OrderMatch> provider) {
 
         OrderBooks orderBooks = getOrderBooks(orderCommand);
         orderBooks.match(orderCommand, provider);

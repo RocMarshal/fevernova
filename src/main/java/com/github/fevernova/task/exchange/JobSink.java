@@ -1,7 +1,6 @@
 package com.github.fevernova.task.exchange;
 
 
-import com.alibaba.fastjson.JSON;
 import com.github.fevernova.framework.common.LogProxy;
 import com.github.fevernova.framework.common.Util;
 import com.github.fevernova.framework.common.context.GlobalContext;
@@ -9,6 +8,7 @@ import com.github.fevernova.framework.common.context.TaskContext;
 import com.github.fevernova.framework.common.data.BarrierData;
 import com.github.fevernova.framework.common.data.Data;
 import com.github.fevernova.framework.component.sink.AbstractSink;
+import com.github.fevernova.io.data.type.impl.ULong;
 import com.github.fevernova.io.kafka.KafkaConstants;
 import com.github.fevernova.io.kafka.KafkaUtil;
 import com.github.fevernova.task.exchange.data.result.OrderMatch;
@@ -34,6 +34,8 @@ public class JobSink extends AbstractSink implements Callback {
     private String topic;
 
     private AtomicInteger errorCounter;
+
+    private ULong uLong = new ULong(false);
 
 
     public JobSink(GlobalContext globalContext, TaskContext taskContext, int index, int inputsNum) {
@@ -63,9 +65,9 @@ public class JobSink extends AbstractSink implements Callback {
         if (LogProxy.LOG_DATA.isDebugEnabled()) {
             LogProxy.LOG_DATA.debug(data.toString());
         }
-        byte[] value = JSON.toJSONBytes(data);
         if (!this.test) {
-            ProducerRecord<byte[], byte[]> record = new ProducerRecord<>(this.topic, null, Util.nowMS(), (data.getSymbolId() + "").getBytes(), value);
+            this.uLong.from(data.getOrderId());
+            ProducerRecord<byte[], byte[]> record = new ProducerRecord<>(this.topic, null, Util.nowMS(), this.uLong.toBytes(), data.to());
             this.kafka.send(record, this);
         }
     }

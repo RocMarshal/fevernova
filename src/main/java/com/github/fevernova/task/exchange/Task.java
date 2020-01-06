@@ -5,7 +5,7 @@ import com.github.fevernova.framework.common.Constants;
 import com.github.fevernova.framework.common.context.JobTags;
 import com.github.fevernova.framework.common.context.TaskContext;
 import com.github.fevernova.framework.component.channel.selector.BytesSelector;
-import com.github.fevernova.framework.component.channel.selector.IntSelector;
+import com.github.fevernova.framework.component.channel.selector.LongSelector;
 import com.github.fevernova.framework.metric.evaluate.NoMetricEvaluate;
 import com.github.fevernova.framework.service.config.TaskConfig;
 import com.github.fevernova.framework.task.BaseTask;
@@ -46,11 +46,11 @@ public class Task extends BaseTask {
                 .inputDataFactoryClass(KafkaDataFactory.class)
                 .outputDataFactoryClass(OrderMatchFactory.class)
                 .inputSelectorClass(BytesSelector.class)
-                .outputSelectorClass(IntSelector.class)
-                .sourceParallelism(2)
-                .parserParallelism(super.globalContext.getJobTags().getUnit())
-                .sinkParallelism(super.globalContext.getJobTags().getUnit() + 1)
-                .sourceAvailbleNum(new AtomicInteger(2))
+                .outputSelectorClass(LongSelector.class)
+                .sourceParallelism(1)
+                .parserParallelism(this.parserInitParallelism)
+                .sinkParallelism(this.sinkInitParallelism)
+                .sourceAvailbleNum(new AtomicInteger(1))
                 .parserAvailbleNum(new AtomicInteger(this.parserInitParallelism))
                 .sinkAvailbleNum(new AtomicInteger(this.sinkInitParallelism))
                 .inputDynamicBalance(false)

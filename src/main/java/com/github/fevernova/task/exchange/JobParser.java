@@ -13,6 +13,7 @@ import com.github.fevernova.framework.service.checkpoint.CheckPointSaver;
 import com.github.fevernova.framework.service.checkpoint.ICheckPointSaver;
 import com.github.fevernova.framework.service.checkpoint.MapCheckPoint;
 import com.github.fevernova.framework.service.state.BinaryFileIdentity;
+import com.github.fevernova.framework.service.state.StateService;
 import com.github.fevernova.framework.service.state.StateValue;
 import com.github.fevernova.framework.task.Manager;
 import com.github.fevernova.io.kafka.data.KafkaData;
@@ -29,7 +30,7 @@ import java.util.List;
 
 
 @Slf4j
-public class JobParser extends AbstractParser<Integer, OrderMatch> implements BarrierCoordinatorListener {
+public class JobParser extends AbstractParser<Long, OrderMatch> implements BarrierCoordinatorListener {
 
 
     protected ICheckPointSaver<MapCheckPoint> checkpoints;
@@ -67,7 +68,7 @@ public class JobParser extends AbstractParser<Integer, OrderMatch> implements Ba
         KafkaData kafkaData = (KafkaData) event;
         OrderCommand orderCommand = new OrderCommand();
         orderCommand.from(kafkaData.getValue());
-        final OrderMatch orderMatch = feedOne(orderCommand.getSymbolId());
+        final OrderMatch orderMatch = feedOne(orderCommand.getOrderId());
         orderMatch.from(orderCommand);
         if (OrderCommandType.PLACE_ORDER == orderCommand.getOrderCommandType()) {
             if (alreadyHandled(orderCommand)) {
@@ -102,10 +103,13 @@ public class JobParser extends AbstractParser<Integer, OrderMatch> implements Ba
 
         super.snapshotWhenBarrier(barrierData);
         MapCheckPoint checkPoint = new MapCheckPoint();
-        String path4slide = Manager.getInstance().getStateService().saveBinary(this.slideIdentity, barrierData, this.slideWindowFilter);
-        String path4engine = Manager.getInstance().getStateService().saveBinary(this.matchIdentity, barrierData, this.matchEngine);
-        checkPoint.getValues().put(this.slideIdentity.getIdentity(), path4slide);
-        checkPoint.getValues().put(this.matchIdentity.getIdentity(), path4engine);
+        StateService stateService = Manager.getInstance().getStateService();
+        if (stateService.isSupportRecovery()) {
+            String path4slide = stateService.saveBinary(this.slideIdentity, barrierData, this.slideWindowFilter);
+            String path4engine = stateService.saveBinary(this.matchIdentity, barrierData, this.matchEngine);
+            checkPoint.getValues().put(this.slideIdentity.getIdentity(), path4slide);
+            checkPoint.getValues().put(this.matchIdentity.getIdentity(), path4engine);
+        }
         this.checkpoints.put(barrierData.getBarrierId(), checkPoint);
     }
 

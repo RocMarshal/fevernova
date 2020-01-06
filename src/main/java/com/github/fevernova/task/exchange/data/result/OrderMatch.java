@@ -11,6 +11,8 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
+import java.nio.ByteBuffer;
+
 
 @Getter
 @Setter
@@ -143,6 +145,28 @@ public class OrderMatch implements Data {
         this.matchOrderUserId = 0L;
         this.version = 0;
         this.resultCode = null;
+    }
+
+
+    public byte[] to() {
+
+        ByteBuffer byteBuffer = ByteBuffer.allocate(88);
+        byteBuffer.put((byte) 0);
+        byteBuffer.putLong(this.orderId);
+        byteBuffer.putInt(this.symbolId);
+        byteBuffer.putLong(this.userId);
+        byteBuffer.putLong(this.timestamp);
+        byteBuffer.put(this.orderAction.code);
+        byteBuffer.put(this.orderType.code);
+        byteBuffer.putLong(this.price);
+        byteBuffer.putLong(this.totalSize);
+        byteBuffer.putLong(this.accFilledSize);
+        byteBuffer.putLong(this.matchFilledSize);
+        byteBuffer.putLong(this.matchOrderId);
+        byteBuffer.putLong(this.matchOrderUserId);
+        byteBuffer.putInt(this.version);
+        byteBuffer.putInt(this.resultCode.code);
+        return byteBuffer.array();
     }
 
 
