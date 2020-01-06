@@ -129,18 +129,26 @@ public class LinkedQueue<E extends LinkedObject<E>> extends AbstractQueue<E> {
     private class Itr implements Iterator<E> {
 
 
-        E e = first;
+        private E cur;
+
+
+        public Itr() {
+
+            this.cur = first;
+        }
 
 
         @Override public boolean hasNext() {
 
-            return e != null;
+            return cur != null;
         }
 
 
         @Override public E next() {
 
-            return e = e.getNext();
+            E r = cur;
+            cur = cur.getNext();
+            return r;
         }
     }
 

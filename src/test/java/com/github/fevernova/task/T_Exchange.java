@@ -36,7 +36,7 @@ public class T_Exchange {
     private BinaryFileIdentity binaryFileIdentity;
 
 
-    private DataProvider<Integer, OrderMatch> provider;
+    private DataProvider<Long, OrderMatch> provider;
 
 
     @Before
@@ -49,7 +49,7 @@ public class T_Exchange {
         this.fsStorage = new FSStorage(globalContext, taskContext);
         this.binaryFileIdentity =
                 BinaryFileIdentity.builder().componentType(ComponentType.PARSER).total(3).index(1).identity(OrderBooksEngine.CONS_NAME).build();
-        this.provider = new DataProvider<Integer, OrderMatch>() {
+        this.provider = new DataProvider<Long, OrderMatch>() {
 
 
             private OrderMatch orderMatch = (OrderMatch) new OrderMatchFactory().createData();
@@ -57,7 +57,7 @@ public class T_Exchange {
             private boolean flag = false;
 
 
-            @Override public OrderMatch feedOne(Integer key) {
+            @Override public OrderMatch feedOne(Long key) {
 
                 Validate.isTrue(!flag);
                 flag = true;
@@ -78,7 +78,7 @@ public class T_Exchange {
     private int parser(OrderCommand orderCommand) {
 
         int r = 0;
-        final OrderMatch orderMatch = provider.feedOne(orderCommand.getSymbolId());
+        final OrderMatch orderMatch = provider.feedOne(orderCommand.getOrderId());
         orderMatch.from(orderCommand);
         r++;
 
