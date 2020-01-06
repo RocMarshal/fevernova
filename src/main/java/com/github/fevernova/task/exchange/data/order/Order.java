@@ -61,6 +61,12 @@ public final class Order extends LinkedObject<Order> implements WriteBytesMarsha
     }
 
 
+    public void cancel() {
+
+        this.version++;
+    }
+
+
     public boolean needIOCClear() {
 
         return this.orderType == OrderType.IOC && this.remainSize > 0;

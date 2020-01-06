@@ -68,8 +68,9 @@ public final class OrderBooks implements WriteBytesMarshallable {
         if (order.needIOCClear()) {
             orderArray.findAndRemoveOrder(order.getOrderId());
             thisBooks.adjustByOrderArray(orderArray);
-            OrderMatch orderMatch = provider.feedOne(orderCommand.getOrderId());
+            OrderMatch orderMatch = provider.feedOne(order.getOrderId());
             orderMatch.from(orderCommand, order);
+            orderMatch.setResultCode(ResultCode.CANCEL_IOC);
             provider.push();
         }
     }
@@ -99,10 +100,10 @@ public final class OrderBooks implements WriteBytesMarshallable {
     }
 
 
-    public void cancel(OrderCommand orderCommand, OrderMatch orderMatch) {
+    public void cancel(OrderCommand orderCommand, DataProvider<Long, OrderMatch> provider) {
 
         Books books = OrderAction.ASK == orderCommand.getOrderAction() ? this.askBooks : this.bidBooks;
-        books.cancel(orderCommand, orderMatch);
+        books.cancel(orderCommand, provider);
     }
 
 

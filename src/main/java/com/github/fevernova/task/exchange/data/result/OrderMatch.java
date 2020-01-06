@@ -88,7 +88,7 @@ public class OrderMatch implements Data {
         //this.matchOrderId = 0L;
         //this.matchOrderUserId = 0L;
         this.version = order.getVersion();
-        this.resultCode = ResultCode.CANCEL_IOC;
+        //this.resultCode = null;
     }
 
 
@@ -109,24 +109,6 @@ public class OrderMatch implements Data {
         this.version = order.getVersion();
         this.resultCode = ResultCode.MATCH;
     }
-
-    //    public void from(OrderMatch orderMatch) {
-    //
-    //        this.orderId = orderMatch.getOrderId();
-    //        this.symbolId = orderMatch.getSymbolId();
-    //        this.userId = orderMatch.getUserId();
-    //        this.timestamp = orderMatch.getTimestamp();
-    //        this.orderAction = orderMatch.getOrderAction();
-    //        this.orderType = orderMatch.getOrderType();
-    //        this.price = orderMatch.getPrice();
-    //        this.totalSize = orderMatch.getTotalSize();
-    //        this.accFilledSize = orderMatch.getAccFilledSize();
-    //        this.matchFilledSize = orderMatch.getMatchFilledSize();
-    //        this.matchOrderId = orderMatch.getMatchOrderId();
-    //        this.matchOrderUserId = orderMatch.getMatchOrderUserId();
-    //        this.version = orderMatch.getVersion();
-    //        this.resultCode = orderMatch.getResultCode();
-    //    }
 
 
     @Override public void clearData() {

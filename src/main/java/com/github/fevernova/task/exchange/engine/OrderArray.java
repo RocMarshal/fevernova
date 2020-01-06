@@ -57,6 +57,7 @@ public final class OrderArray implements WriteBytesMarshallable {
         Order r = this.queue.findAndRemove(order -> order.getOrderId() == orderId);
         if (r != null) {
             this.size -= r.getRemainSize();
+            r.cancel();
         }
         return r;
     }

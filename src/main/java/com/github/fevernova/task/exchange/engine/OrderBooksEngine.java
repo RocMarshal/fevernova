@@ -46,10 +46,10 @@ public final class OrderBooksEngine extends ContextObject implements WriteBytesM
     }
 
 
-    public void cancelOrder(OrderCommand orderCommand, OrderMatch orderMatch) {
+    public void cancelOrder(OrderCommand orderCommand, DataProvider<Long, OrderMatch> provider) {
 
         OrderBooks orderBooks = getOrderBooks(orderCommand);
-        orderBooks.cancel(orderCommand, orderMatch);
+        orderBooks.cancel(orderCommand, provider);
     }
 
 

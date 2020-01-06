@@ -68,9 +68,10 @@ public class JobParser extends AbstractParser<Long, OrderMatch> implements Barri
         KafkaData kafkaData = (KafkaData) event;
         OrderCommand orderCommand = new OrderCommand();
         orderCommand.from(kafkaData.getValue());
-        final OrderMatch orderMatch = feedOne(orderCommand.getOrderId());
-        orderMatch.from(orderCommand);
+
         if (OrderCommandType.PLACE_ORDER == orderCommand.getOrderCommandType()) {
+            OrderMatch orderMatch = feedOne(orderCommand.getOrderId());
+            orderMatch.from(orderCommand);
             if (alreadyHandled(orderCommand)) {
                 orderMatch.setResultCode(ResultCode.INVALID_PLACE_DUPLICATE_ORDER_ID);
                 push();
@@ -80,15 +81,9 @@ public class JobParser extends AbstractParser<Long, OrderMatch> implements Barri
                 this.matchEngine.placeOrder(orderCommand, this);
             }
         } else if (OrderCommandType.CANCEL_ORDER == orderCommand.getOrderCommandType()) {
-            this.matchEngine.cancelOrder(orderCommand, orderMatch);
-            push();
+            this.matchEngine.cancelOrder(orderCommand, this);
         } else if (OrderCommandType.MISS_ORDER == orderCommand.getOrderCommandType()) {
-            if (alreadyHandled(orderCommand)) {
-                orderMatch.setResultCode(ResultCode.MISS_ORDER_FAILED);
-            } else {
-                orderMatch.setResultCode(ResultCode.MISS_ORDER_SUCCESS);
-            }
-            push();
+            
         }
     }
 

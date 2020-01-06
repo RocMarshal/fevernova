@@ -1,6 +1,7 @@
 package com.github.fevernova.task.exchange.engine.struct;
 
 
+import com.github.fevernova.framework.component.DataProvider;
 import com.github.fevernova.task.exchange.data.cmd.OrderCommand;
 import com.github.fevernova.task.exchange.data.order.Order;
 import com.github.fevernova.task.exchange.data.result.OrderMatch;
@@ -76,19 +77,26 @@ public abstract class Books implements WriteBytesMarshallable, ReadBytesMarshall
     }
 
 
-    public void cancel(OrderCommand orderCommand, OrderMatch orderMatch) {
+    public void cancel(OrderCommand orderCommand, DataProvider<Long, OrderMatch> provider) {
 
+        OrderMatch orderMatch = provider.feedOne(orderCommand.getOrderId());
         OrderArray oa = this.priceTree.get(orderCommand.getPrice());
         if (oa == null) {
+            orderMatch.from(orderCommand);
             orderMatch.setResultCode(ResultCode.INVALID_CANCEL_NO_ORDER_ID);
+            provider.push();
             return;
         }
         Order order = oa.findAndRemoveOrder(orderCommand.getOrderId());
         if (order == null) {
+            orderMatch.from(orderCommand);
             orderMatch.setResultCode(ResultCode.INVALID_CANCEL_NO_ORDER_ID);
+            provider.push();
             return;
         }
+        orderMatch.from(orderCommand, order);
         orderMatch.setResultCode(ResultCode.CANCEL_USER);
+        provider.push();
         adjustByOrderArray(oa);
     }
 

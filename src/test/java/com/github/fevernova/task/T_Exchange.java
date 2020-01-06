@@ -35,7 +35,6 @@ public class T_Exchange {
 
     private BinaryFileIdentity binaryFileIdentity;
 
-
     private DataProvider<Long, OrderMatch> provider;
 
 
@@ -77,25 +76,21 @@ public class T_Exchange {
 
     private int parser(OrderCommand orderCommand) {
 
-        int r = 0;
-        final OrderMatch orderMatch = provider.feedOne(orderCommand.getOrderId());
-        orderMatch.from(orderCommand);
-        r++;
-
         if (OrderCommandType.PLACE_ORDER == orderCommand.getOrderCommandType()) {
+            OrderMatch orderMatch = this.provider.feedOne(orderCommand.getOrderId());
+            orderMatch.from(orderCommand);
             if (!this.slideWindowFilter.unique(orderCommand.getSymbolId(), orderCommand.getOrderId(), orderCommand.getTimestamp())) {
                 orderMatch.setResultCode(ResultCode.INVALID_PLACE_DUPLICATE_ORDER_ID);
-                provider.push();
+                this.provider.push();
             } else {
                 orderMatch.setResultCode(ResultCode.PLACE);
-                provider.push();
+                this.provider.push();
                 this.orderBooksEngine.placeOrder(orderCommand, this.provider);
             }
         } else if (OrderCommandType.CANCEL_ORDER == orderCommand.getOrderCommandType()) {
-            this.orderBooksEngine.cancelOrder(orderCommand, orderMatch);
-            provider.push();
+            this.orderBooksEngine.cancelOrder(orderCommand, this.provider);
         }
-        return r;
+        return 1;
     }
 
 
