@@ -48,8 +48,6 @@ public class JobSource extends AbstractSource<Integer, KafkaData> {
 
         Optional<OrderCommand> optional = this.iRingBuffer.get();
         if (!optional.isPresent()) {
-            Util.sleepMS(1);
-            waitTime(1_000_000L);
             return;
         }
 
@@ -63,5 +61,6 @@ public class JobSource extends AbstractSource<Integer, KafkaData> {
         kafkaData.setKey(uInteger.toBytes());
         kafkaData.setValue(orderCommand.to());
         kafkaData.setTimestamp(orderCommand.getTimestamp());
+        push();
     }
 }

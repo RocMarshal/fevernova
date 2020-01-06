@@ -1,7 +1,7 @@
 package com.github.fevernova.framework.common.structure.queue;
 
 
-public interface FindFunction<E extends LinkedObject<E>> {
+public interface FindFunction<E extends LinkedObject> {
 
 
     boolean find(E e);

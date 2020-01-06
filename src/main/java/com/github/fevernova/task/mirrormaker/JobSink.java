@@ -58,7 +58,7 @@ public class JobSink extends AbstractSink implements Callback {
         if (data.getValue() == null) {
             return;
         }
-        Integer pt = (this.partitionRebalance ? null : data.getPartitionId());
+        Integer pt = (this.partitionRebalance || data.getPartitionId() < 0 ? null : (data.getPartitionId()));
         String targetTopic = (data.getDestTopic() != null ? data.getDestTopic() : this.destTopic);
         ProducerRecord<byte[], byte[]> record = new ProducerRecord<>(targetTopic, pt, data.getTimestamp(), data.getKey(), data.getValue());
         this.kafka.send(record, this);
