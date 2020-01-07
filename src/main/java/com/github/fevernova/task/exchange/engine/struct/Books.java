@@ -65,20 +65,20 @@ public abstract class Books implements WriteBytesMarshallable, ReadBytesMarshall
             return this.orderArray;
         }
 
-        OrderArray oa = null;
-        if (!newEdgePrice(orderCommand.getPrice())) {
-            oa = this.priceTree.get(orderCommand.getPrice());
-        }
-
-        if (oa == null) {
-            oa = new OrderArray(orderCommand.getOrderAction(), orderCommand.getPrice());
+        if (newEdgePrice(orderCommand.getPrice())) {
+            OrderArray oa = new OrderArray(orderCommand.getOrderAction(), orderCommand.getPrice());
             this.priceTree.put(oa.getPrice(), oa);
-            if (newEdgePrice(oa.getPrice())) {
-                this.price = oa.getPrice();
-                this.orderArray = oa;
+            this.price = oa.getPrice();
+            this.orderArray = oa;
+            return oa;
+        } else {
+            OrderArray oa = this.priceTree.get(orderCommand.getPrice());
+            if (oa == null) {
+                oa = new OrderArray(orderCommand.getOrderAction(), orderCommand.getPrice());
+                this.priceTree.put(oa.getPrice(), oa);
             }
+            return oa;
         }
-        return oa;
     }
 
 
