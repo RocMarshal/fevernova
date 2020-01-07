@@ -25,8 +25,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class JobSink extends AbstractSink implements Callback {
 
 
-    private boolean test;
-
     private TaskContext kafkaContext;
 
     private KafkaProducer<byte[], byte[]> kafka;
@@ -43,7 +41,6 @@ public class JobSink extends AbstractSink implements Callback {
         super(globalContext, taskContext, index, inputsNum);
         this.kafkaContext = new TaskContext(KafkaConstants.KAFKA, taskContext.getSubProperties(KafkaConstants.KAFKA_));
         this.topic = taskContext.getString(KafkaConstants.TOPIC);
-        this.test = taskContext.getBoolean("test", false);
         this.errorCounter = new AtomicInteger(0);
     }
 
@@ -52,9 +49,7 @@ public class JobSink extends AbstractSink implements Callback {
     public void onStart() {
 
         super.onStart();
-        if (!this.test) {
-            this.kafka = KafkaUtil.createProducer(this.kafkaContext);
-        }
+        this.kafka = KafkaUtil.createProducer(this.kafkaContext);
     }
 
 
@@ -65,11 +60,10 @@ public class JobSink extends AbstractSink implements Callback {
         if (LogProxy.LOG_DATA.isTraceEnabled()) {
             LogProxy.LOG_DATA.trace(data.toString());
         }
-        if (!this.test) {
-            this.uLong.from(data.getOrderId());
-            ProducerRecord<byte[], byte[]> record = new ProducerRecord<>(this.topic, null, Util.nowMS(), this.uLong.toBytes(), data.to());
-            this.kafka.send(record, this);
-        }
+
+        this.uLong.from(data.getOrderId());
+        ProducerRecord<byte[], byte[]> record = new ProducerRecord<>(this.topic, null, Util.nowMS(), this.uLong.toBytes(), data.to());
+        this.kafka.send(record, this);
     }
 
 
@@ -89,9 +83,7 @@ public class JobSink extends AbstractSink implements Callback {
 
     private void flush() {
 
-        if (!this.test) {
-            this.kafka.flush();
-        }
+        this.kafka.flush();
         if (this.errorCounter.get() > 0) {
             super.globalContext.fatalError("flush kafka error");
         }

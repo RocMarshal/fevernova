@@ -64,12 +64,12 @@ public class OrderMatch implements Data {
         this.orderType = orderCommand.getOrderType();
         this.price = orderCommand.getPrice();
         this.totalSize = orderCommand.getSize();
-        //this.accFilledSize = 0L;
-        //this.matchFilledSize = 0L;
-        //this.matchOrderId = 0L;
-        //this.matchOrderUserId = 0L;
-        //this.version = 0;
-        //this.resultCode = null;
+        this.accFilledSize = 0L;
+        this.matchFilledSize = 0L;
+        this.matchOrderId = 0L;
+        this.matchOrderUserId = 0L;
+        this.version = 0;
+        this.resultCode = null;
     }
 
 
@@ -84,11 +84,11 @@ public class OrderMatch implements Data {
         this.price = orderCommand.getPrice();
         this.totalSize = orderCommand.getSize();
         this.accFilledSize = order.getFilledSize();
-        //this.matchFilledSize = 0L;
-        //this.matchOrderId = 0L;
-        //this.matchOrderUserId = 0L;
+        this.matchFilledSize = 0L;
+        this.matchOrderId = 0L;
+        this.matchOrderUserId = 0L;
         this.version = order.getVersion();
-        //this.resultCode = null;
+        this.resultCode = null;
     }
 
 
@@ -113,26 +113,26 @@ public class OrderMatch implements Data {
 
     @Override public void clearData() {
 
-        this.orderId = 0L;
-        this.symbolId = 0;
-        this.userId = 0L;
-        this.timestamp = 0L;
-        this.orderAction = null;
-        this.orderType = null;
-        this.price = 0L;
-        this.totalSize = 0L;
-        this.accFilledSize = 0L;
-        this.matchFilledSize = 0L;
-        this.matchOrderId = 0L;
-        this.matchOrderUserId = 0L;
-        this.version = 0;
-        this.resultCode = null;
+        //        this.orderId = 0L;
+        //        this.symbolId = 0;
+        //        this.userId = 0L;
+        //        this.timestamp = 0L;
+        //        this.orderAction = null;
+        //        this.orderType = null;
+        //        this.price = 0L;
+        //        this.totalSize = 0L;
+        //        this.accFilledSize = 0L;
+        //        this.matchFilledSize = 0L;
+        //        this.matchOrderId = 0L;
+        //        this.matchOrderUserId = 0L;
+        //        this.version = 0;
+        //        this.resultCode = null;
     }
 
 
     public byte[] to() {
 
-        ByteBuffer byteBuffer = ByteBuffer.allocate(88);
+        ByteBuffer byteBuffer = ByteBuffer.allocate(85);
         byteBuffer.put((byte) 0);
         byteBuffer.putLong(this.orderId);
         byteBuffer.putInt(this.symbolId);
@@ -147,7 +147,7 @@ public class OrderMatch implements Data {
         byteBuffer.putLong(this.matchOrderId);
         byteBuffer.putLong(this.matchOrderUserId);
         byteBuffer.putInt(this.version);
-        byteBuffer.putInt(this.resultCode.code);
+        byteBuffer.putShort((short) this.resultCode.code);
         return byteBuffer.array();
     }
 

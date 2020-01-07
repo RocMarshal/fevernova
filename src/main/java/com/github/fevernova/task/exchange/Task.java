@@ -28,8 +28,6 @@ public class Task extends BaseTask {
     public Task(TaskContext context, JobTags tags) {
 
         super(context, tags);
-        context.put(Constants.INPUTCHANNEL_ + Constants.SIZE, "1024");
-        context.put(Constants.OUTPUTCHANNEL_ + Constants.SIZE, "512");
         this.parserInitParallelism = context.getInteger(Constants.PARSER_ + Constants.PARALLELISM, this.globalContext.getJobTags().getUnit());
         this.sinkInitParallelism = context.getInteger(Constants.SINK_ + Constants.PARALLELISM, this.globalContext.getJobTags().getUnit());
     }
