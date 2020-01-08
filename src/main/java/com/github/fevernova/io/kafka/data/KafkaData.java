@@ -26,12 +26,12 @@ public class KafkaData implements Data {
 
     @Override public void clearData() {
 
-        this.topic = null;
-        this.destTopic = null;
-        this.key = null;
-        this.value = null;
-        this.partitionId = -1;
-        this.timestamp = 0L;
+        //this.topic = null;
+        //this.destTopic = null;
+        //this.key = null;
+        //this.value = null;
+        //this.partitionId = -1;
+        //this.timestamp = 0L;
     }
 
 

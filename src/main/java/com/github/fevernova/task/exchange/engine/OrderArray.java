@@ -7,6 +7,7 @@ import com.github.fevernova.task.exchange.data.order.Order;
 import com.github.fevernova.task.exchange.data.order.OrderAction;
 import com.github.fevernova.task.exchange.data.result.OrderMatch;
 import lombok.Getter;
+import lombok.Setter;
 import net.openhft.chronicle.bytes.BytesIn;
 import net.openhft.chronicle.bytes.BytesOut;
 import net.openhft.chronicle.bytes.WriteBytesMarshallable;
@@ -24,6 +25,9 @@ public final class OrderArray implements WriteBytesMarshallable {
 
     private long size;
 
+    @Setter
+    private boolean lazy = false;
+
 
     public OrderArray(BytesIn bytes) {
 
@@ -38,10 +42,11 @@ public final class OrderArray implements WriteBytesMarshallable {
     }
 
 
-    public OrderArray(OrderAction orderAction, long price) {
+    public OrderArray(OrderAction orderAction, long price, boolean lazy) {
 
         this.orderAction = orderAction;
         this.price = price;
+        this.lazy = lazy;
     }
 
 

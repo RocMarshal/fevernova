@@ -64,17 +64,16 @@ public abstract class Books implements WriteBytesMarshallable, ReadBytesMarshall
         if (this.price == orderCommand.getPrice()) {
             return this.orderArray;
         }
-
         if (newEdgePrice(orderCommand.getPrice())) {
-            OrderArray oa = new OrderArray(orderCommand.getOrderAction(), orderCommand.getPrice());
-            this.priceTree.put(oa.getPrice(), oa);
+            OrderArray oa = new OrderArray(orderCommand.getOrderAction(), orderCommand.getPrice(), true);
+            //this.priceTree.put(oa.getPrice(), oa);
             this.price = oa.getPrice();
             this.orderArray = oa;
             return oa;
         } else {
             OrderArray oa = this.priceTree.get(orderCommand.getPrice());
             if (oa == null) {
-                oa = new OrderArray(orderCommand.getOrderAction(), orderCommand.getPrice());
+                oa = new OrderArray(orderCommand.getOrderAction(), orderCommand.getPrice(), false);
                 this.priceTree.put(oa.getPrice(), oa);
             }
             return oa;
@@ -109,12 +108,23 @@ public abstract class Books implements WriteBytesMarshallable, ReadBytesMarshall
     public void adjustByOrderArray(OrderArray oa) {
 
         if (oa.getSize() == 0L) {
-            this.priceTree.remove(oa.getPrice());
+            if (!oa.isLazy()) {
+                this.priceTree.remove(oa.getPrice());
+            }
             if (this.price == oa.getPrice()) {
                 Map.Entry<Long, OrderArray> tme = this.priceTree.ceilingEntry(this.price);
                 this.price = (tme == null ? defaultPrice() : tme.getKey());
                 this.orderArray = (tme == null ? null : tme.getValue());
             }
+        }
+    }
+
+
+    public void handleLazy() {
+
+        if (this.orderArray != null && this.orderArray.isLazy()) {
+            this.orderArray.setLazy(false);
+            this.priceTree.put(this.price, this.orderArray);
         }
     }
 

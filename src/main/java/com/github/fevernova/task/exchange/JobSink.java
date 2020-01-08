@@ -2,13 +2,11 @@ package com.github.fevernova.task.exchange;
 
 
 import com.github.fevernova.framework.common.LogProxy;
-import com.github.fevernova.framework.common.Util;
 import com.github.fevernova.framework.common.context.GlobalContext;
 import com.github.fevernova.framework.common.context.TaskContext;
 import com.github.fevernova.framework.common.data.BarrierData;
 import com.github.fevernova.framework.common.data.Data;
 import com.github.fevernova.framework.component.sink.AbstractSink;
-import com.github.fevernova.io.data.type.impl.ULong;
 import com.github.fevernova.io.kafka.KafkaConstants;
 import com.github.fevernova.io.kafka.KafkaUtil;
 import com.github.fevernova.task.exchange.data.result.OrderMatch;
@@ -18,6 +16,7 @@ import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
 
+import java.nio.ByteBuffer;
 import java.util.concurrent.atomic.AtomicInteger;
 
 
@@ -33,7 +32,7 @@ public class JobSink extends AbstractSink implements Callback {
 
     private AtomicInteger errorCounter;
 
-    private ULong uLong = new ULong(false);
+    private ByteBuffer byteBuffer;
 
 
     public JobSink(GlobalContext globalContext, TaskContext taskContext, int index, int inputsNum) {
@@ -61,8 +60,9 @@ public class JobSink extends AbstractSink implements Callback {
             LogProxy.LOG_DATA.trace(data.toString());
         }
 
-        this.uLong.from(data.getOrderId());
-        ProducerRecord<byte[], byte[]> record = new ProducerRecord<>(this.topic, null, Util.nowMS(), this.uLong.toBytes(), data.to());
+        this.byteBuffer = ByteBuffer.allocate(8);
+        this.byteBuffer.putLong(data.getOrderId());
+        ProducerRecord<byte[], byte[]> record = new ProducerRecord<>(this.topic, null, data.getTimestamp(), this.byteBuffer.array(), data.to());
         this.kafka.send(record, this);
     }
 

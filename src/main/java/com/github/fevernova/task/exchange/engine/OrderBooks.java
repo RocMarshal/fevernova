@@ -73,6 +73,8 @@ public final class OrderBooks implements WriteBytesMarshallable {
             orderMatch.setResultCode(ResultCode.CANCEL_IOC);
             provider.push();
         }
+
+        thisBooks.handleLazy();
     }
 
 
