@@ -16,7 +16,6 @@ import com.github.fevernova.task.exchange.data.order.OrderAction;
 import com.github.fevernova.task.exchange.data.order.OrderType;
 import com.github.fevernova.task.exchange.data.result.OrderMatch;
 import com.github.fevernova.task.exchange.data.result.OrderMatchFactory;
-import com.github.fevernova.task.exchange.data.result.ResultCode;
 import com.github.fevernova.task.exchange.engine.OrderBooksEngine;
 import com.github.fevernova.task.exchange.uniq.SlideWindowFilter;
 import org.apache.commons.lang3.Validate;
@@ -77,14 +76,7 @@ public class T_Exchange {
     private int parser(OrderCommand orderCommand) {
 
         if (OrderCommandType.PLACE_ORDER == orderCommand.getOrderCommandType()) {
-            OrderMatch orderMatch = this.provider.feedOne(orderCommand.getOrderId());
-            orderMatch.from(orderCommand);
-            if (!this.slideWindowFilter.unique(orderCommand.getSymbolId(), orderCommand.getOrderId(), orderCommand.getTimestamp())) {
-                orderMatch.setResultCode(ResultCode.INVALID_PLACE_DUPLICATE_ORDER_ID);
-                this.provider.push();
-            } else {
-                orderMatch.setResultCode(ResultCode.PLACE);
-                this.provider.push();
+            if (this.slideWindowFilter.unique(orderCommand.getSymbolId(), orderCommand.getOrderId(), orderCommand.getTimestamp())) {
                 this.orderBooksEngine.placeOrder(orderCommand, this.provider);
             }
         } else if (OrderCommandType.CANCEL_ORDER == orderCommand.getOrderCommandType()) {

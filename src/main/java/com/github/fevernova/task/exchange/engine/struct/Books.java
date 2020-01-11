@@ -16,6 +16,7 @@ import net.openhft.chronicle.core.io.IORuntimeException;
 
 import java.util.Map;
 import java.util.NavigableMap;
+import java.util.concurrent.atomic.AtomicLong;
 
 
 @Getter
@@ -81,27 +82,21 @@ public abstract class Books implements WriteBytesMarshallable, ReadBytesMarshall
     }
 
 
-    public void cancel(OrderCommand orderCommand, DataProvider<Long, OrderMatch> provider) {
+    public void cancel(OrderCommand orderCommand, DataProvider<Long, OrderMatch> provider, AtomicLong sequence) {
 
-        OrderMatch orderMatch = provider.feedOne(orderCommand.getOrderId());
         OrderArray oa = this.priceTree.get(orderCommand.getPrice());
         if (oa == null) {
-            orderMatch.from(orderCommand);
-            orderMatch.setResultCode(ResultCode.INVALID_CANCEL_NO_ORDER_ID);
-            provider.push();
             return;
         }
         Order order = oa.findAndRemoveOrder(orderCommand.getOrderId());
         if (order == null) {
-            orderMatch.from(orderCommand);
-            orderMatch.setResultCode(ResultCode.INVALID_CANCEL_NO_ORDER_ID);
-            provider.push();
             return;
         }
-        orderMatch.from(orderCommand, order);
+        OrderMatch orderMatch = provider.feedOne(orderCommand.getOrderId());
+        orderMatch.from(sequence, orderCommand, order, oa.getSize());
         orderMatch.setResultCode(ResultCode.CANCEL_USER);
-        provider.push();
         adjustByOrderArray(oa);
+        provider.push();
     }
 
 

@@ -4,8 +4,7 @@ package com.github.fevernova.task.exchange.data.cmd;
 public enum OrderCommandType {
 
     PLACE_ORDER(0),
-    CANCEL_ORDER(1),
-    MISS_ORDER(2);
+    CANCEL_ORDER(1);
 
     public byte code;
 
@@ -23,8 +22,6 @@ public enum OrderCommandType {
                 return PLACE_ORDER;
             case 1:
                 return CANCEL_ORDER;
-            case 2:
-                return MISS_ORDER;
             default:
                 throw new IllegalArgumentException("unknown OrderCommandType:" + code);
         }

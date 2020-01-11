@@ -17,6 +17,8 @@ import net.openhft.chronicle.bytes.BytesIn;
 import net.openhft.chronicle.bytes.BytesOut;
 import net.openhft.chronicle.bytes.WriteBytesMarshallable;
 
+import java.util.concurrent.atomic.AtomicLong;
+
 
 @Getter
 public final class OrderBooks implements WriteBytesMarshallable {
@@ -25,7 +27,9 @@ public final class OrderBooks implements WriteBytesMarshallable {
     private final int symbolId;
 
     @Setter
-    private long lastMatchPrice = 0;
+    private long lastMatchPrice = 0L;
+
+    private AtomicLong sequence = new AtomicLong(0L);
 
     private final Books askBooks = new AskBooks();
 
@@ -42,6 +46,7 @@ public final class OrderBooks implements WriteBytesMarshallable {
 
         this.symbolId = bytes.readInt();
         this.lastMatchPrice = bytes.readLong();
+        this.sequence.set(bytes.readLong());
         this.askBooks.readMarshallable(bytes);
         this.bidBooks.readMarshallable(bytes);
     }
@@ -54,7 +59,7 @@ public final class OrderBooks implements WriteBytesMarshallable {
 
         if (OrderType.FOK == orderCommand.getOrderType() && !thatBooks.canMatchAll(orderCommand)) {
             OrderMatch orderMatch = provider.feedOne(orderCommand.getOrderId());
-            orderMatch.from(orderCommand);
+            orderMatch.from(this.sequence, orderCommand);
             orderMatch.setResultCode(ResultCode.CANCEL_FOK);
             provider.push();
             return;
@@ -63,13 +68,19 @@ public final class OrderBooks implements WriteBytesMarshallable {
         OrderArray orderArray = thisBooks.getOrCreateOrderArray(orderCommand);
         Order order = new Order(orderCommand);
         orderArray.addOrder(order);
+
+        OrderMatch orderPlaceMatch = provider.feedOne(orderCommand.getOrderId());
+        orderPlaceMatch.from(this.sequence, orderCommand, order, orderArray.getSize());
+        orderPlaceMatch.setResultCode(ResultCode.PLACE);
+        provider.push();
+
         matchOrders(provider);
 
         if (order.needIOCClear()) {
             orderArray.findAndRemoveOrder(order.getOrderId());
             thisBooks.adjustByOrderArray(orderArray);
             OrderMatch orderMatch = provider.feedOne(order.getOrderId());
-            orderMatch.from(orderCommand, order);
+            orderMatch.from(this.sequence, orderCommand, order, orderArray.getSize());
             orderMatch.setResultCode(ResultCode.CANCEL_IOC);
             provider.push();
         }
@@ -92,9 +103,9 @@ public final class OrderBooks implements WriteBytesMarshallable {
             OrderArray bidOrderArray = this.bidBooks.getOrderArray();
             OrderArray askOrderArray = this.askBooks.getOrderArray();
             if (bidOrderArray.getSize() > askOrderArray.getSize()) {
-                bidOrderArray.meet(askOrderArray, this.symbolId, this.lastMatchPrice, provider);
+                bidOrderArray.meet(this.sequence, askOrderArray, this.symbolId, this.lastMatchPrice, provider);
             } else {
-                askOrderArray.meet(bidOrderArray, this.symbolId, this.lastMatchPrice, provider);
+                askOrderArray.meet(this.sequence, bidOrderArray, this.symbolId, this.lastMatchPrice, provider);
             }
             this.bidBooks.adjustByOrderArray(bidOrderArray);
             this.askBooks.adjustByOrderArray(askOrderArray);
@@ -105,7 +116,7 @@ public final class OrderBooks implements WriteBytesMarshallable {
     public void cancel(OrderCommand orderCommand, DataProvider<Long, OrderMatch> provider) {
 
         Books books = OrderAction.ASK == orderCommand.getOrderAction() ? this.askBooks : this.bidBooks;
-        books.cancel(orderCommand, provider);
+        books.cancel(orderCommand, provider, this.sequence);
     }
 
 
@@ -113,6 +124,7 @@ public final class OrderBooks implements WriteBytesMarshallable {
 
         bytes.writeInt(this.symbolId);
         bytes.writeLong(this.lastMatchPrice);
+        bytes.writeLong(this.sequence.get());
         this.askBooks.writeMarshallable(bytes);
         this.bidBooks.writeMarshallable(bytes);
     }

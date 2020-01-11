@@ -12,13 +12,7 @@ public enum ResultCode {
 
     MATCH(300),
 
-    MISS_ORDER(400),
-    MISS_ORDER_SUCCESS(401),
-    MISS_ORDER_FAILED(402),
-
-    INVALID(-100),
-    INVALID_PLACE_DUPLICATE_ORDER_ID(-101),
-    INVALID_CANCEL_NO_ORDER_ID(-102);
+    INVALID(-100);
 
     public int code;
 

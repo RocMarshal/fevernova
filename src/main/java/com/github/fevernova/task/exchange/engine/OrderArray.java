@@ -12,6 +12,8 @@ import net.openhft.chronicle.bytes.BytesIn;
 import net.openhft.chronicle.bytes.BytesOut;
 import net.openhft.chronicle.bytes.WriteBytesMarshallable;
 
+import java.util.concurrent.atomic.AtomicLong;
+
 
 @Getter
 public final class OrderArray implements WriteBytesMarshallable {
@@ -68,7 +70,7 @@ public final class OrderArray implements WriteBytesMarshallable {
     }
 
 
-    public void meet(OrderArray that, int symbolId, long matchPrice, DataProvider<Long, OrderMatch> provider) {
+    public void meet(AtomicLong sequence, OrderArray that, int symbolId, long matchPrice, DataProvider<Long, OrderMatch> provider) {
 
         do {
             Order thisOrder = this.queue.peek();
@@ -79,10 +81,10 @@ public final class OrderArray implements WriteBytesMarshallable {
             that.decrement(thatOrder, delta);
             this.decrement(thisOrder, delta);
             OrderMatch thisOrderMatch = provider.feedOne(thisOrder.getOrderId());
-            thisOrderMatch.from(thisOrder, symbolId, this.orderAction, matchPrice, delta, thatOrder);
+            thisOrderMatch.from(sequence, thisOrder, symbolId, this.orderAction, this.price, matchPrice, delta, thatOrder, this.size);
             provider.push();
             OrderMatch thatOrderMatch = provider.feedOne(thatOrder.getOrderId());
-            thatOrderMatch.from(thatOrder, symbolId, that.orderAction, matchPrice, delta, thisOrder);
+            thatOrderMatch.from(sequence, thatOrder, symbolId, that.orderAction, that.price, matchPrice, delta, thisOrder, that.size);
             provider.push();
         } while (that.getSize() > 0L);
     }

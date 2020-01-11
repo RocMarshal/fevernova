@@ -12,6 +12,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 import java.nio.ByteBuffer;
+import java.util.concurrent.atomic.AtomicLong;
 
 
 @Getter
@@ -19,6 +20,8 @@ import java.nio.ByteBuffer;
 @ToString
 public class OrderMatch implements Data {
 
+
+    private long sequence;
 
     private long orderId;
 
@@ -32,7 +35,11 @@ public class OrderMatch implements Data {
 
     private OrderType orderType;
 
-    private long price;
+    private long orderPrice;
+
+    private long matchPrice;
+
+    private long depthSize;
 
     private long totalSize;
 
@@ -54,15 +61,18 @@ public class OrderMatch implements Data {
     }
 
 
-    public void from(OrderCommand orderCommand) {
+    public void from(AtomicLong sequence, OrderCommand orderCommand) {
 
+        this.sequence = sequence.getAndIncrement();
         this.orderId = orderCommand.getOrderId();
         this.symbolId = orderCommand.getSymbolId();
         this.userId = orderCommand.getUserId();
         this.timestamp = orderCommand.getTimestamp();
         this.orderAction = orderCommand.getOrderAction();
         this.orderType = orderCommand.getOrderType();
-        this.price = orderCommand.getPrice();
+        this.orderPrice = orderCommand.getPrice();
+        this.matchPrice = -1L;
+        this.depthSize = -1L;
         this.totalSize = orderCommand.getSize();
         this.accFilledSize = 0L;
         this.matchFilledSize = 0L;
@@ -73,15 +83,18 @@ public class OrderMatch implements Data {
     }
 
 
-    public void from(OrderCommand orderCommand, Order order) {
+    public void from(AtomicLong sequence, OrderCommand orderCommand, Order order, long depthSize) {
 
+        this.sequence = sequence.getAndIncrement();
         this.orderId = orderCommand.getOrderId();
         this.symbolId = orderCommand.getSymbolId();
         this.userId = orderCommand.getUserId();
         this.timestamp = orderCommand.getTimestamp();
         this.orderAction = orderCommand.getOrderAction();
         this.orderType = orderCommand.getOrderType();
-        this.price = orderCommand.getPrice();
+        this.orderPrice = orderCommand.getPrice();
+        this.matchPrice = -1L;
+        this.depthSize = depthSize;
         this.totalSize = orderCommand.getSize();
         this.accFilledSize = order.getFilledSize();
         this.matchFilledSize = 0L;
@@ -92,15 +105,19 @@ public class OrderMatch implements Data {
     }
 
 
-    public void from(Order order, int symbolId, OrderAction orderAction, long price, long matchFilledSize, Order thatOrder) {
+    public void from(AtomicLong sequence, Order order, int symbolId, OrderAction orderAction, long orderPrice, long matchPrice, long matchFilledSize,
+                     Order thatOrder, long depthSize) {
 
+        this.sequence = sequence.getAndIncrement();
         this.orderId = order.getOrderId();
         this.symbolId = symbolId;
         this.userId = order.getUserId();
         this.timestamp = Util.nowMS();
         this.orderAction = orderAction;
         this.orderType = order.getOrderType();
-        this.price = price;
+        this.orderPrice = orderPrice;
+        this.matchPrice = matchPrice;
+        this.depthSize = depthSize;
         this.totalSize = order.getRemainSize() + order.getFilledSize();
         this.accFilledSize = order.getFilledSize();
         this.matchFilledSize = matchFilledSize;
@@ -113,13 +130,16 @@ public class OrderMatch implements Data {
 
     @Override public void clearData() {
 
+        //        this.sequence = 0L;
         //        this.orderId = 0L;
         //        this.symbolId = 0;
         //        this.userId = 0L;
         //        this.timestamp = 0L;
         //        this.orderAction = null;
         //        this.orderType = null;
-        //        this.price = 0L;
+        //        this.orderPrice = 0L;
+        //        this.matchPrice = 0L;
+        //        this.depthSize = 0L;
         //        this.totalSize = 0L;
         //        this.accFilledSize = 0L;
         //        this.matchFilledSize = 0L;
@@ -130,17 +150,20 @@ public class OrderMatch implements Data {
     }
 
 
-    public byte[] to() {
+    @Override public byte[] getBytes() {
 
-        ByteBuffer byteBuffer = ByteBuffer.allocate(85);
+        ByteBuffer byteBuffer = ByteBuffer.allocate(109);
         byteBuffer.put((byte) 0);
+        byteBuffer.putLong(this.sequence);
         byteBuffer.putLong(this.orderId);
         byteBuffer.putInt(this.symbolId);
         byteBuffer.putLong(this.userId);
         byteBuffer.putLong(this.timestamp);
         byteBuffer.put(this.orderAction.code);
         byteBuffer.put(this.orderType.code);
-        byteBuffer.putLong(this.price);
+        byteBuffer.putLong(this.orderPrice);
+        byteBuffer.putLong(this.matchPrice);
+        byteBuffer.putLong(this.depthSize);
         byteBuffer.putLong(this.totalSize);
         byteBuffer.putLong(this.accFilledSize);
         byteBuffer.putLong(this.matchFilledSize);
@@ -149,11 +172,5 @@ public class OrderMatch implements Data {
         byteBuffer.putInt(this.version);
         byteBuffer.putShort((short) this.resultCode.code);
         return byteBuffer.array();
-    }
-
-
-    @Override public byte[] getBytes() {
-
-        return new byte[0];
     }
 }

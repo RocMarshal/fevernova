@@ -20,7 +20,6 @@ import com.github.fevernova.io.kafka.data.KafkaData;
 import com.github.fevernova.task.exchange.data.cmd.OrderCommand;
 import com.github.fevernova.task.exchange.data.cmd.OrderCommandType;
 import com.github.fevernova.task.exchange.data.result.OrderMatch;
-import com.github.fevernova.task.exchange.data.result.ResultCode;
 import com.github.fevernova.task.exchange.engine.OrderBooksEngine;
 import com.github.fevernova.task.exchange.uniq.SlideWindowFilter;
 import lombok.extern.slf4j.Slf4j;
@@ -70,27 +69,18 @@ public class JobParser extends AbstractParser<Long, OrderMatch> implements Barri
         orderCommand.from(kafkaData.getValue());
 
         if (OrderCommandType.PLACE_ORDER == orderCommand.getOrderCommandType()) {
-            OrderMatch orderMatch = feedOne(orderCommand.getOrderId());
-            orderMatch.from(orderCommand);
-            if (alreadyHandled(orderCommand)) {
-                orderMatch.setResultCode(ResultCode.INVALID_PLACE_DUPLICATE_ORDER_ID);
-                push();
-            } else {
-                orderMatch.setResultCode(ResultCode.PLACE);
-                push();
+            if (isUnique(orderCommand)) {
                 this.matchEngine.placeOrder(orderCommand, this);
             }
         } else if (OrderCommandType.CANCEL_ORDER == orderCommand.getOrderCommandType()) {
             this.matchEngine.cancelOrder(orderCommand, this);
-        } else if (OrderCommandType.MISS_ORDER == orderCommand.getOrderCommandType()) {
-            
         }
     }
 
 
-    private boolean alreadyHandled(OrderCommand orderCommand) {
+    private boolean isUnique(OrderCommand orderCommand) {
 
-        return !this.slideWindowFilter.unique(orderCommand.getSymbolId(), orderCommand.getOrderId(), orderCommand.getTimestamp());
+        return this.slideWindowFilter.unique(orderCommand.getSymbolId(), orderCommand.getOrderId(), orderCommand.getTimestamp());
     }
 
 
