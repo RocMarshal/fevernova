@@ -7,7 +7,7 @@ import com.github.fevernova.framework.common.context.TaskContext;
 import com.github.fevernova.framework.component.DataProvider;
 import com.github.fevernova.task.exchange.SerializationUtils;
 import com.github.fevernova.task.exchange.data.cmd.OrderCommand;
-import com.github.fevernova.task.exchange.data.result.DepthRecords;
+import com.github.fevernova.task.exchange.data.depth.DepthResult;
 import com.github.fevernova.task.exchange.data.result.OrderMatch;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -69,10 +69,10 @@ public final class OrderBooksEngine extends ContextObject implements WriteBytesM
     }
 
 
-    public List<DepthRecords> dumpDepth() {
+    public List<DepthResult> dumpDepth() {
 
-        final List<DepthRecords> result = Lists.newArrayListWithCapacity(this.symbols.size());
-        this.symbols.entrySet().forEach(entry -> result.add(new DepthRecords(entry.getValue(), 1000)));
+        final List<DepthResult> result = Lists.newArrayListWithCapacity(this.symbols.size());
+        this.symbols.entrySet().forEach(entry -> result.add(new DepthResult(entry.getValue(), 1000)));
         return result;
     }
 
