@@ -2,16 +2,19 @@ package com.github.fevernova.task.exchange.data.depth;
 
 
 import com.github.fevernova.framework.common.Util;
+import com.github.fevernova.task.exchange.SerializationUtils;
 import com.github.fevernova.task.exchange.engine.OrderArray;
 import com.github.fevernova.task.exchange.engine.OrderBooks;
 import com.github.fevernova.task.exchange.engine.struct.Books;
 import lombok.Getter;
+import net.openhft.chronicle.bytes.BytesOut;
+import net.openhft.chronicle.bytes.WriteBytesMarshallable;
 
 import java.util.Map;
 
 
 @Getter
-public class DepthResult {
+public class DepthResult implements WriteBytesMarshallable {
 
 
     private int symbolId;
@@ -52,5 +55,18 @@ public class DepthResult {
             data[1][cursor] = entry.getValue().getSize();
             cursor++;
         }
+    }
+
+
+    @Override public void writeMarshallable(BytesOut bytes) {
+
+        bytes.writeInt(this.symbolId);
+        bytes.writeLong(this.lastSequence);
+        bytes.writeLong(this.lastMatchPrice);
+        bytes.writeLong(this.timestamp);
+        SerializationUtils.writeLongArray(this.bids[0], bytes);
+        SerializationUtils.writeLongArray(this.bids[1], bytes);
+        SerializationUtils.writeLongArray(this.asks[0], bytes);
+        SerializationUtils.writeLongArray(this.asks[1], bytes);
     }
 }

@@ -128,7 +128,7 @@ public class ArrayMap<K, V> implements Map<K, V> {
     @Override
     public Collection<V> values() {
 
-        ArrayList<V> list = Lists.newArrayListWithExpectedSize(this.vals.length);
+        ArrayList<V> list = Lists.newArrayListWithCapacity(this.vals.length);
         for (int i = 0; i < this.vals.length; i++) {
             list.add(this.vals[i] == NULL ? null : (V) this.vals[i]);
         }

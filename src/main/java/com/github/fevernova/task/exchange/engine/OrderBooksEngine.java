@@ -7,9 +7,9 @@ import com.github.fevernova.framework.common.context.TaskContext;
 import com.github.fevernova.framework.component.DataProvider;
 import com.github.fevernova.task.exchange.SerializationUtils;
 import com.github.fevernova.task.exchange.data.cmd.OrderCommand;
+import com.github.fevernova.task.exchange.data.depth.DepthData;
 import com.github.fevernova.task.exchange.data.depth.DepthResult;
 import com.github.fevernova.task.exchange.data.result.OrderMatch;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import net.openhft.chronicle.bytes.BytesIn;
 import net.openhft.chronicle.bytes.BytesOut;
@@ -17,7 +17,6 @@ import net.openhft.chronicle.bytes.ReadBytesMarshallable;
 import net.openhft.chronicle.bytes.WriteBytesMarshallable;
 import net.openhft.chronicle.core.io.IORuntimeException;
 
-import java.util.List;
 import java.util.Map;
 
 
@@ -69,11 +68,11 @@ public final class OrderBooksEngine extends ContextObject implements WriteBytesM
     }
 
 
-    public List<DepthResult> dumpDepth() {
+    public DepthData dumpDepth() {
 
-        final List<DepthResult> result = Lists.newArrayListWithCapacity(this.symbols.size());
-        this.symbols.entrySet().forEach(entry -> result.add(new DepthResult(entry.getValue(), 1000)));
-        return result;
+        final DepthData depthData = new DepthData(this.symbols.size());
+        this.symbols.entrySet().forEach(entry -> depthData.getData().add(new DepthResult(entry.getValue(), 500)));
+        return depthData;
     }
 
 

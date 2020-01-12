@@ -42,6 +42,8 @@ public class JobParser extends AbstractParser<Long, OrderMatch> implements Barri
 
     private BinaryFileIdentity matchIdentity;
 
+    private BinaryFileIdentity depthDataIdentity;
+
 
     public JobParser(GlobalContext globalContext, TaskContext taskContext, int index, int inputsNum, ChannelProxy channelProxy) {
 
@@ -59,6 +61,8 @@ public class JobParser extends AbstractParser<Long, OrderMatch> implements Barri
         this.matchEngine = new OrderBooksEngine(globalContext, matchEngineContext);
         this.matchIdentity = BinaryFileIdentity.builder().componentType(super.componentType).total(super.total).index(super.index)
                 .identity(OrderBooksEngine.CONS_NAME.toLowerCase()).build();
+        this.depthDataIdentity = BinaryFileIdentity.builder().componentType(super.componentType).total(super.total).index(super.index)
+                .identity("DepthData".toLowerCase()).build();
     }
 
 
@@ -92,6 +96,7 @@ public class JobParser extends AbstractParser<Long, OrderMatch> implements Barri
         if (stateService.isSupportRecovery()) {
             String path4slide = stateService.saveBinary(this.slideIdentity, barrierData, this.slideWindowFilter);
             String path4engine = stateService.saveBinary(this.matchIdentity, barrierData, this.matchEngine);
+            stateService.saveBinary(this.depthDataIdentity, barrierData, this.matchEngine.dumpDepth());
             checkPoint.getValues().put(this.slideIdentity.getIdentity(), path4slide);
             checkPoint.getValues().put(this.matchIdentity.getIdentity(), path4engine);
         }

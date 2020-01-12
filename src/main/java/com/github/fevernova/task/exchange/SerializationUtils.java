@@ -8,6 +8,7 @@ import net.openhft.chronicle.bytes.BytesOut;
 import net.openhft.chronicle.bytes.WriteBytesMarshallable;
 import org.eclipse.collections.impl.map.mutable.primitive.IntObjectHashMap;
 
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
@@ -33,6 +34,22 @@ public class SerializationUtils {
             bytes.writeInt(k);
             v.writeMarshallable(bytes);
         });
+    }
+
+
+    public static <T extends WriteBytesMarshallable> void writeList(final List<T> list, final BytesOut bytes) {
+
+        bytes.writeInt(list.size());
+        list.forEach(t -> t.writeMarshallable(bytes));
+    }
+
+
+    public static <T extends WriteBytesMarshallable> void writeLongArray(final long[] longs, final BytesOut bytes) {
+
+        bytes.writeInt(longs.length);
+        for (long x : longs) {
+            bytes.writeLong(x);
+        }
     }
 
 

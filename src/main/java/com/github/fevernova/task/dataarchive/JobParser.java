@@ -79,7 +79,7 @@ public class JobParser extends AbstractParser<byte[], ListData> {
         final DataContainer data = this.serializer.deserialize(null, kafkaData.getBytes());
         final ListData listData = feedOne(bizKey);
         if (listData.getValues() == null) {
-            listData.setValues(Lists.newArrayListWithExpectedSize(this.columnInfos.size()));
+            listData.setValues(Lists.newArrayListWithCapacity(this.columnInfos.size()));
         }
 
         if (this.currentMetaId != data.getMeta().getMetaId()) {
