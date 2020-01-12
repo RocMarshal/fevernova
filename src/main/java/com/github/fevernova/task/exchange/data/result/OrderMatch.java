@@ -3,6 +3,7 @@ package com.github.fevernova.task.exchange.data.result;
 
 import com.github.fevernova.framework.common.Util;
 import com.github.fevernova.framework.common.data.Data;
+import com.github.fevernova.task.exchange.data.Sequence;
 import com.github.fevernova.task.exchange.data.cmd.OrderCommand;
 import com.github.fevernova.task.exchange.data.order.Order;
 import com.github.fevernova.task.exchange.data.order.OrderAction;
@@ -12,7 +13,6 @@ import lombok.Setter;
 import lombok.ToString;
 
 import java.nio.ByteBuffer;
-import java.util.concurrent.atomic.AtomicLong;
 
 
 @Getter
@@ -61,7 +61,7 @@ public class OrderMatch implements Data {
     }
 
 
-    public void from(AtomicLong sequence, OrderCommand orderCommand) {
+    public void from(Sequence sequence, OrderCommand orderCommand) {
 
         this.sequence = sequence.getAndIncrement();
         this.orderId = orderCommand.getOrderId();
@@ -83,7 +83,7 @@ public class OrderMatch implements Data {
     }
 
 
-    public void from(AtomicLong sequence, OrderCommand orderCommand, Order order, long depthSize) {
+    public void from(Sequence sequence, OrderCommand orderCommand, Order order, long depthSize) {
 
         this.sequence = sequence.getAndIncrement();
         this.orderId = orderCommand.getOrderId();
@@ -105,7 +105,7 @@ public class OrderMatch implements Data {
     }
 
 
-    public void from(AtomicLong sequence, Order order, int symbolId, OrderAction orderAction, long orderPrice, long matchPrice, long matchFilledSize,
+    public void from(Sequence sequence, Order order, int symbolId, OrderAction orderAction, long orderPrice, long matchPrice, long matchFilledSize,
                      Order thatOrder, long depthSize) {
 
         this.sequence = sequence.getAndIncrement();

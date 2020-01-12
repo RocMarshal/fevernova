@@ -3,6 +3,7 @@ package com.github.fevernova.task.exchange.engine;
 
 import com.github.fevernova.framework.common.structure.queue.LinkedQueue;
 import com.github.fevernova.framework.component.DataProvider;
+import com.github.fevernova.task.exchange.data.Sequence;
 import com.github.fevernova.task.exchange.data.order.Order;
 import com.github.fevernova.task.exchange.data.order.OrderAction;
 import com.github.fevernova.task.exchange.data.result.OrderMatch;
@@ -11,8 +12,6 @@ import lombok.Setter;
 import net.openhft.chronicle.bytes.BytesIn;
 import net.openhft.chronicle.bytes.BytesOut;
 import net.openhft.chronicle.bytes.WriteBytesMarshallable;
-
-import java.util.concurrent.atomic.AtomicLong;
 
 
 @Getter
@@ -70,7 +69,7 @@ public final class OrderArray implements WriteBytesMarshallable {
     }
 
 
-    public void meet(AtomicLong sequence, OrderArray that, int symbolId, long matchPrice, DataProvider<Long, OrderMatch> provider) {
+    public void meet(Sequence sequence, OrderArray that, int symbolId, long matchPrice, DataProvider<Long, OrderMatch> provider) {
 
         do {
             Order thisOrder = this.queue.peek();

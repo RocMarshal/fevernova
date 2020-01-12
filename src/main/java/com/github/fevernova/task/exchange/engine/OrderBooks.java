@@ -2,6 +2,7 @@ package com.github.fevernova.task.exchange.engine;
 
 
 import com.github.fevernova.framework.component.DataProvider;
+import com.github.fevernova.task.exchange.data.Sequence;
 import com.github.fevernova.task.exchange.data.cmd.OrderCommand;
 import com.github.fevernova.task.exchange.data.order.Order;
 import com.github.fevernova.task.exchange.data.order.OrderAction;
@@ -17,8 +18,6 @@ import net.openhft.chronicle.bytes.BytesIn;
 import net.openhft.chronicle.bytes.BytesOut;
 import net.openhft.chronicle.bytes.WriteBytesMarshallable;
 
-import java.util.concurrent.atomic.AtomicLong;
-
 
 @Getter
 public final class OrderBooks implements WriteBytesMarshallable {
@@ -29,7 +28,7 @@ public final class OrderBooks implements WriteBytesMarshallable {
     @Setter
     private long lastMatchPrice = 0L;
 
-    private AtomicLong sequence = new AtomicLong(0L);
+    private Sequence sequence = new Sequence();
 
     private final Books askBooks = new AskBooks();
 

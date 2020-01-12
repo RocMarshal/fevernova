@@ -2,6 +2,7 @@ package com.github.fevernova.task.exchange.engine.struct;
 
 
 import com.github.fevernova.framework.component.DataProvider;
+import com.github.fevernova.task.exchange.data.Sequence;
 import com.github.fevernova.task.exchange.data.cmd.OrderCommand;
 import com.github.fevernova.task.exchange.data.order.Order;
 import com.github.fevernova.task.exchange.data.result.OrderMatch;
@@ -16,7 +17,6 @@ import net.openhft.chronicle.core.io.IORuntimeException;
 
 import java.util.Map;
 import java.util.NavigableMap;
-import java.util.concurrent.atomic.AtomicLong;
 
 
 @Getter
@@ -82,7 +82,7 @@ public abstract class Books implements WriteBytesMarshallable, ReadBytesMarshall
     }
 
 
-    public void cancel(OrderCommand orderCommand, DataProvider<Long, OrderMatch> provider, AtomicLong sequence) {
+    public void cancel(OrderCommand orderCommand, DataProvider<Long, OrderMatch> provider, Sequence sequence) {
 
         OrderArray oa = this.priceTree.get(orderCommand.getPrice());
         if (oa == null) {
