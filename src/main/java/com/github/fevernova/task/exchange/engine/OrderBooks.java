@@ -51,7 +51,7 @@ public final class OrderBooks implements WriteBytesMarshallable {
     }
 
 
-    public void match(OrderCommand orderCommand, DataProvider<Long, OrderMatch> provider) {
+    public void place(OrderCommand orderCommand, DataProvider<Long, OrderMatch> provider) {
 
         Books thisBooks = OrderAction.ASK == orderCommand.getOrderAction() ? this.askBooks : this.bidBooks;
         Books thatBooks = OrderAction.ASK == orderCommand.getOrderAction() ? this.bidBooks : this.askBooks;
@@ -83,7 +83,6 @@ public final class OrderBooks implements WriteBytesMarshallable {
             orderMatch.setResultCode(ResultCode.CANCEL_IOC);
             provider.push();
         }
-
         thisBooks.handleLazy();
     }
 

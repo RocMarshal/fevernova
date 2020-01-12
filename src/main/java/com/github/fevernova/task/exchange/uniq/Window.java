@@ -8,7 +8,6 @@ import net.openhft.chronicle.bytes.BytesIn;
 import net.openhft.chronicle.bytes.BytesOut;
 import net.openhft.chronicle.bytes.WriteBytesMarshallable;
 import org.apache.commons.lang3.Validate;
-import org.eclipse.collections.impl.map.mutable.primitive.IntObjectHashMap;
 import org.jetbrains.annotations.NotNull;
 import org.roaringbitmap.RoaringBitmap;
 
@@ -24,9 +23,7 @@ public class Window implements WriteBytesMarshallable, Comparable<Window> {
     @Getter
     private final int seq;
 
-    private final IntObjectHashMap<RoaringBitmap> bitmaps;
-
-    private final Map<Integer, RoaringBitmap> bitmapsCache;
+    private final Map<Integer, RoaringBitmap> bitmaps;
 
     //cache
     private int currentHigh = 0;
@@ -37,8 +34,7 @@ public class Window implements WriteBytesMarshallable, Comparable<Window> {
     public Window(int seq) {
 
         this.seq = seq;
-        this.bitmaps = new IntObjectHashMap<>();
-        this.bitmapsCache = Maps.newHashMap();
+        this.bitmaps = Maps.newHashMap();
     }
 
 
@@ -46,7 +42,7 @@ public class Window implements WriteBytesMarshallable, Comparable<Window> {
 
         this.seq = bytes.readInt();
         int length = bytes.readInt();
-        this.bitmaps = new IntObjectHashMap<>(length);
+        this.bitmaps = Maps.newHashMapWithExpectedSize(length);
         for (int i = 0; i < length; i++) {
             try {
                 int key = bytes.readInt();
@@ -62,8 +58,6 @@ public class Window implements WriteBytesMarshallable, Comparable<Window> {
                 Validate.isTrue(false);
             }
         }
-        this.bitmapsCache = Maps.newHashMap();
-        this.bitmaps.forEachKeyValue((each, parameter) -> bitmapsCache.put(each, parameter));
     }
 
 
@@ -71,7 +65,7 @@ public class Window implements WriteBytesMarshallable, Comparable<Window> {
 
         bytes.writeInt(this.seq);
         bytes.writeInt(this.bitmaps.size());
-        this.bitmaps.forEachKeyValue((k, v) -> {
+        this.bitmaps.forEach((k, v) -> {
             bytes.writeInt(k);
             v.runOptimize();
             int size = v.serializedSizeInBytes();
@@ -93,14 +87,13 @@ public class Window implements WriteBytesMarshallable, Comparable<Window> {
         int low = (int) eventId;
         if (this.currentRb == null || this.currentHigh != high) {
             this.currentHigh = high;
-            this.currentRb = this.bitmapsCache.get(high);
+            this.currentRb = this.bitmaps.get(high);
             if (this.currentRb == null) {
                 this.currentRb = new RoaringBitmap();
                 this.bitmaps.put(high, this.currentRb);
-                this.bitmapsCache.put(high, this.currentRb);
             }
         }
-        return currentRb.checkedAdd(low);
+        return this.currentRb.checkedAdd(low);
     }
 
 
@@ -112,6 +105,6 @@ public class Window implements WriteBytesMarshallable, Comparable<Window> {
 
     public long count() {
 
-        return this.bitmaps.stream().mapToLong(value -> value.getLongCardinality()).sum();
+        return this.bitmaps.entrySet().stream().mapToLong(value -> value.getValue().getLongCardinality()).sum();
     }
 }
