@@ -12,6 +12,7 @@ import com.github.fevernova.task.exchange.data.result.ResultCode;
 import com.github.fevernova.task.exchange.engine.struct.AskBooks;
 import com.github.fevernova.task.exchange.engine.struct.BidBooks;
 import com.github.fevernova.task.exchange.engine.struct.Books;
+import com.github.fevernova.task.exchange.uniq.UniqIdFilter;
 import lombok.Getter;
 import lombok.Setter;
 import net.openhft.chronicle.bytes.BytesIn;
@@ -28,11 +29,13 @@ public final class OrderBooks implements WriteBytesMarshallable {
     @Setter
     private long lastMatchPrice = 0L;
 
-    private Sequence sequence = new Sequence();
+    private final Sequence sequence = new Sequence();
 
     private final Books askBooks = new AskBooks();
 
     private final Books bidBooks = new BidBooks();
+
+    private final UniqIdFilter uniqIdFilter = new UniqIdFilter(60_000L, 15);
 
 
     public OrderBooks(int symbolId) {
@@ -48,10 +51,15 @@ public final class OrderBooks implements WriteBytesMarshallable {
         this.sequence.set(bytes.readLong());
         this.askBooks.readMarshallable(bytes);
         this.bidBooks.readMarshallable(bytes);
+        this.uniqIdFilter.readMarshallable(bytes);
     }
 
 
     public void place(OrderCommand orderCommand, DataProvider<Long, OrderMatch> provider) {
+
+        if (!isUnique(orderCommand)) {
+            return;
+        }
 
         Books thisBooks = OrderAction.ASK == orderCommand.getOrderAction() ? this.askBooks : this.bidBooks;
         Books thatBooks = OrderAction.ASK == orderCommand.getOrderAction() ? this.bidBooks : this.askBooks;
@@ -118,6 +126,12 @@ public final class OrderBooks implements WriteBytesMarshallable {
     }
 
 
+    private boolean isUnique(OrderCommand orderCommand) {
+
+        return this.uniqIdFilter.unique(orderCommand.getOrderId(), orderCommand.getTimestamp());
+    }
+
+
     @Override public void writeMarshallable(BytesOut bytes) {
 
         bytes.writeInt(this.symbolId);
@@ -125,5 +139,6 @@ public final class OrderBooks implements WriteBytesMarshallable {
         bytes.writeLong(this.sequence.get());
         this.askBooks.writeMarshallable(bytes);
         this.bidBooks.writeMarshallable(bytes);
+        this.uniqIdFilter.writeMarshallable(bytes);
     }
 }

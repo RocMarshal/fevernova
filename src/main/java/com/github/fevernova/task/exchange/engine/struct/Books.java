@@ -5,7 +5,6 @@ import com.github.fevernova.framework.component.DataProvider;
 import com.github.fevernova.task.exchange.data.Sequence;
 import com.github.fevernova.task.exchange.data.cmd.OrderCommand;
 import com.github.fevernova.task.exchange.data.order.Order;
-import com.github.fevernova.task.exchange.data.depth.DepthResult;
 import com.github.fevernova.task.exchange.data.result.OrderMatch;
 import com.github.fevernova.task.exchange.data.result.ResultCode;
 import com.github.fevernova.task.exchange.engine.OrderArray;
@@ -122,12 +121,6 @@ public abstract class Books implements WriteBytesMarshallable, ReadBytesMarshall
             this.orderArray.setLazy(false);
             this.priceTree.put(this.price, this.orderArray);
         }
-    }
-
-
-    public void dumpDepth(int type, DepthResult depthRecords) {
-
-
     }
 
 

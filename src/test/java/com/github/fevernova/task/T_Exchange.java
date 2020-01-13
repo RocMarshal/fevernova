@@ -17,7 +17,6 @@ import com.github.fevernova.task.exchange.data.order.OrderType;
 import com.github.fevernova.task.exchange.data.result.OrderMatch;
 import com.github.fevernova.task.exchange.data.result.OrderMatchFactory;
 import com.github.fevernova.task.exchange.engine.OrderBooksEngine;
-import com.github.fevernova.task.exchange.uniq.SlideWindowFilter;
 import org.apache.commons.lang3.Validate;
 import org.junit.Before;
 import org.junit.Test;
@@ -27,8 +26,6 @@ public class T_Exchange {
 
 
     private OrderBooksEngine orderBooksEngine;
-
-    private SlideWindowFilter slideWindowFilter;
 
     private FSStorage fsStorage;
 
@@ -43,7 +40,6 @@ public class T_Exchange {
         GlobalContext globalContext = Common.createGlobalContext();
         TaskContext taskContext = Common.createTaskContext();
         this.orderBooksEngine = new OrderBooksEngine(globalContext, taskContext);
-        this.slideWindowFilter = new SlideWindowFilter(globalContext, taskContext);
         this.fsStorage = new FSStorage(globalContext, taskContext);
         this.binaryFileIdentity =
                 BinaryFileIdentity.builder().componentType(ComponentType.PARSER).total(3).index(1).identity(OrderBooksEngine.CONS_NAME).build();
@@ -76,9 +72,7 @@ public class T_Exchange {
     private int parser(OrderCommand orderCommand) {
 
         if (OrderCommandType.PLACE_ORDER == orderCommand.getOrderCommandType()) {
-            if (this.slideWindowFilter.unique(orderCommand.getSymbolId(), orderCommand.getOrderId(), orderCommand.getTimestamp())) {
-                this.orderBooksEngine.placeOrder(orderCommand, this.provider);
-            }
+            this.orderBooksEngine.placeOrder(orderCommand, this.provider);
         } else if (OrderCommandType.CANCEL_ORDER == orderCommand.getOrderCommandType()) {
             this.orderBooksEngine.cancelOrder(orderCommand, this.provider);
         }

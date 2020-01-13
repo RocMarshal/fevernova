@@ -1,14 +1,13 @@
 package com.github.fevernova.task.exchange.uniq;
 
 
+import com.github.fevernova.task.exchange.window.ObjectWithId;
 import com.google.common.collect.Maps;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import net.openhft.chronicle.bytes.BytesIn;
 import net.openhft.chronicle.bytes.BytesOut;
-import net.openhft.chronicle.bytes.WriteBytesMarshallable;
+import net.openhft.chronicle.core.io.IORuntimeException;
 import org.apache.commons.lang3.Validate;
-import org.jetbrains.annotations.NotNull;
 import org.roaringbitmap.RoaringBitmap;
 
 import java.io.IOException;
@@ -17,11 +16,8 @@ import java.util.Map;
 
 
 @Slf4j
-public class Window implements WriteBytesMarshallable, Comparable<Window> {
+public class UniqIdData extends ObjectWithId {
 
-
-    @Getter
-    private final int seq;
 
     private final Map<Integer, RoaringBitmap> bitmaps;
 
@@ -31,49 +27,10 @@ public class Window implements WriteBytesMarshallable, Comparable<Window> {
     private RoaringBitmap currentRb;
 
 
-    public Window(int seq) {
+    public UniqIdData(int id) {
 
-        this.seq = seq;
+        super(id);
         this.bitmaps = Maps.newHashMap();
-    }
-
-
-    public Window(final BytesIn bytes) {
-
-        this.seq = bytes.readInt();
-        int length = bytes.readInt();
-        this.bitmaps = Maps.newHashMapWithExpectedSize(length);
-        for (int i = 0; i < length; i++) {
-            try {
-                int key = bytes.readInt();
-                int valueLen = bytes.readInt();
-                ByteBuffer byteBuffer = ByteBuffer.allocate(valueLen);
-                bytes.read(byteBuffer);
-                byteBuffer.flip();
-                RoaringBitmap rb = new RoaringBitmap();
-                rb.deserialize(byteBuffer);
-                this.bitmaps.put(key, rb);
-            } catch (IOException e) {
-                log.error("Window recovery error : ", e);
-                Validate.isTrue(false);
-            }
-        }
-    }
-
-
-    @Override public void writeMarshallable(final BytesOut bytes) {
-
-        bytes.writeInt(this.seq);
-        bytes.writeInt(this.bitmaps.size());
-        this.bitmaps.forEach((k, v) -> {
-            bytes.writeInt(k);
-            v.runOptimize();
-            int size = v.serializedSizeInBytes();
-            ByteBuffer out = ByteBuffer.allocate(size);
-            v.serialize(out);
-            bytes.writeInt(size);
-            bytes.write(out.array());
-        });
     }
 
 
@@ -97,9 +54,39 @@ public class Window implements WriteBytesMarshallable, Comparable<Window> {
     }
 
 
-    @Override public int compareTo(@NotNull Window o) {
+    @Override public void readMarshallable(BytesIn bytes) throws IORuntimeException {
 
-        return Long.compare(this.seq, o.getSeq());
+        int length = bytes.readInt();
+        for (int i = 0; i < length; i++) {
+            try {
+                int key = bytes.readInt();
+                int valueLen = bytes.readInt();
+                ByteBuffer byteBuffer = ByteBuffer.allocate(valueLen);
+                bytes.read(byteBuffer);
+                byteBuffer.flip();
+                RoaringBitmap rb = new RoaringBitmap();
+                rb.deserialize(byteBuffer);
+                this.bitmaps.put(key, rb);
+            } catch (IOException e) {
+                log.error("UniqIdData recovery error : ", e);
+                Validate.isTrue(false);
+            }
+        }
+    }
+
+
+    @Override public void writeMarshallable(BytesOut bytes) {
+
+        bytes.writeInt(this.bitmaps.size());
+        this.bitmaps.forEach((k, v) -> {
+            bytes.writeInt(k);
+            v.runOptimize();
+            int size = v.serializedSizeInBytes();
+            ByteBuffer out = ByteBuffer.allocate(size);
+            v.serialize(out);
+            bytes.writeInt(size);
+            bytes.write(out.array());
+        });
     }
 
 
