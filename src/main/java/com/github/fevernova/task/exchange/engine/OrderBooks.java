@@ -2,18 +2,18 @@ package com.github.fevernova.task.exchange.engine;
 
 
 import com.github.fevernova.framework.component.DataProvider;
-import com.github.fevernova.task.exchange.data.candle.Line;
 import com.github.fevernova.task.exchange.data.Sequence;
+import com.github.fevernova.task.exchange.data.candle.Line;
 import com.github.fevernova.task.exchange.data.cmd.OrderCommand;
 import com.github.fevernova.task.exchange.data.order.Order;
 import com.github.fevernova.task.exchange.data.order.OrderAction;
 import com.github.fevernova.task.exchange.data.order.OrderType;
 import com.github.fevernova.task.exchange.data.result.OrderMatch;
 import com.github.fevernova.task.exchange.data.result.ResultCode;
+import com.github.fevernova.task.exchange.data.uniq.UniqIdFilter;
 import com.github.fevernova.task.exchange.engine.struct.AskBooks;
 import com.github.fevernova.task.exchange.engine.struct.BidBooks;
 import com.github.fevernova.task.exchange.engine.struct.Books;
-import com.github.fevernova.task.exchange.data.uniq.UniqIdFilter;
 import lombok.Getter;
 import lombok.Setter;
 import net.openhft.chronicle.bytes.BytesIn;
@@ -44,6 +44,7 @@ public final class OrderBooks implements WriteBytesMarshallable {
     public OrderBooks(int symbolId) {
 
         this.symbolId = symbolId;
+        this.line.setSymbolId(symbolId);
     }
 
 
@@ -55,6 +56,7 @@ public final class OrderBooks implements WriteBytesMarshallable {
         this.askBooks.readMarshallable(bytes);
         this.bidBooks.readMarshallable(bytes);
         this.uniqIdFilter.readMarshallable(bytes);
+        this.line.readMarshallable(bytes);
     }
 
 
@@ -114,9 +116,9 @@ public final class OrderBooks implements WriteBytesMarshallable {
             long matchSize = Math.min(bidOrderArray.getSize(), askOrderArray.getSize());
             this.line.acc(timestamp, this.lastMatchPrice, matchSize);
             if (bidOrderArray.getSize() > askOrderArray.getSize()) {
-                bidOrderArray.meet(this.sequence, askOrderArray, this.symbolId, this.lastMatchPrice, provider);
+                bidOrderArray.meet(this.sequence, askOrderArray, this.symbolId, this.lastMatchPrice, provider, timestamp);
             } else {
-                askOrderArray.meet(this.sequence, bidOrderArray, this.symbolId, this.lastMatchPrice, provider);
+                askOrderArray.meet(this.sequence, bidOrderArray, this.symbolId, this.lastMatchPrice, provider, timestamp);
             }
             this.bidBooks.adjustByOrderArray(bidOrderArray);
             this.askBooks.adjustByOrderArray(askOrderArray);
@@ -145,5 +147,6 @@ public final class OrderBooks implements WriteBytesMarshallable {
         this.askBooks.writeMarshallable(bytes);
         this.bidBooks.writeMarshallable(bytes);
         this.uniqIdFilter.writeMarshallable(bytes);
+        this.line.writeMarshallable(bytes);
     }
 }

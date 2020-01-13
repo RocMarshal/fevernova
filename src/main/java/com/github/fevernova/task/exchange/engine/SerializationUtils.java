@@ -6,7 +6,6 @@ import lombok.extern.slf4j.Slf4j;
 import net.openhft.chronicle.bytes.BytesIn;
 import net.openhft.chronicle.bytes.BytesOut;
 import net.openhft.chronicle.bytes.WriteBytesMarshallable;
-import org.eclipse.collections.impl.map.mutable.primitive.IntObjectHashMap;
 
 import java.util.List;
 import java.util.Map;
@@ -17,16 +16,6 @@ import java.util.function.Function;
 public class SerializationUtils {
 
 
-    public static <T extends WriteBytesMarshallable> void writeIntMap(final IntObjectHashMap<T> hashMap, final BytesOut bytes) {
-
-        bytes.writeInt(hashMap.size());
-        hashMap.forEachKeyValue((k, v) -> {
-            bytes.writeInt(k);
-            v.writeMarshallable(bytes);
-        });
-    }
-
-
     public static <T extends WriteBytesMarshallable> void writeIntHashMap(final Map<Integer, T> hashMap, final BytesOut bytes) {
 
         bytes.writeInt(hashMap.size());
@@ -34,34 +23,6 @@ public class SerializationUtils {
             bytes.writeInt(k);
             v.writeMarshallable(bytes);
         });
-    }
-
-
-    public static <T extends WriteBytesMarshallable> void writeList(final List<T> list, final BytesOut bytes) {
-
-        bytes.writeInt(list.size());
-        list.forEach(t -> t.writeMarshallable(bytes));
-    }
-
-
-    public static <T extends WriteBytesMarshallable> void writeLongArray(final long[] longs, final BytesOut bytes) {
-
-        bytes.writeInt(longs.length);
-        for (long x : longs) {
-            bytes.writeLong(x);
-        }
-    }
-
-
-    public static <T> IntObjectHashMap<T> readIntMap(final BytesIn bytes, final Function<BytesIn, T> creator) {
-
-        int length = bytes.readInt();
-        final IntObjectHashMap<T> hashMap = new IntObjectHashMap<>(length);
-        for (int i = 0; i < length; i++) {
-            int k = bytes.readInt();
-            hashMap.put(k, creator.apply(bytes));
-        }
-        return hashMap;
     }
 
 
@@ -76,4 +37,19 @@ public class SerializationUtils {
         return hashMap;
     }
 
+
+    public static <T extends WriteBytesMarshallable> void writeList(final List<T> list, final BytesOut bytes) {
+
+        bytes.writeInt(list.size());
+        list.forEach(t -> t.writeMarshallable(bytes));
+    }
+
+
+    public static void writeLongArray(final long[] longs, final BytesOut bytes) {
+
+        bytes.writeInt(longs.length);
+        for (long x : longs) {
+            bytes.writeLong(x);
+        }
+    }
 }

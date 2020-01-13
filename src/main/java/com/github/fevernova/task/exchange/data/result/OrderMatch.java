@@ -1,7 +1,6 @@
 package com.github.fevernova.task.exchange.data.result;
 
 
-import com.github.fevernova.framework.common.Util;
 import com.github.fevernova.framework.common.data.Data;
 import com.github.fevernova.task.exchange.data.Sequence;
 import com.github.fevernova.task.exchange.data.cmd.OrderCommand;
@@ -106,13 +105,13 @@ public class OrderMatch implements Data {
 
 
     public void from(Sequence sequence, Order order, int symbolId, OrderAction orderAction, long orderPrice, long matchPrice, long matchFilledSize,
-                     Order thatOrder, long depthSize) {
+                     Order thatOrder, long depthSize, long timestamp) {
 
         this.sequence = sequence.getAndIncrement();
         this.orderId = order.getOrderId();
         this.symbolId = symbolId;
         this.userId = order.getUserId();
-        this.timestamp = Util.nowMS();
+        this.timestamp = timestamp;
         this.orderAction = orderAction;
         this.orderType = order.getOrderType();
         this.orderPrice = orderPrice;

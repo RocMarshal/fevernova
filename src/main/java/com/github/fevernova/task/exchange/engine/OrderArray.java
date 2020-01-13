@@ -69,7 +69,7 @@ public final class OrderArray implements WriteBytesMarshallable {
     }
 
 
-    public void meet(Sequence sequence, OrderArray that, int symbolId, long matchPrice, DataProvider<Long, OrderMatch> provider) {
+    public void meet(Sequence sequence, OrderArray that, int symbolId, long matchPrice, DataProvider<Long, OrderMatch> provider, long timestamp) {
 
         do {
             Order thisOrder = this.queue.peek();
@@ -80,10 +80,10 @@ public final class OrderArray implements WriteBytesMarshallable {
             that.decrement(thatOrder, delta);
             this.decrement(thisOrder, delta);
             OrderMatch thisOrderMatch = provider.feedOne(thisOrder.getOrderId());
-            thisOrderMatch.from(sequence, thisOrder, symbolId, this.orderAction, this.price, matchPrice, delta, thatOrder, this.size);
+            thisOrderMatch.from(sequence, thisOrder, symbolId, this.orderAction, this.price, matchPrice, delta, thatOrder, this.size, timestamp);
             provider.push();
             OrderMatch thatOrderMatch = provider.feedOne(thatOrder.getOrderId());
-            thatOrderMatch.from(sequence, thatOrder, symbolId, that.orderAction, that.price, matchPrice, delta, thisOrder, that.size);
+            thatOrderMatch.from(sequence, thatOrder, symbolId, that.orderAction, that.price, matchPrice, delta, thisOrder, that.size, timestamp);
             provider.push();
         } while (that.getSize() > 0L);
     }
