@@ -1,4 +1,4 @@
-package com.github.fevernova.task.exchange.data.depth;
+package com.github.fevernova.task.exchange.data.candle;
 
 
 import com.github.fevernova.task.exchange.engine.SerializationUtils;
@@ -10,14 +10,14 @@ import net.openhft.chronicle.bytes.WriteBytesMarshallable;
 import java.util.List;
 
 
-public class DepthData implements WriteBytesMarshallable {
+public class CandleData implements WriteBytesMarshallable {
 
 
     @Getter
-    private final List<DepthResult> data;
+    private final List<Line> data;
 
 
-    public DepthData(int size) {
+    public CandleData(int size) {
 
         this.data = Lists.newArrayListWithCapacity(size);
     }
@@ -27,4 +27,5 @@ public class DepthData implements WriteBytesMarshallable {
 
         SerializationUtils.writeList(this.data, bytes);
     }
+
 }

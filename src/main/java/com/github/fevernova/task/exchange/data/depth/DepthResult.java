@@ -2,7 +2,7 @@ package com.github.fevernova.task.exchange.data.depth;
 
 
 import com.github.fevernova.framework.common.Util;
-import com.github.fevernova.task.exchange.SerializationUtils;
+import com.github.fevernova.task.exchange.engine.SerializationUtils;
 import com.github.fevernova.task.exchange.engine.OrderArray;
 import com.github.fevernova.task.exchange.engine.OrderBooks;
 import com.github.fevernova.task.exchange.engine.struct.Books;

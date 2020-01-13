@@ -1,4 +1,4 @@
-package com.github.fevernova.task.exchange.uniq;
+package com.github.fevernova.task.exchange.data.uniq;
 
 
 import com.github.fevernova.task.exchange.window.SlideWindow;

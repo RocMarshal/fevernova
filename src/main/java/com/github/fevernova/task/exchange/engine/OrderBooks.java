@@ -2,6 +2,7 @@ package com.github.fevernova.task.exchange.engine;
 
 
 import com.github.fevernova.framework.component.DataProvider;
+import com.github.fevernova.task.exchange.data.candle.Line;
 import com.github.fevernova.task.exchange.data.Sequence;
 import com.github.fevernova.task.exchange.data.cmd.OrderCommand;
 import com.github.fevernova.task.exchange.data.order.Order;
@@ -12,7 +13,7 @@ import com.github.fevernova.task.exchange.data.result.ResultCode;
 import com.github.fevernova.task.exchange.engine.struct.AskBooks;
 import com.github.fevernova.task.exchange.engine.struct.BidBooks;
 import com.github.fevernova.task.exchange.engine.struct.Books;
-import com.github.fevernova.task.exchange.uniq.UniqIdFilter;
+import com.github.fevernova.task.exchange.data.uniq.UniqIdFilter;
 import lombok.Getter;
 import lombok.Setter;
 import net.openhft.chronicle.bytes.BytesIn;
@@ -35,7 +36,9 @@ public final class OrderBooks implements WriteBytesMarshallable {
 
     private final Books bidBooks = new BidBooks();
 
-    private final UniqIdFilter uniqIdFilter = new UniqIdFilter(60_000L, 15);
+    private final UniqIdFilter uniqIdFilter = new UniqIdFilter(60_000L, 10);
+
+    private final Line line = new Line(60_000L, 10);
 
 
     public OrderBooks(int symbolId) {
@@ -81,7 +84,7 @@ public final class OrderBooks implements WriteBytesMarshallable {
         orderPlaceMatch.setResultCode(ResultCode.PLACE);
         provider.push();
 
-        matchOrders(provider);
+        matchOrders(provider, orderCommand.getTimestamp());
 
         if (order.needIOCClear()) {
             orderArray.findAndRemoveOrder(order.getOrderId());
@@ -95,7 +98,7 @@ public final class OrderBooks implements WriteBytesMarshallable {
     }
 
 
-    private void matchOrders(DataProvider<Long, OrderMatch> provider) {
+    private void matchOrders(DataProvider<Long, OrderMatch> provider, long timestamp) {
 
         while (!this.askBooks.newEdgePrice(this.bidBooks.getPrice())) {
             //限价撮合的定价逻辑
@@ -108,6 +111,8 @@ public final class OrderBooks implements WriteBytesMarshallable {
             }
             OrderArray bidOrderArray = this.bidBooks.getOrderArray();
             OrderArray askOrderArray = this.askBooks.getOrderArray();
+            long matchSize = Math.min(bidOrderArray.getSize(), askOrderArray.getSize());
+            this.line.acc(timestamp, this.lastMatchPrice, matchSize);
             if (bidOrderArray.getSize() > askOrderArray.getSize()) {
                 bidOrderArray.meet(this.sequence, askOrderArray, this.symbolId, this.lastMatchPrice, provider);
             } else {
