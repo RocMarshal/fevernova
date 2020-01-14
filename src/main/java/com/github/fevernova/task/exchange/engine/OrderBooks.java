@@ -97,6 +97,7 @@ public final class OrderBooks implements WriteBytesMarshallable {
             provider.push();
         }
         thisBooks.handleLazy();
+        this.line.setLastSequence(this.sequence.get());
     }
 
 
