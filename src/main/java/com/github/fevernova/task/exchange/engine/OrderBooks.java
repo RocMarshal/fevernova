@@ -114,11 +114,11 @@ public final class OrderBooks implements WriteBytesMarshallable {
             }
             OrderArray bidOrderArray = this.bidBooks.getOrderArray();
             OrderArray askOrderArray = this.askBooks.getOrderArray();
-            long matchSize = Math.min(bidOrderArray.getSize(), askOrderArray.getSize());
-            this.line.acc(timestamp, this.lastMatchPrice, matchSize);
             if (bidOrderArray.getSize() > askOrderArray.getSize()) {
+                this.line.acc(timestamp, this.lastMatchPrice, askOrderArray.getSize());
                 bidOrderArray.meet(this.sequence, askOrderArray, this.symbolId, this.lastMatchPrice, provider, timestamp);
             } else {
+                this.line.acc(timestamp, this.lastMatchPrice, bidOrderArray.getSize());
                 askOrderArray.meet(this.sequence, bidOrderArray, this.symbolId, this.lastMatchPrice, provider, timestamp);
             }
             this.bidBooks.adjustByOrderArray(bidOrderArray);

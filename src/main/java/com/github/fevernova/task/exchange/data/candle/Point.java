@@ -10,13 +10,15 @@ import net.openhft.chronicle.core.io.IORuntimeException;
 public class Point extends ObjectWithId {
 
 
+    private long startPrice;
+
+    private long endPrice;
+
     private long minPrice = Long.MAX_VALUE;
 
     private long maxPrice = Long.MIN_VALUE;
 
     private long totalSize;
-
-    private long totalCost;//sum(price * size)
 
 
     public Point(int id) {
@@ -27,10 +29,19 @@ public class Point extends ObjectWithId {
 
     public void acc(long price, long size) {
 
-        this.minPrice = Math.min(price, this.minPrice);
-        this.maxPrice = Math.max(price, this.maxPrice);
-        this.totalSize += size;
-        this.totalCost += price * size;
+        if (this.startPrice == 0L) {
+            this.startPrice = price;
+            this.endPrice = price;
+            this.minPrice = price;
+            this.maxPrice = price;
+            this.totalSize = size;
+        } else {
+            this.minPrice = Math.min(price, this.minPrice);
+            this.maxPrice = Math.max(price, this.maxPrice);
+            this.totalSize += size;
+            this.endPrice = price;
+        }
+
     }
 
 
@@ -39,7 +50,8 @@ public class Point extends ObjectWithId {
         this.minPrice = bytes.readLong();
         this.maxPrice = bytes.readLong();
         this.totalSize = bytes.readLong();
-        this.totalCost = bytes.readLong();
+        this.startPrice = bytes.readLong();
+        this.endPrice = bytes.readLong();
     }
 
 
@@ -48,6 +60,7 @@ public class Point extends ObjectWithId {
         bytes.writeLong(this.minPrice);
         bytes.writeLong(this.maxPrice);
         bytes.writeLong(this.totalSize);
-        bytes.writeLong(this.totalCost);
+        bytes.writeLong(this.startPrice);
+        bytes.writeLong(this.endPrice);
     }
 }
