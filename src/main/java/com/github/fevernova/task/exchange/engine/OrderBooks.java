@@ -97,7 +97,6 @@ public final class OrderBooks implements WriteBytesMarshallable {
             provider.push();
         }
         thisBooks.handleLazy();
-        this.line.setLastSequence(this.sequence.get());
     }
 
 
@@ -123,6 +122,7 @@ public final class OrderBooks implements WriteBytesMarshallable {
             }
             this.bidBooks.adjustByOrderArray(bidOrderArray);
             this.askBooks.adjustByOrderArray(askOrderArray);
+            this.line.setLastSequence(this.sequence.get());
         }
     }
 
