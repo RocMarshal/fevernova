@@ -52,4 +52,13 @@ public class SerializationUtils {
             bytes.writeLong(x);
         }
     }
+
+
+    public static void writeIntArray(final int[] ints, final BytesOut bytes) {
+
+        bytes.writeInt(ints.length);
+        for (int x : ints) {
+            bytes.writeInt(x);
+        }
+    }
 }

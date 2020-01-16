@@ -82,7 +82,7 @@ public final class OrderBooks implements WriteBytesMarshallable {
         orderArray.addOrder(order);
 
         OrderMatch orderPlaceMatch = provider.feedOne(orderCommand.getOrderId());
-        orderPlaceMatch.from(this.sequence, orderCommand, order, orderArray.getSize());
+        orderPlaceMatch.from(this.sequence, orderCommand, order, orderArray);
         orderPlaceMatch.setResultCode(ResultCode.PLACE);
         provider.push();
 
@@ -92,7 +92,7 @@ public final class OrderBooks implements WriteBytesMarshallable {
             orderArray.findAndRemoveOrder(order.getOrderId());
             thisBooks.adjustByOrderArray(orderArray);
             OrderMatch orderMatch = provider.feedOne(order.getOrderId());
-            orderMatch.from(this.sequence, orderCommand, order, orderArray.getSize());
+            orderMatch.from(this.sequence, orderCommand, order, orderArray);
             orderMatch.setResultCode(ResultCode.CANCEL_IOC);
             provider.push();
         }
