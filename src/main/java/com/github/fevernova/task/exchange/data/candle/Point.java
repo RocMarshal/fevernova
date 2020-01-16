@@ -20,6 +20,8 @@ public class Point extends ObjectWithId {
 
     private long totalSize;
 
+    private long amount;
+
 
     public Point(int id) {
 
@@ -31,16 +33,12 @@ public class Point extends ObjectWithId {
 
         if (this.totalSize == 0L) {
             this.startPrice = price;
-            this.endPrice = price;
-            this.minPrice = price;
-            this.maxPrice = price;
-            this.totalSize = size;
-        } else {
-            this.endPrice = price;
-            this.minPrice = Math.min(price, this.minPrice);
-            this.maxPrice = Math.max(price, this.maxPrice);
-            this.totalSize += size;
         }
+        this.endPrice = price;
+        this.minPrice = Math.min(price, this.minPrice);
+        this.maxPrice = Math.max(price, this.maxPrice);
+        this.totalSize += size;
+        this.amount += price * size;
 
     }
 
@@ -52,6 +50,7 @@ public class Point extends ObjectWithId {
         this.minPrice = bytes.readLong();
         this.maxPrice = bytes.readLong();
         this.totalSize = bytes.readLong();
+        this.amount = bytes.readLong();
     }
 
 
@@ -62,5 +61,6 @@ public class Point extends ObjectWithId {
         bytes.writeLong(this.minPrice);
         bytes.writeLong(this.maxPrice);
         bytes.writeLong(this.totalSize);
+        bytes.writeLong(this.amount);
     }
 }
