@@ -14,7 +14,9 @@ import org.junit.Test;
 public class T_CMD {
 
 
-    private OrderCommand cmd = new OrderCommand();
+    private final OrderCommand cmd = new OrderCommand();
+
+    private final int loop = 1_0000_0000;
 
 
     @Before
@@ -38,11 +40,11 @@ public class T_CMD {
         Common.warn();
         long st = Util.nowMS();
         long x = 0L;
-        for (int i = 0; i < 1_0000_0000; i++) {
+        for (int i = 0; i < loop; i++) {
             x += cmd.to().length;
         }
-        System.out.println(x);
         long et = Util.nowMS();
+        System.out.println(x);
         System.out.println(et - st);
     }
 
@@ -60,8 +62,8 @@ public class T_CMD {
             data.from(bytes);
             x += data.getPrice();
         }
-        System.out.println(x);
         long et = Util.nowMS();
+        System.out.println(x);
         System.out.println(et - st);
     }
 }

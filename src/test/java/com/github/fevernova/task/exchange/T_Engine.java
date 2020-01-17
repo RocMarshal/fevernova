@@ -1,4 +1,4 @@
-package com.github.fevernova.task;
+package com.github.fevernova.task.exchange;
 
 
 import com.github.fevernova.Common;
@@ -22,14 +22,14 @@ import org.junit.Before;
 import org.junit.Test;
 
 
-public class T_Exchange {
+public class T_Engine {
 
 
     private OrderBooksEngine orderBooksEngine;
 
     private FSStorage fsStorage;
 
-    private BinaryFileIdentity binaryFileIdentity;
+    private BinaryFileIdentity identity;
 
     private DataProvider<Long, OrderMatch> provider;
 
@@ -39,11 +39,10 @@ public class T_Exchange {
 
         GlobalContext globalContext = Common.createGlobalContext();
         TaskContext taskContext = Common.createTaskContext();
-        this.orderBooksEngine = new OrderBooksEngine(globalContext, taskContext);
-        this.fsStorage = new FSStorage(globalContext, taskContext);
-        this.binaryFileIdentity =
-                BinaryFileIdentity.builder().componentType(ComponentType.PARSER).total(3).index(1).identity(OrderBooksEngine.CONS_NAME).build();
-        this.provider = new DataProvider<Long, OrderMatch>() {
+        orderBooksEngine = new OrderBooksEngine(globalContext, taskContext);
+        fsStorage = new FSStorage(globalContext, taskContext);
+        identity = BinaryFileIdentity.builder().componentType(ComponentType.PARSER).total(3).index(1).identity(OrderBooksEngine.CONS_NAME).build();
+        provider = new DataProvider<Long, OrderMatch>() {
 
 
             private OrderMatch orderMatch = (OrderMatch) new OrderMatchFactory().createData();
@@ -72,9 +71,9 @@ public class T_Exchange {
     private int parser(OrderCommand orderCommand) {
 
         if (OrderCommandType.PLACE_ORDER == orderCommand.getOrderCommandType()) {
-            this.orderBooksEngine.placeOrder(orderCommand, this.provider);
+            orderBooksEngine.placeOrder(orderCommand, provider);
         } else if (OrderCommandType.CANCEL_ORDER == orderCommand.getOrderCommandType()) {
-            this.orderBooksEngine.cancelOrder(orderCommand, this.provider);
+            orderBooksEngine.cancelOrder(orderCommand, provider);
         }
         return 1;
     }
@@ -114,17 +113,16 @@ public class T_Exchange {
             parser(askCMD);
         }
 
-        this.fsStorage.saveBinary(this.binaryFileIdentity, new BarrierData(1L, 0L), this.orderBooksEngine);
+        fsStorage.saveBinary(identity, new BarrierData(1L, 0L), orderBooksEngine);
     }
 
 
     @Test
     public void T_load() {
 
-        this.orderBooksEngine = new OrderBooksEngine(null, null);
-        this.fsStorage
-                .recoveryBinary("/tmp/fevernova/testtype-testid/3-0/data/parser_3_1_OrderBooksEngine_0_1.bin", this.orderBooksEngine);
-        System.out.println(this.orderBooksEngine);
+        OrderBooksEngine orderBooksEngine = new OrderBooksEngine(null, null);
+        fsStorage.recoveryBinary("/tmp/fevernova/testtype-testid/3-0/data/parser_3_1_OrderBooksEngine_0_1.bin", orderBooksEngine);
+        System.out.println(orderBooksEngine);
 
     }
 
