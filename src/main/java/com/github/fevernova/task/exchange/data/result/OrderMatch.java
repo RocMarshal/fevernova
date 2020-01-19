@@ -11,6 +11,7 @@ import com.github.fevernova.task.exchange.engine.OrderArray;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.apache.commons.lang3.Validate;
 
 import java.nio.ByteBuffer;
 
@@ -22,22 +23,39 @@ public class OrderMatch implements Data {
 
 
     private long sequence;
+
     private int symbolId;
+
     private long orderId;
+
     private long userId;
+
     private long timestamp;
+
     private OrderAction orderAction;
+
     private OrderType orderType;
+
     private long orderPrice;
+
     private long orderPriceDepthSize;
+
     private int orderPriceOrderCount;
+
     private long orderTotalSize;
+
     private long orderAccFilledSize;
+
     private int orderVersion;
+
     private long matchPrice;
+
     private long matchSize;
+
     private long matchOrderId;
+
     private long matchOrderUserId;
+
     private ResultCode resultCode;
 
 
@@ -119,26 +137,29 @@ public class OrderMatch implements Data {
     }
 
 
-    @Override public void clearData() {
+    public void from(byte[] bytes) {
 
-        //this.sequence = 0L;
-        //this.symbolId = 0;
-        //this.orderId = 0L;
-        //this.userId = 0L;
-        //this.timestamp = 0L;
-        //this.orderAction = null;
-        //this.orderType = null;
-        //this.orderPrice = 0L;
-        //this.orderPriceDepthSize = 0L;
-        //this.orderPriceOrderCount = 0;
-        //this.orderTotalSize = 0L;
-        //this.orderAccFilledSize = 0L;
-        //this.orderVersion = 0;
-        //this.matchPrice = 0L;
-        //this.matchSize = 0L;
-        //this.matchOrderId = 0L;
-        //this.matchOrderUserId = 0L;
-        //this.resultCode = null;
+        ByteBuffer byteBuffer = ByteBuffer.wrap(bytes);
+        byte version = byteBuffer.get();
+        Validate.isTrue(version == 0);
+        this.sequence = byteBuffer.getLong();
+        this.symbolId = byteBuffer.getInt();
+        this.orderId = byteBuffer.getLong();
+        this.userId = byteBuffer.getLong();
+        this.timestamp = byteBuffer.getLong();
+        this.orderAction = OrderAction.of(byteBuffer.get());
+        this.orderType = OrderType.of(byteBuffer.get());
+        this.orderPrice = byteBuffer.getLong();
+        this.orderPriceDepthSize = byteBuffer.getLong();
+        this.orderPriceOrderCount = byteBuffer.getInt();
+        this.orderTotalSize = byteBuffer.getLong();
+        this.orderAccFilledSize = byteBuffer.getLong();
+        this.orderVersion = byteBuffer.getInt();
+        this.matchPrice = byteBuffer.getLong();
+        this.matchSize = byteBuffer.getLong();
+        this.matchOrderId = byteBuffer.getLong();
+        this.matchOrderUserId = byteBuffer.getLong();
+        this.resultCode = ResultCode.of(byteBuffer.getShort());
     }
 
 
@@ -165,5 +186,28 @@ public class OrderMatch implements Data {
         byteBuffer.putLong(this.matchOrderUserId);
         byteBuffer.putShort((short) this.resultCode.code);
         return byteBuffer.array();
+    }
+
+
+    @Override public void clearData() {
+
+        //this.sequence = 0L;
+        //this.symbolId = 0;
+        //this.orderId = 0L;
+        //this.userId = 0L;
+        //this.timestamp = 0L;
+        //this.orderAction = null;
+        //this.orderType = null;
+        //this.orderPrice = 0L;
+        //this.orderPriceDepthSize = 0L;
+        //this.orderPriceOrderCount = 0;
+        //this.orderTotalSize = 0L;
+        //this.orderAccFilledSize = 0L;
+        //this.orderVersion = 0;
+        //this.matchPrice = 0L;
+        //this.matchSize = 0L;
+        //this.matchOrderId = 0L;
+        //this.matchOrderUserId = 0L;
+        //this.resultCode = null;
     }
 }

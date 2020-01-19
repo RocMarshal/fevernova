@@ -7,15 +7,20 @@ import com.github.fevernova.task.exchange.engine.OrderBooks;
 import com.github.fevernova.task.exchange.engine.SerializationUtils;
 import com.github.fevernova.task.exchange.engine.struct.Books;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+import net.openhft.chronicle.bytes.BytesIn;
 import net.openhft.chronicle.bytes.BytesOut;
+import net.openhft.chronicle.bytes.ReadBytesMarshallable;
 import net.openhft.chronicle.bytes.WriteBytesMarshallable;
+import net.openhft.chronicle.core.io.IORuntimeException;
 import org.apache.commons.lang3.tuple.Triple;
 
 import java.util.Map;
 
 
 @Getter
-public class DepthResult implements WriteBytesMarshallable {
+@NoArgsConstructor
+public class DepthResult implements WriteBytesMarshallable, ReadBytesMarshallable {
 
 
     private int symbolId;
@@ -88,5 +93,20 @@ public class DepthResult implements WriteBytesMarshallable {
         SerializationUtils.writeLongArray(this.askPrice, bytes);
         SerializationUtils.writeLongArray(this.askSize, bytes);
         SerializationUtils.writeIntArray(this.askOrderCount, bytes);
+    }
+
+
+    @Override public void readMarshallable(BytesIn bytes) throws IORuntimeException {
+
+        this.symbolId = bytes.readInt();
+        this.lastSequence = bytes.readLong();
+        this.lastMatchPrice = bytes.readLong();
+        this.timestamp = bytes.readLong();
+        this.bidPrice = SerializationUtils.readLongArray(bytes);
+        this.bidSize = SerializationUtils.readLongArray(bytes);
+        this.bidOrderCount = SerializationUtils.readIntArray(bytes);
+        this.askPrice = SerializationUtils.readLongArray(bytes);
+        this.askSize = SerializationUtils.readLongArray(bytes);
+        this.askOrderCount = SerializationUtils.readIntArray(bytes);
     }
 }

@@ -1,6 +1,7 @@
 package com.github.fevernova.task.exchange.engine;
 
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
 import net.openhft.chronicle.bytes.BytesIn;
@@ -45,6 +46,17 @@ public class SerializationUtils {
     }
 
 
+    public static <T> List<T> readList(final BytesIn bytes, final Function<BytesIn, T> creator) {
+
+        int size = bytes.readInt();
+        List<T> result = Lists.newArrayListWithCapacity(size);
+        for (int i = 0; i < size; i++) {
+            result.add(creator.apply(bytes));
+        }
+        return result;
+    }
+
+
     public static void writeLongArray(final long[] longs, final BytesOut bytes) {
 
         bytes.writeInt(longs.length);
@@ -54,11 +66,33 @@ public class SerializationUtils {
     }
 
 
+    public static long[] readLongArray(BytesIn bytes) {
+
+        int size = bytes.readInt();
+        long[] result = new long[size];
+        for (int i = 0; i < size; i++) {
+            result[i] = bytes.readLong();
+        }
+        return result;
+    }
+
+
     public static void writeIntArray(final int[] ints, final BytesOut bytes) {
 
         bytes.writeInt(ints.length);
         for (int x : ints) {
             bytes.writeInt(x);
         }
+    }
+
+
+    public static int[] readIntArray(BytesIn bytes) {
+
+        int size = bytes.readInt();
+        int[] result = new int[size];
+        for (int i = 0; i < size; i++) {
+            result[i] = bytes.readInt();
+        }
+        return result;
     }
 }
