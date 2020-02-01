@@ -44,7 +44,6 @@ public final class OrderBooks implements WriteBytesMarshallable {
     public OrderBooks(int symbolId) {
 
         this.symbolId = symbolId;
-        this.line.setSymbolId(symbolId);
     }
 
 
@@ -62,7 +61,7 @@ public final class OrderBooks implements WriteBytesMarshallable {
 
     public void place(OrderCommand orderCommand, DataProvider<Long, OrderMatch> provider) {
 
-        if (!isUnique(orderCommand)) {
+        if (!this.uniqIdFilter.unique(orderCommand.getOrderId(), orderCommand.getTimestamp())) {
             return;
         }
 
@@ -131,12 +130,6 @@ public final class OrderBooks implements WriteBytesMarshallable {
 
         Books books = OrderAction.ASK == orderCommand.getOrderAction() ? this.askBooks : this.bidBooks;
         books.cancel(orderCommand, provider, this.sequence);
-    }
-
-
-    private boolean isUnique(OrderCommand orderCommand) {
-
-        return this.uniqIdFilter.unique(orderCommand.getOrderId(), orderCommand.getTimestamp());
     }
 
 

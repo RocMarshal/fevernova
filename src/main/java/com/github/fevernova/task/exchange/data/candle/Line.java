@@ -12,9 +12,6 @@ public class Line extends SlideWindow<Point> {
 
 
     @Setter
-    private int symbolId;
-
-    @Setter
     private long lastSequence;
 
 
@@ -39,7 +36,6 @@ public class Line extends SlideWindow<Point> {
 
     @Override public void readMarshallable(BytesIn bytes) throws IORuntimeException {
 
-        this.symbolId = bytes.readInt();
         this.lastSequence = bytes.readLong();
         super.readMarshallable(bytes);
     }
@@ -47,7 +43,6 @@ public class Line extends SlideWindow<Point> {
 
     @Override public void writeMarshallable(BytesOut bytes) {
 
-        bytes.writeInt(this.symbolId);
         bytes.writeLong(this.lastSequence);
         super.writeMarshallable(bytes);
     }

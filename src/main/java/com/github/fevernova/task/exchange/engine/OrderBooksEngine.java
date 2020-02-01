@@ -71,7 +71,7 @@ public final class OrderBooksEngine extends ContextObject implements WriteBytesM
     public DepthData dumpDepth() {
 
         final DepthData depthData = new DepthData(this.symbols.size());
-        this.symbols.entrySet().forEach(entry -> depthData.getData().add(new DepthResult(entry.getValue(), 500)));
+        this.symbols.entrySet().forEach(entry -> depthData.getData().put(entry.getKey(), new DepthResult(entry.getValue(), 500)));
         return depthData;
     }
 
@@ -79,7 +79,7 @@ public final class OrderBooksEngine extends ContextObject implements WriteBytesM
     public CandleData dumpCandle() {
 
         final CandleData candleData = new CandleData(this.symbols.size());
-        this.symbols.entrySet().forEach(entry -> candleData.getData().add(entry.getValue().getLine()));
+        this.symbols.entrySet().forEach(entry -> candleData.getData().put(entry.getKey(), entry.getValue().getLine()));
         return candleData;
     }
 

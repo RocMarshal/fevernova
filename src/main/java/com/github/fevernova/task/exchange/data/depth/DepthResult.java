@@ -23,8 +23,6 @@ import java.util.Map;
 public class DepthResult implements WriteBytesMarshallable, ReadBytesMarshallable {
 
 
-    private int symbolId;
-
     private long lastSequence;
 
     private long lastMatchPrice;
@@ -46,7 +44,6 @@ public class DepthResult implements WriteBytesMarshallable, ReadBytesMarshallabl
 
     public DepthResult(OrderBooks orderBooks, int maxDepthSize) {
 
-        this.symbolId = orderBooks.getSymbolId();
         this.lastSequence = orderBooks.getSequence().get();
         this.lastMatchPrice = orderBooks.getLastMatchPrice();
         this.timestamp = Util.nowMS();
@@ -83,7 +80,6 @@ public class DepthResult implements WriteBytesMarshallable, ReadBytesMarshallabl
 
     @Override public void writeMarshallable(BytesOut bytes) {
 
-        bytes.writeInt(this.symbolId);
         bytes.writeLong(this.lastSequence);
         bytes.writeLong(this.lastMatchPrice);
         bytes.writeLong(this.timestamp);
@@ -98,7 +94,6 @@ public class DepthResult implements WriteBytesMarshallable, ReadBytesMarshallabl
 
     @Override public void readMarshallable(BytesIn bytes) throws IORuntimeException {
 
-        this.symbolId = bytes.readInt();
         this.lastSequence = bytes.readLong();
         this.lastMatchPrice = bytes.readLong();
         this.timestamp = bytes.readLong();
