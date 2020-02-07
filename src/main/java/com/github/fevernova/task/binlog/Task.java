@@ -8,7 +8,6 @@ import com.github.fevernova.framework.component.channel.selector.StringSelector;
 import com.github.fevernova.framework.metric.evaluate.NoMetricEvaluate;
 import com.github.fevernova.framework.service.config.TaskConfig;
 import com.github.fevernova.framework.task.BaseTask;
-import com.github.fevernova.framework.task.Manager;
 import com.github.fevernova.framework.task.TaskTopology;
 import com.github.fevernova.task.binlog.data.BinlogDataFactory;
 import com.github.fevernova.task.binlog.data.MessageDataFactory;
@@ -39,7 +38,7 @@ public class Task extends BaseTask {
     @Override public BaseTask init() throws Exception {
 
         super.init();
-        TaskConfig taskConfig = TaskConfig.builder()
+        super.manager.register(new TaskTopology(super.globalContext, super.context, TaskConfig.builder()
                 .sourceClass(JobSource.class)
                 .parserClass(JobParser.class)
                 .sinkClass(JobSink.class)
@@ -56,9 +55,7 @@ public class Task extends BaseTask {
                 .inputDynamicBalance(false)
                 .outputDynamicBalance(false)
                 .metricEvaluateClass(NoMetricEvaluate.class)
-                .build();
-        TaskTopology taskTopology = new TaskTopology(super.globalContext, super.context, taskConfig);
-        super.manager.register(taskTopology);
+                .build()));
         return this;
     }
 }
