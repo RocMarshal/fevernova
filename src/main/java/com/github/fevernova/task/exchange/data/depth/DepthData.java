@@ -7,6 +7,7 @@ import lombok.Getter;
 import net.openhft.chronicle.bytes.BytesIn;
 import net.openhft.chronicle.bytes.BytesOut;
 import net.openhft.chronicle.bytes.WriteBytesMarshallable;
+import org.apache.commons.lang3.Validate;
 
 import java.util.Map;
 
@@ -26,6 +27,7 @@ public class DepthData implements WriteBytesMarshallable {
 
     public DepthData(BytesIn bytes) {
 
+        Validate.isTrue(bytes.readInt() == 0);
         this.data = SerializationUtils.readIntHashMap(bytes, bytesIn -> {
 
             DepthResult depthResult = new DepthResult();
@@ -37,6 +39,7 @@ public class DepthData implements WriteBytesMarshallable {
 
     @Override public void writeMarshallable(BytesOut bytes) {
 
+        bytes.writeInt(0);
         SerializationUtils.writeIntHashMap(this.data, bytes);
     }
 }

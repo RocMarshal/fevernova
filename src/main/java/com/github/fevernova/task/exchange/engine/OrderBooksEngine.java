@@ -16,6 +16,7 @@ import net.openhft.chronicle.bytes.BytesOut;
 import net.openhft.chronicle.bytes.ReadBytesMarshallable;
 import net.openhft.chronicle.bytes.WriteBytesMarshallable;
 import net.openhft.chronicle.core.io.IORuntimeException;
+import org.apache.commons.lang3.Validate;
 
 import java.util.Map;
 
@@ -86,12 +87,14 @@ public final class OrderBooksEngine extends ContextObject implements WriteBytesM
 
     @Override public void readMarshallable(BytesIn bytes) throws IORuntimeException {
 
+        Validate.isTrue(bytes.readInt() == 0);
         this.symbols = SerializationUtils.readIntHashMap(bytes, bytesIn -> new OrderBooks(bytesIn));
     }
 
 
     @Override public void writeMarshallable(BytesOut bytes) {
 
+        bytes.writeInt(0);
         SerializationUtils.writeIntHashMap(this.symbols, bytes);
     }
 }
