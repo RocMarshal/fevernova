@@ -47,6 +47,7 @@ public abstract class BaseTask {
         log.info("Task Init .");
         LogProxy.LOG_CONF.info(this.globalContext.getJobTags().toString());
         LogProxy.LOG_CONF.info("taskcontext : " + this.context.toString());
+        this.manager = Manager.getInstance(this.globalContext, this.context);
         return this;
     }
 
