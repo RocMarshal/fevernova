@@ -13,7 +13,7 @@ public class UniqIdFilter extends SlideWindow<UniqIdData> {
     }
 
 
-    public boolean unique(long eventId, long timestamp) {
+    public boolean unique(long timestamp, long eventId) {
 
         prepareCurrentWindow(timestamp);
         return super.currentWindow.unique(eventId);

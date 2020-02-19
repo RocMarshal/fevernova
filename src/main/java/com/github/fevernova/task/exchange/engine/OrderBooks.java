@@ -61,7 +61,7 @@ public final class OrderBooks implements WriteBytesMarshallable {
 
     public void place(OrderCommand orderCommand, DataProvider<Long, OrderMatch> provider) {
 
-        if (!this.uniqIdFilter.unique(orderCommand.getOrderId(), orderCommand.getTimestamp())) {
+        if (!this.uniqIdFilter.unique(orderCommand.getTimestamp(), orderCommand.getOrderId())) {
             return;
         }
 
@@ -112,16 +112,17 @@ public final class OrderBooks implements WriteBytesMarshallable {
             }
             OrderArray bidOrderArray = this.bidBooks.getOrderArray();
             OrderArray askOrderArray = this.askBooks.getOrderArray();
+            long matchSize;
             if (bidOrderArray.getSize() > askOrderArray.getSize()) {
-                this.line.acc(timestamp, this.lastMatchPrice, askOrderArray.getSize());
+                matchSize = askOrderArray.getSize();
                 bidOrderArray.meet(this.sequence, askOrderArray, this.symbolId, this.lastMatchPrice, provider, timestamp);
             } else {
-                this.line.acc(timestamp, this.lastMatchPrice, bidOrderArray.getSize());
+                matchSize = bidOrderArray.getSize();
                 askOrderArray.meet(this.sequence, bidOrderArray, this.symbolId, this.lastMatchPrice, provider, timestamp);
             }
+            this.line.acc(timestamp, this.lastMatchPrice, matchSize, this.sequence.get());
             this.bidBooks.adjustByOrderArray(bidOrderArray);
             this.askBooks.adjustByOrderArray(askOrderArray);
-            this.line.setLastSequence(this.sequence.get());
         }
     }
 

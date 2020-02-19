@@ -22,6 +22,10 @@ public class Point extends ObjectWithId {
 
     private long amount;
 
+    private long firstSequence;
+
+    private long lastSequence;
+
 
     public Point(int id) {
 
@@ -29,17 +33,18 @@ public class Point extends ObjectWithId {
     }
 
 
-    public void acc(long price, long size) {
+    public void acc(long price, long size, long sequence) {
 
         if (this.totalSize == 0L) {
             this.startPrice = price;
+            this.firstSequence = sequence;
         }
         this.endPrice = price;
         this.minPrice = Math.min(price, this.minPrice);
         this.maxPrice = Math.max(price, this.maxPrice);
         this.totalSize += size;
         this.amount += price * size;
-
+        this.lastSequence = sequence;
     }
 
 
@@ -51,6 +56,8 @@ public class Point extends ObjectWithId {
         this.maxPrice = bytes.readLong();
         this.totalSize = bytes.readLong();
         this.amount = bytes.readLong();
+        this.firstSequence = bytes.readLong();
+        this.lastSequence = bytes.readLong();
     }
 
 
@@ -62,5 +69,7 @@ public class Point extends ObjectWithId {
         bytes.writeLong(this.maxPrice);
         bytes.writeLong(this.totalSize);
         bytes.writeLong(this.amount);
+        bytes.writeLong(this.firstSequence);
+        bytes.writeLong(this.lastSequence);
     }
 }

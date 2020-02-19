@@ -40,11 +40,13 @@ public abstract class SlideWindow<W extends ObjectWithId> implements WriteBytesM
             this.currentWindow = this.windows.get(this.currentWindowSeq);
             if (this.currentWindow == null) {
                 this.currentWindow = newWindow(this.currentWindowSeq);
-                while (this.windows.size() >= this.windowNum) {
+                this.windows.put(this.currentWindowSeq, this.currentWindow);
+                if (this.windows.size() >= this.windowNum) {
                     W w = this.windows.min();
                     this.windows.remove(w.getId());
+                    this.currentWindow = this.windows.min();
+                    this.currentWindowSeq = this.currentWindow.getId();
                 }
-                this.windows.put(this.currentWindowSeq, this.currentWindow);
             }
         }
     }
