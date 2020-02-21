@@ -59,7 +59,7 @@ public final class OrderBooks implements WriteBytesMarshallable {
     }
 
 
-    public void place(OrderCommand orderCommand, DataProvider<Long, OrderMatch> provider) {
+    public void place(OrderCommand orderCommand, DataProvider<Integer, OrderMatch> provider) {
 
         if (!this.uniqIdFilter.unique(orderCommand.getTimestamp(), orderCommand.getOrderId())) {
             return;
@@ -69,7 +69,7 @@ public final class OrderBooks implements WriteBytesMarshallable {
         Books thatBooks = OrderAction.ASK == orderCommand.getOrderAction() ? this.bidBooks : this.askBooks;
 
         if (OrderType.FOK == orderCommand.getOrderType() && !thatBooks.canMatchAll(orderCommand)) {
-            OrderMatch orderMatch = provider.feedOne(orderCommand.getOrderId());
+            OrderMatch orderMatch = provider.feedOne(orderCommand.getSymbolId());
             orderMatch.from(this.sequence, orderCommand);
             orderMatch.setResultCode(ResultCode.CANCEL_FOK);
             provider.push();
@@ -80,17 +80,17 @@ public final class OrderBooks implements WriteBytesMarshallable {
         Order order = new Order(orderCommand);
         orderArray.addOrder(order);
 
-        OrderMatch orderPlaceMatch = provider.feedOne(orderCommand.getOrderId());
+        OrderMatch orderPlaceMatch = provider.feedOne(orderCommand.getSymbolId());
         orderPlaceMatch.from(this.sequence, orderCommand, order, orderArray);
         orderPlaceMatch.setResultCode(ResultCode.PLACE);
         provider.push();
 
-        matchOrders(provider, orderCommand.getTimestamp());
+        matchOrders(provider, orderCommand.getTimestamp(), orderCommand.getOrderAction());
 
         if (order.needIOCClear()) {
             orderArray.findAndRemoveOrder(order.getOrderId());
             thisBooks.adjustByOrderArray(orderArray);
-            OrderMatch orderMatch = provider.feedOne(order.getOrderId());
+            OrderMatch orderMatch = provider.feedOne(orderCommand.getSymbolId());
             orderMatch.from(this.sequence, orderCommand, order, orderArray);
             orderMatch.setResultCode(ResultCode.CANCEL_IOC);
             provider.push();
@@ -99,7 +99,7 @@ public final class OrderBooks implements WriteBytesMarshallable {
     }
 
 
-    private void matchOrders(DataProvider<Long, OrderMatch> provider, long timestamp) {
+    private void matchOrders(DataProvider<Integer, OrderMatch> provider, long timestamp, OrderAction driverAction) {
 
         while (!this.askBooks.newEdgePrice(this.bidBooks.getPrice())) {
             //限价撮合的定价逻辑
@@ -115,10 +115,10 @@ public final class OrderBooks implements WriteBytesMarshallable {
             long matchSize;
             if (bidOrderArray.getSize() > askOrderArray.getSize()) {
                 matchSize = askOrderArray.getSize();
-                bidOrderArray.meet(this.sequence, askOrderArray, this.symbolId, this.lastMatchPrice, provider, timestamp);
+                bidOrderArray.meet(this.sequence, askOrderArray, this.symbolId, this.lastMatchPrice, provider, timestamp, driverAction);
             } else {
                 matchSize = bidOrderArray.getSize();
-                askOrderArray.meet(this.sequence, bidOrderArray, this.symbolId, this.lastMatchPrice, provider, timestamp);
+                askOrderArray.meet(this.sequence, bidOrderArray, this.symbolId, this.lastMatchPrice, provider, timestamp, driverAction);
             }
             this.line.acc(timestamp, this.lastMatchPrice, matchSize, this.sequence.get());
             this.bidBooks.adjustByOrderArray(bidOrderArray);
@@ -127,7 +127,7 @@ public final class OrderBooks implements WriteBytesMarshallable {
     }
 
 
-    public void cancel(OrderCommand orderCommand, DataProvider<Long, OrderMatch> provider) {
+    public void cancel(OrderCommand orderCommand, DataProvider<Integer, OrderMatch> provider) {
 
         Books books = OrderAction.ASK == orderCommand.getOrderAction() ? this.askBooks : this.bidBooks;
         books.cancel(orderCommand, provider, this.sequence);

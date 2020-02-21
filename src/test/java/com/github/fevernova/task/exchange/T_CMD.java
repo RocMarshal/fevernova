@@ -37,7 +37,7 @@ public class T_CMD {
     @Test
     public void T_CMD_To_Binary() {
 
-        Common.warn();
+        Common.warmup();
         long st = Util.nowMS();
         long x = 0L;
         for (int i = 0; i < loop; i++) {
@@ -54,7 +54,7 @@ public class T_CMD {
 
         byte[] bytes = cmd.to();
 
-        Common.warn();
+        Common.warmup();
         long st = Util.nowMS();
         long x = 0L;
         for (int i = 0; i < 1_0000_0000; i++) {

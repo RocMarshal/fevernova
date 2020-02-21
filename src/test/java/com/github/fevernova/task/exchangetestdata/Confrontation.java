@@ -40,13 +40,13 @@ public class Confrontation implements Runnable {
 
     final AtomicLong resultCount = new AtomicLong(0L);
 
-    final DataProvider<Long, OrderMatch> dataProvider = new DataProvider<Long, OrderMatch>() {
+    final DataProvider<Integer, OrderMatch> dataProvider = new DataProvider<Integer, OrderMatch>() {
 
 
         private OrderMatch orderMatch = (OrderMatch) new OrderMatchFactory().createData();
 
 
-        @Override public OrderMatch feedOne(Long key) {
+        @Override public OrderMatch feedOne(Integer key) {
 
             resultCount.incrementAndGet();
             return this.orderMatch;

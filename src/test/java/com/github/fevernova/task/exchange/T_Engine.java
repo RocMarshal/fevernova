@@ -31,7 +31,7 @@ public class T_Engine {
 
     private BinaryFileIdentity identity;
 
-    private DataProvider<Long, OrderMatch> provider;
+    private DataProvider<Integer, OrderMatch> provider;
 
 
     @Before
@@ -42,7 +42,7 @@ public class T_Engine {
         orderBooksEngine = new OrderBooksEngine(globalContext, taskContext);
         fsStorage = new FSStorage(globalContext, taskContext);
         identity = BinaryFileIdentity.builder().componentType(ComponentType.PARSER).total(3).index(1).identity(OrderBooksEngine.CONS_NAME).build();
-        provider = new DataProvider<Long, OrderMatch>() {
+        provider = new DataProvider<Integer, OrderMatch>() {
 
 
             private OrderMatch orderMatch = (OrderMatch) new OrderMatchFactory().createData();
@@ -50,7 +50,7 @@ public class T_Engine {
             private boolean flag = false;
 
 
-            @Override public OrderMatch feedOne(Long key) {
+            @Override public OrderMatch feedOne(Integer key) {
 
                 Validate.isTrue(!flag);
                 flag = true;
@@ -152,7 +152,7 @@ public class T_Engine {
         askCMD.setPrice(10);
         askCMD.setSize(100);
 
-        Common.warn();
+        Common.warmup();
 
         long st = Util.nowMS();
         int bidSum = 0, askSum = 0;

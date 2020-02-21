@@ -12,11 +12,13 @@ import org.eclipse.collections.impl.map.mutable.primitive.IntObjectHashMap;
 public abstract class SlideWindow<W extends ObjectWithId> implements WriteBytesMarshallable, ReadBytesMarshallable {
 
 
-    private IntObjectHashMap<W> windows;
+    protected IntObjectHashMap<W> windows;
 
     private long span;
 
     private int windowNum;
+
+    protected WindowListener<W> windowListener;
 
     //cache
     private int currentWindowSeq;
@@ -26,29 +28,57 @@ public abstract class SlideWindow<W extends ObjectWithId> implements WriteBytesM
 
     public SlideWindow(long span, int windowNum) {
 
-        this.span = span;
-        this.windowNum = windowNum;
-        this.windows = new IntObjectHashMap<>(windowNum);
+        this(span, windowNum, null);
     }
 
 
-    protected void prepareCurrentWindow(long timestamp) {
+    public SlideWindow(long span, int windowNum, WindowListener windowListener) {
+
+        this.span = span;
+        this.windowNum = windowNum;
+        this.windows = new IntObjectHashMap<>(windowNum);
+        this.windowListener = windowListener;
+    }
+
+
+    protected boolean prepareCurrentWindow(long timestamp) {
 
         int windowSeq = (int) (timestamp / this.span);
-        if (this.currentWindowSeq != windowSeq) {
-            this.currentWindowSeq = windowSeq;
-            this.currentWindow = this.windows.get(this.currentWindowSeq);
-            if (this.currentWindow == null) {
-                this.currentWindow = newWindow(this.currentWindowSeq);
-                this.windows.put(this.currentWindowSeq, this.currentWindow);
-                if (this.windows.size() >= this.windowNum) {
-                    W w = this.windows.min();
-                    this.windows.remove(w.getId());
-                    this.currentWindow = this.windows.min();
-                    this.currentWindowSeq = this.currentWindow.getId();
-                }
-            }
+        if (this.currentWindowSeq == windowSeq) {
+            return true;
         }
+
+        this.currentWindowSeq = windowSeq;
+        this.currentWindow = this.windows.get(this.currentWindowSeq);
+        if (this.currentWindow != null) {
+            return true;
+        }
+
+        if (this.windows.size() < this.windowNum) {
+            this.currentWindow = newWindow(this.currentWindowSeq);
+            this.windows.put(this.currentWindowSeq, this.currentWindow);
+            if (this.windowListener != null) {
+                this.windowListener.createNewWindow(this.currentWindow);
+            }
+            return true;
+        }
+
+        if (this.currentWindowSeq > this.windows.min().getId()) {
+            W w = this.windows.min();
+            this.windows.remove(w.getId());
+            if (this.windowListener != null) {
+                this.windowListener.removeOldWindow(w);
+            }
+            this.currentWindow = newWindow(this.currentWindowSeq);
+            this.windows.put(this.currentWindowSeq, this.currentWindow);
+            if (this.windowListener != null) {
+                this.windowListener.createNewWindow(this.currentWindow);
+            }
+            return true;
+        }
+        this.currentWindow = this.windows.max();
+        this.currentWindowSeq = this.currentWindow.getId();
+        return false;
     }
 
 

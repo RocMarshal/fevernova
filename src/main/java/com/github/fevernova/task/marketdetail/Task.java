@@ -1,4 +1,4 @@
-package com.github.fevernova.task.exchange;
+package com.github.fevernova.task.marketdetail;
 
 
 import com.github.fevernova.framework.common.Constants;
@@ -11,7 +11,7 @@ import com.github.fevernova.framework.service.config.TaskConfig;
 import com.github.fevernova.framework.task.BaseTask;
 import com.github.fevernova.framework.task.TaskTopology;
 import com.github.fevernova.io.kafka.data.KafkaDataFactory;
-import com.github.fevernova.task.exchange.data.result.OrderMatchFactory;
+import com.github.fevernova.task.marketdetail.data.OrderDetailFactory;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -40,7 +40,7 @@ public class Task extends BaseTask {
                 .parserClass(JobParser.class)
                 .sinkClass(JobSink.class)
                 .inputDataFactoryClass(KafkaDataFactory.class)
-                .outputDataFactoryClass(OrderMatchFactory.class)
+                .outputDataFactoryClass(OrderDetailFactory.class)
                 .inputSelectorClass(BytesSelector.class)
                 .outputSelectorClass(IntSelector.class)
                 .sourceParallelism(1)

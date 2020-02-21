@@ -1,7 +1,8 @@
-package com.github.fevernova.task.exchange;
+package com.github.fevernova.task.marketcandle;
 
 
 import com.alibaba.fastjson.JSONObject;
+import com.github.fevernova.framework.common.Util;
 import com.github.fevernova.framework.common.context.GlobalContext;
 import com.github.fevernova.framework.common.context.TaskContext;
 import com.github.fevernova.framework.common.data.BarrierData;
@@ -17,10 +18,14 @@ import com.github.fevernova.framework.service.state.StateService;
 import com.github.fevernova.framework.service.state.StateValue;
 import com.github.fevernova.framework.task.Manager;
 import com.github.fevernova.io.kafka.data.KafkaData;
-import com.github.fevernova.task.exchange.data.cmd.OrderCommand;
-import com.github.fevernova.task.exchange.data.cmd.OrderCommandType;
+import com.github.fevernova.task.exchange.data.candle.CandleData;
+import com.github.fevernova.task.exchange.data.candle.Point;
+import com.github.fevernova.task.exchange.data.candle.ScanFunction;
+import com.github.fevernova.task.exchange.data.order.OrderAction;
 import com.github.fevernova.task.exchange.data.result.OrderMatch;
-import com.github.fevernova.task.exchange.engine.OrderBooksEngine;
+import com.github.fevernova.task.exchange.data.result.OrderMatchFactory;
+import com.github.fevernova.task.exchange.data.result.ResultCode;
+import com.github.fevernova.task.marketcandle.data.CandleDiff;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.Validate;
 
@@ -28,61 +33,88 @@ import java.util.List;
 
 
 @Slf4j
-public class JobParser extends AbstractParser<Integer, OrderMatch> implements BarrierCoordinatorListener {
+public class JobParser extends AbstractParser<Integer, CandleDiff> implements BarrierCoordinatorListener, ScanFunction {
 
 
     protected ICheckPointSaver<MapCheckPoint> checkpoints;
 
-    private OrderBooksEngine matchEngine;
+    private OrderMatchFactory orderMatchFactory = new OrderMatchFactory();
 
-    private BinaryFileIdentity matchIdentity;
-
-    private BinaryFileIdentity depthDataIdentity;
+    private CandleData candleData = new CandleData(8);
 
     private BinaryFileIdentity candleDataIdentity;
+
+    private long lastScanTime = Util.nowMS();
+
+    private long interval;
 
 
     public JobParser(GlobalContext globalContext, TaskContext taskContext, int index, int inputsNum, ChannelProxy channelProxy) {
 
         super(globalContext, taskContext, index, inputsNum, channelProxy);
         this.checkpoints = new CheckPointSaver<>();
-
-        TaskContext matchEngineContext =
-                new TaskContext(OrderBooksEngine.CONS_NAME, taskContext.getSubProperties(OrderBooksEngine.CONS_NAME.toLowerCase() + "."));
-        this.matchEngine = new OrderBooksEngine(globalContext, matchEngineContext);
-        this.matchIdentity = BinaryFileIdentity.builder().componentType(super.componentType).total(super.total).index(super.index)
-                .identity(OrderBooksEngine.CONS_NAME.toLowerCase()).build();
-        this.depthDataIdentity = BinaryFileIdentity.builder().componentType(super.componentType).total(super.total).index(super.index)
-                .identity("DepthData".toLowerCase()).build();
         this.candleDataIdentity = BinaryFileIdentity.builder().componentType(super.componentType).total(super.total).index(super.index)
                 .identity("CandleData".toLowerCase()).build();
+        this.interval = taskContext.getLong("interval", 2000L);
     }
 
 
     @Override protected void handleEvent(Data event) {
 
         KafkaData kafkaData = (KafkaData) event;
-        OrderCommand orderCommand = new OrderCommand();
-        orderCommand.from(kafkaData.getValue());
-
-        if (OrderCommandType.PLACE_ORDER == orderCommand.getOrderCommandType()) {
-            this.matchEngine.placeOrder(orderCommand, this);
-        } else if (OrderCommandType.CANCEL_ORDER == orderCommand.getOrderCommandType()) {
-            this.matchEngine.cancelOrder(orderCommand, this);
+        OrderMatch match = (OrderMatch) this.orderMatchFactory.createData();
+        match.from(kafkaData.getValue());
+        if (OrderAction.BID != match.getOrderAction() || ResultCode.MATCH != match.getResultCode()) {
+            flush();
+            return;
         }
+        this.candleData.acc(match.getSymbolId(), match.getTimestamp(), match.getMatchPrice(), match.getMatchSize(), match.getSequence(), this);
+        flush();
+    }
+
+
+    private void flush() {
+
+        long ts = Util.nowMS();
+        if (ts - this.lastScanTime < this.interval) {
+            return;
+        }
+        this.lastScanTime = ts;
+        this.candleData.scan4Update(this);
+    }
+
+
+    @Override public void onUpdate(Integer symbolId, List<Point> points) {
+
+        CandleDiff candleDiff = feedOne(symbolId);
+        candleDiff.setSymbolId(symbolId);
+        candleDiff.setDiff(points);
+        push();
+    }
+
+
+    @Override public void onRemove(Integer symbolId, List<Point> points) {
+
+        onUpdate(symbolId, points);
+    }
+
+
+    @Override protected void timeOut() {
+
+        super.timeOut();
+        flush();
     }
 
 
     @Override protected void snapshotWhenBarrier(BarrierData barrierData) {
 
+        flush();
         super.snapshotWhenBarrier(barrierData);
         MapCheckPoint checkPoint = new MapCheckPoint();
         StateService stateService = Manager.getInstance().getStateService();
         if (stateService.isSupportRecovery()) {
-            String path4engine = stateService.saveBinary(this.matchIdentity, barrierData, this.matchEngine);
-            stateService.saveBinary(this.depthDataIdentity, barrierData, this.matchEngine.dumpDepth());
-            stateService.saveBinary(this.candleDataIdentity, barrierData, this.matchEngine.dumpCandle());
-            checkPoint.getValues().put(this.matchIdentity.getIdentity(), path4engine);
+            String path = stateService.saveBinary(this.candleDataIdentity, barrierData, this.candleData);
+            checkPoint.getValues().put(this.candleDataIdentity.getIdentity(), path);
         }
         this.checkpoints.put(barrierData.getBarrierId(), checkPoint);
     }
@@ -119,7 +151,7 @@ public class JobParser extends AbstractParser<Integer, OrderMatch> implements Ba
             if (stateValue.getCompomentIndex() == index) {
                 MapCheckPoint checkPoint = new MapCheckPoint();
                 checkPoint.parseFromJSON((JSONObject) stateValue.getValue());
-                Manager.getInstance().getStateService().recoveryBinary(checkPoint.getValues().get(matchIdentity.getIdentity()), matchEngine);
+                Manager.getInstance().getStateService().recoveryBinary(checkPoint.getValues().get(candleDataIdentity.getIdentity()), candleData);
             }
         });
     }

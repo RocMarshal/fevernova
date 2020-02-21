@@ -82,7 +82,7 @@ public abstract class Books implements WriteBytesMarshallable, ReadBytesMarshall
     }
 
 
-    public void cancel(OrderCommand orderCommand, DataProvider<Long, OrderMatch> provider, Sequence sequence) {
+    public void cancel(OrderCommand orderCommand, DataProvider<Integer, OrderMatch> provider, Sequence sequence) {
 
         OrderArray oa = this.priceTree.get(orderCommand.getPrice());
         if (oa == null) {
@@ -92,7 +92,7 @@ public abstract class Books implements WriteBytesMarshallable, ReadBytesMarshall
         if (order == null) {
             return;
         }
-        OrderMatch orderMatch = provider.feedOne(orderCommand.getOrderId());
+        OrderMatch orderMatch = provider.feedOne(orderCommand.getSymbolId());
         orderMatch.from(sequence, orderCommand, order, oa);
         orderMatch.setResultCode(ResultCode.CANCEL_USER);
         adjustByOrderArray(oa);

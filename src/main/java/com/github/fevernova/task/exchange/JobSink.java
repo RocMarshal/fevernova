@@ -62,8 +62,7 @@ public class JobSink extends AbstractSink implements Callback {
 
         this.byteBuffer = ByteBuffer.allocate(4);
         this.byteBuffer.putInt(data.getSymbolId());
-        int pt = data.getSymbolId() * 2 + data.getOrderAction().code;
-        ProducerRecord<byte[], byte[]> record = new ProducerRecord<>(this.topic, pt, this.byteBuffer.array(), data.getBytes());
+        ProducerRecord<byte[], byte[]> record = new ProducerRecord<>(this.topic, this.byteBuffer.array(), data.getBytes());
         this.kafka.send(record, this);
     }
 

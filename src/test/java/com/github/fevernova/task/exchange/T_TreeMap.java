@@ -27,7 +27,7 @@ public class T_TreeMap {
     public void T_performance() {
 
         loadDepth(5000);
-        Common.warn();
+        Common.warmup();
         long r = 0L;
         long st = Util.nowMS();
         for (int i = 0; i < 10_0000_0000; i++) {

@@ -56,6 +56,8 @@ public class OrderMatch implements Data {
 
     private long matchOrderUserId;
 
+    private OrderAction driverAction;
+
     private ResultCode resultCode;
 
 
@@ -84,6 +86,7 @@ public class OrderMatch implements Data {
         this.matchSize = 0L;
         this.matchOrderId = 0L;
         this.matchOrderUserId = 0L;
+        this.driverAction = orderCommand.getOrderAction();
         this.resultCode = null;
     }
 
@@ -108,13 +111,14 @@ public class OrderMatch implements Data {
         this.matchSize = 0L;
         this.matchOrderId = 0L;
         this.matchOrderUserId = 0L;
+        this.driverAction = orderCommand.getOrderAction();
         this.resultCode = null;
     }
 
 
     //MATCH
     public void from(Sequence sequence, Order order, int symbolId, OrderArray orderArray, long matchPrice, long matchFilledSize,
-                     Order thatOrder, long timestamp) {
+                     Order thatOrder, long timestamp, OrderAction driverAction) {
 
         this.sequence = sequence.getAndIncrement();
         this.symbolId = symbolId;
@@ -133,6 +137,7 @@ public class OrderMatch implements Data {
         this.matchSize = matchFilledSize;
         this.matchOrderId = thatOrder.getOrderId();
         this.matchOrderUserId = thatOrder.getUserId();
+        this.driverAction = driverAction;
         this.resultCode = ResultCode.MATCH;
     }
 
@@ -159,13 +164,14 @@ public class OrderMatch implements Data {
         this.matchSize = byteBuffer.getLong();
         this.matchOrderId = byteBuffer.getLong();
         this.matchOrderUserId = byteBuffer.getLong();
+        this.driverAction = OrderAction.of(byteBuffer.get());
         this.resultCode = ResultCode.of(byteBuffer.getShort());
     }
 
 
     @Override public byte[] getBytes() {
 
-        ByteBuffer byteBuffer = ByteBuffer.allocate(113);
+        ByteBuffer byteBuffer = ByteBuffer.allocate(114);
         byteBuffer.put((byte) 0);
         byteBuffer.putLong(this.sequence);
         byteBuffer.putInt(this.symbolId);
@@ -184,6 +190,7 @@ public class OrderMatch implements Data {
         byteBuffer.putLong(this.matchSize);
         byteBuffer.putLong(this.matchOrderId);
         byteBuffer.putLong(this.matchOrderUserId);
+        byteBuffer.put(this.driverAction.code);
         byteBuffer.putShort((short) this.resultCode.code);
         return byteBuffer.array();
     }
@@ -208,6 +215,7 @@ public class OrderMatch implements Data {
         //this.matchSize = 0L;
         //this.matchOrderId = 0L;
         //this.matchOrderUserId = 0L;
+        //this.driverAction = null;
         //this.resultCode = null;
     }
 }

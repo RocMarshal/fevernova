@@ -38,14 +38,14 @@ public final class OrderBooksEngine extends ContextObject implements WriteBytesM
     }
 
 
-    public void placeOrder(OrderCommand orderCommand, DataProvider<Long, OrderMatch> provider) {
+    public void placeOrder(OrderCommand orderCommand, DataProvider<Integer, OrderMatch> provider) {
 
         OrderBooks orderBooks = getOrderBooks(orderCommand);
         orderBooks.place(orderCommand, provider);
     }
 
 
-    public void cancelOrder(OrderCommand orderCommand, DataProvider<Long, OrderMatch> provider) {
+    public void cancelOrder(OrderCommand orderCommand, DataProvider<Integer, OrderMatch> provider) {
 
         OrderBooks orderBooks = getOrderBooks(orderCommand);
         orderBooks.cancel(orderCommand, provider);
@@ -69,19 +69,19 @@ public final class OrderBooksEngine extends ContextObject implements WriteBytesM
     }
 
 
-    public DepthData dumpDepth() {
-
-        final DepthData depthData = new DepthData(this.symbols.size());
-        this.symbols.entrySet().forEach(entry -> depthData.getData().put(entry.getKey(), new DepthResult(entry.getValue(), 500)));
-        return depthData;
-    }
-
-
     public CandleData dumpCandle() {
 
         final CandleData candleData = new CandleData(this.symbols.size());
         this.symbols.entrySet().forEach(entry -> candleData.getData().put(entry.getKey(), entry.getValue().getLine()));
         return candleData;
+    }
+
+
+    public DepthData dumpDepth() {
+
+        final DepthData depthData = new DepthData(this.symbols.size());
+        this.symbols.entrySet().forEach(entry -> depthData.getData().put(entry.getKey(), new DepthResult(entry.getValue(), 500)));
+        return depthData;
     }
 
 

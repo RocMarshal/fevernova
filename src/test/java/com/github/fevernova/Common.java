@@ -33,7 +33,7 @@ public class Common {
     }
 
 
-    public static long warn() {
+    public static long warmup() {
 
         long base = 1000000000L;
 
