@@ -3,7 +3,6 @@ package com.github.fevernova.task.exchange.engine;
 
 import com.github.fevernova.framework.component.DataProvider;
 import com.github.fevernova.task.exchange.data.Sequence;
-import com.github.fevernova.task.exchange.data.candle.Line;
 import com.github.fevernova.task.exchange.data.cmd.OrderCommand;
 import com.github.fevernova.task.exchange.data.order.Order;
 import com.github.fevernova.task.exchange.data.order.OrderAction;
@@ -21,10 +20,10 @@ import net.openhft.chronicle.bytes.BytesOut;
 import net.openhft.chronicle.bytes.WriteBytesMarshallable;
 
 
-@Getter
 public final class OrderBooks implements WriteBytesMarshallable {
 
 
+    @Getter
     private final int symbolId;
 
     @Setter
@@ -37,8 +36,6 @@ public final class OrderBooks implements WriteBytesMarshallable {
     private final Books bidBooks = new BidBooks();
 
     private final UniqIdFilter uniqIdFilter = new UniqIdFilter(60_000L, 10);
-
-    private final Line line = new Line(60_000L, 10);
 
 
     public OrderBooks(int symbolId) {
@@ -55,7 +52,6 @@ public final class OrderBooks implements WriteBytesMarshallable {
         this.askBooks.readMarshallable(bytes);
         this.bidBooks.readMarshallable(bytes);
         this.uniqIdFilter.readMarshallable(bytes);
-        this.line.readMarshallable(bytes);
     }
 
 
@@ -112,15 +108,11 @@ public final class OrderBooks implements WriteBytesMarshallable {
             }
             OrderArray bidOrderArray = this.bidBooks.getOrderArray();
             OrderArray askOrderArray = this.askBooks.getOrderArray();
-            long matchSize;
             if (bidOrderArray.getSize() > askOrderArray.getSize()) {
-                matchSize = askOrderArray.getSize();
                 bidOrderArray.meet(this.sequence, askOrderArray, this.symbolId, this.lastMatchPrice, provider, timestamp, driverAction);
             } else {
-                matchSize = bidOrderArray.getSize();
                 askOrderArray.meet(this.sequence, bidOrderArray, this.symbolId, this.lastMatchPrice, provider, timestamp, driverAction);
             }
-            this.line.acc(timestamp, this.lastMatchPrice, matchSize, this.sequence.get());
             this.bidBooks.adjustByOrderArray(bidOrderArray);
             this.askBooks.adjustByOrderArray(askOrderArray);
         }
@@ -142,6 +134,5 @@ public final class OrderBooks implements WriteBytesMarshallable {
         this.askBooks.writeMarshallable(bytes);
         this.bidBooks.writeMarshallable(bytes);
         this.uniqIdFilter.writeMarshallable(bytes);
-        this.line.writeMarshallable(bytes);
     }
 }

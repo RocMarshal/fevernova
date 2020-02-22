@@ -1,11 +1,11 @@
-package com.github.fevernova.task.marketdetail;
+package com.github.fevernova.task.marketdepth;
 
 
 import com.github.fevernova.framework.common.context.GlobalContext;
 import com.github.fevernova.framework.common.context.TaskContext;
 import com.github.fevernova.framework.common.data.Data;
 import com.github.fevernova.framework.component.sink.AbstractSink;
-import com.github.fevernova.task.marketdetail.data.OrderDetail;
+import com.github.fevernova.task.marketdepth.data.DepthResult;
 import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.Redisson;
@@ -45,15 +45,15 @@ public class JobSink extends AbstractSink {
 
     @Override protected void handleEvent(Data event) {
 
-        OrderDetail orderDetail = (OrderDetail) event;
-        if (this.currentSymbolId != orderDetail.getSymbolId()) {
-            this.currentSymbolId = orderDetail.getSymbolId();
+        DepthResult depthResult = (DepthResult) event;
+        if (this.currentSymbolId != depthResult.getSymbolId()) {
+            this.currentSymbolId = depthResult.getSymbolId();
             this.currentTopic = this.channels.get(this.currentSymbolId);
             if (this.currentTopic == null) {
-                this.currentTopic = this.redis.getTopic("OrderDetail_" + orderDetail.getSymbolId());
-                this.channels.put(orderDetail.getSymbolId(), this.currentTopic);
+                this.currentTopic = this.redis.getTopic("DepthData_" + depthResult.getSymbolId());
+                this.channels.put(depthResult.getSymbolId(), this.currentTopic);
             }
         }
-        this.currentTopic.publish(orderDetail.getBytes());
+        this.currentTopic.publish(depthResult);
     }
 }

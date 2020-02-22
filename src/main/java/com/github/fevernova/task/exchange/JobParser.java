@@ -37,10 +37,6 @@ public class JobParser extends AbstractParser<Integer, OrderMatch> implements Ba
 
     private BinaryFileIdentity matchIdentity;
 
-    private BinaryFileIdentity depthDataIdentity;
-
-    private BinaryFileIdentity candleDataIdentity;
-
 
     public JobParser(GlobalContext globalContext, TaskContext taskContext, int index, int inputsNum, ChannelProxy channelProxy) {
 
@@ -52,10 +48,6 @@ public class JobParser extends AbstractParser<Integer, OrderMatch> implements Ba
         this.matchEngine = new OrderBooksEngine(globalContext, matchEngineContext);
         this.matchIdentity = BinaryFileIdentity.builder().componentType(super.componentType).total(super.total).index(super.index)
                 .identity(OrderBooksEngine.CONS_NAME.toLowerCase()).build();
-        this.depthDataIdentity = BinaryFileIdentity.builder().componentType(super.componentType).total(super.total).index(super.index)
-                .identity("DepthData".toLowerCase()).build();
-        this.candleDataIdentity = BinaryFileIdentity.builder().componentType(super.componentType).total(super.total).index(super.index)
-                .identity("CandleData".toLowerCase()).build();
     }
 
 
@@ -80,8 +72,6 @@ public class JobParser extends AbstractParser<Integer, OrderMatch> implements Ba
         StateService stateService = Manager.getInstance().getStateService();
         if (stateService.isSupportRecovery()) {
             String path4engine = stateService.saveBinary(this.matchIdentity, barrierData, this.matchEngine);
-            stateService.saveBinary(this.depthDataIdentity, barrierData, this.matchEngine.dumpDepth());
-            stateService.saveBinary(this.candleDataIdentity, barrierData, this.matchEngine.dumpCandle());
             checkPoint.getValues().put(this.matchIdentity.getIdentity(), path4engine);
         }
         this.checkpoints.put(barrierData.getBarrierId(), checkPoint);

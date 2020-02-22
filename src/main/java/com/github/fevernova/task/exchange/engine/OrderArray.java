@@ -81,10 +81,10 @@ public final class OrderArray implements WriteBytesMarshallable {
             that.decrement(thatOrder, delta);
             this.decrement(thisOrder, delta);
             OrderMatch thisOrderMatch = provider.feedOne(symbolId);
-            thisOrderMatch.from(sequence, thisOrder, symbolId, this, matchPrice, delta, thatOrder, timestamp, driverAction);
+            thisOrderMatch.from(sequence, symbolId, thisOrder, thatOrder, this, matchPrice, delta, timestamp, driverAction);
             provider.push();
             OrderMatch thatOrderMatch = provider.feedOne(symbolId);
-            thatOrderMatch.from(sequence, thatOrder, symbolId, that, matchPrice, delta, thisOrder, timestamp, driverAction);
+            thatOrderMatch.from(sequence, symbolId, thatOrder, thisOrder, that, matchPrice, delta, timestamp, driverAction);
             provider.push();
         } while (that.getSize() > 0L);
     }

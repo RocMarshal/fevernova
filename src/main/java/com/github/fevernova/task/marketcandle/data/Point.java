@@ -1,4 +1,4 @@
-package com.github.fevernova.task.exchange.data.candle;
+package com.github.fevernova.task.marketcandle.data;
 
 
 import com.github.fevernova.task.exchange.window.ObjectWithId;
@@ -32,6 +32,9 @@ public class Point extends ObjectWithId {
     private long lastSequence = Long.MIN_VALUE;
 
     @Setter
+    private boolean completed = false;
+
+    @Setter
     private boolean update = false;
 
 
@@ -43,7 +46,7 @@ public class Point extends ObjectWithId {
 
     public void acc(long price, long size, long sequence) {
 
-        if (sequence <= this.lastSequence) {
+        if (this.lastSequence >= sequence) {
             return;
         }
         this.startPrice = this.totalSize == 0L ? price : this.startPrice;

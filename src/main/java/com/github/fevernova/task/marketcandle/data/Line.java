@@ -1,4 +1,4 @@
-package com.github.fevernova.task.exchange.data.candle;
+package com.github.fevernova.task.marketcandle.data;
 
 
 import com.github.fevernova.task.exchange.window.SlideWindow;
@@ -31,15 +31,16 @@ public class Line extends SlideWindow<Point> {
     }
 
 
-    public Point pollRemoved() {
+    public List<Point> pollRemoved() {
 
-        return ((CacheListener) super.windowListener).getAndClear();
+        Point point = ((CacheListener) super.windowListener).getAndClear();
+        return point == null ? null : Lists.newArrayList(point);
     }
 
 
     public List<Point> scan4Update() {
 
-        final List<Point> result = Lists.newArrayListWithCapacity(2);
+        final List<Point> result = Lists.newArrayList();
         super.windows.forEach((Consumer<Point>) point -> {
             if (point.isUpdate()) {
                 result.add(point.copyByScan());

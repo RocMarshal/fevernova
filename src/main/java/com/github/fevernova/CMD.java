@@ -20,8 +20,6 @@ public class CMD {
 
     static final Option LOGCONFIG = Option.builder().longOpt("logconfig").hasArg(true).required(true).desc("日志配置文件的路径").build();
 
-    static final Option CONFIGURL = Option.builder().longOpt("configurl").hasArg(true).required(false).desc("配置的URL").build();
-
     static final Option CONFIGPATH = Option.builder().longOpt("configpath").hasArg(true).required(false).desc("配置文件路径").build();
 
     static final Option DEPLOYMENTNAME = Option.builder().longOpt("deploymentname").hasArg(true).required(true).desc("deployment名字").build();
@@ -36,7 +34,7 @@ public class CMD {
 
     static {
         OPTIONS.addOption(JOBTYPE).addOption(JOBID).addOption(CLUSTER).addOption(UNIT).addOption(LEVEL).addOption(LOGCONFIG).addOption(CONFIGPATH)
-                .addOption(CONFIGURL).addOption(DEPLOYMENTNAME).addOption(PODNAME).addOption(PODTOTALNUM).addOption(PODINDEX);
+                .addOption(DEPLOYMENTNAME).addOption(PODNAME).addOption(PODTOTALNUM).addOption(PODINDEX);
     }
 
 }

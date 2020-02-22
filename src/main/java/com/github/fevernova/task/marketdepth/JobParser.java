@@ -1,8 +1,7 @@
-package com.github.fevernova.task.marketcandle;
+package com.github.fevernova.task.marketdepth;
 
 
 import com.alibaba.fastjson.JSONObject;
-import com.github.fevernova.framework.common.Util;
 import com.github.fevernova.framework.common.context.GlobalContext;
 import com.github.fevernova.framework.common.context.TaskContext;
 import com.github.fevernova.framework.common.data.BarrierData;
@@ -18,14 +17,10 @@ import com.github.fevernova.framework.service.state.StateService;
 import com.github.fevernova.framework.service.state.StateValue;
 import com.github.fevernova.framework.task.Manager;
 import com.github.fevernova.io.kafka.data.KafkaData;
-import com.github.fevernova.task.exchange.data.order.OrderAction;
 import com.github.fevernova.task.exchange.data.result.OrderMatch;
 import com.github.fevernova.task.exchange.data.result.OrderMatchFactory;
-import com.github.fevernova.task.exchange.data.result.ResultCode;
-import com.github.fevernova.task.marketcandle.data.CandleDiff;
-import com.github.fevernova.task.marketcandle.data.CandleData;
-import com.github.fevernova.task.marketcandle.data.Point;
-import com.github.fevernova.task.marketcandle.data.ScanFunction;
+import com.github.fevernova.task.marketdepth.data.DepthResult;
+import com.github.fevernova.task.marketdepth.engine.DepthEngine;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.Validate;
 
@@ -33,29 +28,27 @@ import java.util.List;
 
 
 @Slf4j
-public class JobParser extends AbstractParser<Integer, CandleDiff> implements BarrierCoordinatorListener, ScanFunction {
+public class JobParser extends AbstractParser<Integer, DepthResult> implements BarrierCoordinatorListener {
 
 
     protected ICheckPointSaver<MapCheckPoint> checkpoints;
 
     private OrderMatchFactory orderMatchFactory = new OrderMatchFactory();
 
-    private CandleData candleData = new CandleData();
+    private DepthEngine depthEngine;
 
-    private BinaryFileIdentity candleDataIdentity;
-
-    private long lastScanTime = Util.nowMS();
-
-    private long interval;
+    private BinaryFileIdentity depthDataIdentity;
 
 
     public JobParser(GlobalContext globalContext, TaskContext taskContext, int index, int inputsNum, ChannelProxy channelProxy) {
 
         super(globalContext, taskContext, index, inputsNum, channelProxy);
         this.checkpoints = new CheckPointSaver<>();
-        this.candleDataIdentity = BinaryFileIdentity.builder().componentType(super.componentType).total(super.total).index(super.index)
-                .identity(CandleData.CONS_NAME.toLowerCase()).build();
-        this.interval = taskContext.getLong("interval", 2000L);
+        this.depthDataIdentity = BinaryFileIdentity.builder().componentType(super.componentType).total(super.total).index(super.index)
+                .identity(DepthEngine.CONS_NAME.toLowerCase()).build();
+        int maxDepthSize = taskContext.getInteger("maxdepthsize", 30);
+        long interval = taskContext.getLong("interval", 2000L);
+        this.depthEngine = new DepthEngine(maxDepthSize, interval);
     }
 
 
@@ -64,37 +57,17 @@ public class JobParser extends AbstractParser<Integer, CandleDiff> implements Ba
         KafkaData kafkaData = (KafkaData) event;
         OrderMatch match = (OrderMatch) this.orderMatchFactory.createData();
         match.from(kafkaData.getValue());
-        if (OrderAction.BID == match.getOrderAction() && ResultCode.MATCH == match.getResultCode()) {
-            this.candleData.handle(match, this);
+        if (match.getOrderPriceDepthSize() >= 0L) {
+            this.depthEngine.handle(match);
         }
-        flush();
-    }
-
-
-    private void flush() {
-
-        long ts = Util.nowMS();
-        if (ts - this.lastScanTime < this.interval) {
-            return;
-        }
-        this.lastScanTime = ts;
-        this.candleData.scan4Update(this);
-    }
-
-
-    @Override public void onChange(Integer symbolId, List<Point> points) {
-
-        CandleDiff candleDiff = feedOne(symbolId);
-        candleDiff.setSymbolId(symbolId);
-        candleDiff.setDiff(points);
-        push();
+        this.depthEngine.scan(this);
     }
 
 
     @Override protected void timeOut() {
 
         super.timeOut();
-        flush();
+        this.depthEngine.scan(this);
     }
 
 
@@ -104,11 +77,11 @@ public class JobParser extends AbstractParser<Integer, CandleDiff> implements Ba
         MapCheckPoint checkPoint = new MapCheckPoint();
         StateService stateService = Manager.getInstance().getStateService();
         if (stateService.isSupportRecovery()) {
-            String path = stateService.saveBinary(this.candleDataIdentity, barrierData, this.candleData);
-            checkPoint.getValues().put(this.candleDataIdentity.getIdentity(), path);
+            String path = stateService.saveBinary(this.depthDataIdentity, barrierData, this.depthEngine);
+            checkPoint.getValues().put(this.depthDataIdentity.getIdentity(), path);
         }
         this.checkpoints.put(barrierData.getBarrierId(), checkPoint);
-        flush();
+        this.depthEngine.forceDump(this);
     }
 
 
@@ -143,7 +116,7 @@ public class JobParser extends AbstractParser<Integer, CandleDiff> implements Ba
             if (stateValue.getCompomentIndex() == index) {
                 MapCheckPoint checkPoint = new MapCheckPoint();
                 checkPoint.parseFromJSON((JSONObject) stateValue.getValue());
-                Manager.getInstance().getStateService().recoveryBinary(checkPoint.getValues().get(candleDataIdentity.getIdentity()), candleData);
+                Manager.getInstance().getStateService().recoveryBinary(checkPoint.getValues().get(depthDataIdentity.getIdentity()), depthEngine);
             }
         });
     }

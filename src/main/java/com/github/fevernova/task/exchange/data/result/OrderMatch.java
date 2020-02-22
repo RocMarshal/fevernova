@@ -117,8 +117,8 @@ public class OrderMatch implements Data {
 
 
     //MATCH
-    public void from(Sequence sequence, Order order, int symbolId, OrderArray orderArray, long matchPrice, long matchFilledSize,
-                     Order thatOrder, long timestamp, OrderAction driverAction) {
+    public void from(Sequence sequence, int symbolId, Order order, Order thatOrder, OrderArray orderArray,
+                     long matchPrice, long matchSize, long timestamp, OrderAction driverAction) {
 
         this.sequence = sequence.getAndIncrement();
         this.symbolId = symbolId;
@@ -134,7 +134,7 @@ public class OrderMatch implements Data {
         this.orderAccFilledSize = order.getFilledSize();
         this.orderVersion = order.getVersion();
         this.matchPrice = matchPrice;
-        this.matchSize = matchFilledSize;
+        this.matchSize = matchSize;
         this.matchOrderId = thatOrder.getOrderId();
         this.matchOrderUserId = thatOrder.getUserId();
         this.driverAction = driverAction;

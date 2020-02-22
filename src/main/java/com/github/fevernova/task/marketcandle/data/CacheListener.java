@@ -1,4 +1,4 @@
-package com.github.fevernova.task.exchange.data.candle;
+package com.github.fevernova.task.marketcandle.data;
 
 
 import com.github.fevernova.task.exchange.window.WindowListener;
@@ -18,13 +18,14 @@ public class CacheListener implements WindowListener<Point> {
     }
 
 
-    @Override public void removeOldWindow(Point window) {
+    @Override public void createNewWindow(Point window) {
 
-        this.cache = window;
     }
 
 
-    @Override public void createNewWindow(Point window) {
+    @Override public void removeOldWindow(Point window) {
 
+        window.setCompleted(true);
+        this.cache = window;
     }
 }

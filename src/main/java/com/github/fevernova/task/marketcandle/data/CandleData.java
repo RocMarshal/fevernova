@@ -1,15 +1,15 @@
-package com.github.fevernova.task.exchange.data.candle;
+package com.github.fevernova.task.marketcandle.data;
 
 
+import com.github.fevernova.task.exchange.data.result.OrderMatch;
 import com.github.fevernova.task.exchange.engine.SerializationUtils;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import lombok.Getter;
 import net.openhft.chronicle.bytes.BytesIn;
 import net.openhft.chronicle.bytes.BytesOut;
 import net.openhft.chronicle.bytes.ReadBytesMarshallable;
 import net.openhft.chronicle.bytes.WriteBytesMarshallable;
 import net.openhft.chronicle.core.io.IORuntimeException;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.Validate;
 
 import java.util.List;
@@ -19,23 +19,18 @@ import java.util.Map;
 public class CandleData implements WriteBytesMarshallable, ReadBytesMarshallable {
 
 
-    @Getter
-    private Map<Integer, Line> data;
+    public static final String CONS_NAME = "CandleData";
+
+    private Map<Integer, Line> data = Maps.newHashMap();
 
 
-    public CandleData(int size) {
+    public void handle(OrderMatch orderMatch, ScanFunction function) {
 
-        this.data = Maps.newHashMapWithExpectedSize(size);
-    }
-
-
-    public void acc(int symbolId, long timestamp, long price, long size, long sequence, ScanFunction function) {
-
-        Line line = getOrCreateLine(symbolId);
-        line.acc(timestamp, price, size, sequence);
-        Point removed = line.pollRemoved();
-        if (removed != null) {
-            function.onRemove(symbolId, Lists.newArrayList(removed));
+        Line line = getOrCreateLine(orderMatch.getSymbolId());
+        line.acc(orderMatch.getTimestamp(), orderMatch.getMatchPrice(), orderMatch.getMatchSize(), orderMatch.getSequence());
+        List<Point> removes = line.pollRemoved();
+        if (CollectionUtils.isNotEmpty(removes)) {
+            function.onChange(orderMatch.getSymbolId(), removes);
         }
     }
 
@@ -53,11 +48,11 @@ public class CandleData implements WriteBytesMarshallable, ReadBytesMarshallable
 
     public void scan4Update(ScanFunction function) {
 
-        this.data.forEach((integer, line) -> {
+        this.data.forEach((id, line) -> {
 
             List<Point> points = line.scan4Update();
-            if (!points.isEmpty()) {
-                function.onUpdate(integer, points);
+            if (CollectionUtils.isNotEmpty(points)) {
+                function.onChange(id, points);
             }
         });
     }

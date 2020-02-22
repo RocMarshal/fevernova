@@ -37,6 +37,7 @@ public class JobSink extends AbstractSink {
         singleServerConfig.setAddress(taskContext.get("address"));
         singleServerConfig.setPassword(taskContext.get("password"));
         singleServerConfig.setDatabase(taskContext.getInteger("dbnum", 0));
+        singleServerConfig.setConnectionPoolSize(taskContext.getInteger("poolsize", 64));
         singleServerConfig.setClientName(super.named.render(true));
         this.redis = (Redisson) Redisson.create(redisConfig);
     }
@@ -54,6 +55,5 @@ public class JobSink extends AbstractSink {
             }
         }
         this.currentTopic.publish(candleDiff.getDiff());
-
     }
 }

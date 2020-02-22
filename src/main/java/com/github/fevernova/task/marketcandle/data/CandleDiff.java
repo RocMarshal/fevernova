@@ -2,7 +2,6 @@ package com.github.fevernova.task.marketcandle.data;
 
 
 import com.github.fevernova.framework.common.data.Data;
-import com.github.fevernova.task.exchange.data.candle.Point;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -23,6 +22,7 @@ public class CandleDiff implements Data {
 
     @Override public void clearData() {
 
+        this.symbolId = 0;
         this.diff = null;
     }
 

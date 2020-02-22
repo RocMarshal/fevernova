@@ -5,10 +5,7 @@ import com.github.fevernova.framework.common.context.ContextObject;
 import com.github.fevernova.framework.common.context.GlobalContext;
 import com.github.fevernova.framework.common.context.TaskContext;
 import com.github.fevernova.framework.component.DataProvider;
-import com.github.fevernova.task.exchange.data.candle.CandleData;
 import com.github.fevernova.task.exchange.data.cmd.OrderCommand;
-import com.github.fevernova.task.exchange.data.depth.DepthData;
-import com.github.fevernova.task.exchange.data.depth.DepthResult;
 import com.github.fevernova.task.exchange.data.result.OrderMatch;
 import com.google.common.collect.Maps;
 import net.openhft.chronicle.bytes.BytesIn;
@@ -66,22 +63,6 @@ public final class OrderBooksEngine extends ContextObject implements WriteBytesM
             this.lastOrderBooks = orderBooks;
         }
         return orderBooks;
-    }
-
-
-    public CandleData dumpCandle() {
-
-        final CandleData candleData = new CandleData(this.symbols.size());
-        this.symbols.entrySet().forEach(entry -> candleData.getData().put(entry.getKey(), entry.getValue().getLine()));
-        return candleData;
-    }
-
-
-    public DepthData dumpDepth() {
-
-        final DepthData depthData = new DepthData(this.symbols.size());
-        this.symbols.entrySet().forEach(entry -> depthData.getData().put(entry.getKey(), new DepthResult(entry.getValue(), 500)));
-        return depthData;
     }
 
 

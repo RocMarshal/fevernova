@@ -46,10 +46,7 @@ public class Start {
                 if (configPath.endsWith(".property")) {
                     context = LoadTaskContext.load(configPath);
                 }
-            } else {
-                String configUrl = commandLine.getOptionValue(CONFIGURL.getLongOpt());//TODO
             }
-
             String clazzName = "com.github.fevernova.task." + jobTags.getJobType() + ".Task";
             Class<? extends BaseTask> clazz = Util.findClass(clazzName);
             BaseTask task = clazz.getConstructor(TaskContext.class, JobTags.class).newInstance(context, jobTags);
