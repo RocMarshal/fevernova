@@ -1,7 +1,7 @@
 package com.github.fevernova.task.exchange.data.uniq;
 
 
-import com.github.fevernova.task.exchange.window.SlideWindow;
+import com.github.fevernova.framework.window.SlideWindow;
 
 
 public class UniqIdFilter extends SlideWindow<UniqIdData> {

@@ -1,4 +1,4 @@
-package com.github.fevernova.task.exchange.window;
+package com.github.fevernova.framework.window;
 
 
 public interface WindowListener<W extends ObjectWithId> {

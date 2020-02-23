@@ -1,7 +1,7 @@
 package com.github.fevernova.task.exchange.data.uniq;
 
 
-import com.github.fevernova.task.exchange.window.ObjectWithId;
+import com.github.fevernova.framework.window.ObjectWithId;
 import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
 import net.openhft.chronicle.bytes.BytesIn;

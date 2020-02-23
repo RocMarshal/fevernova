@@ -1,7 +1,7 @@
 package com.github.fevernova.task.marketcandle.data;
 
 
-import com.github.fevernova.task.exchange.window.ObjectWithId;
+import com.github.fevernova.framework.window.ObjectWithId;
 import lombok.Getter;
 import lombok.Setter;
 import net.openhft.chronicle.bytes.BytesIn;

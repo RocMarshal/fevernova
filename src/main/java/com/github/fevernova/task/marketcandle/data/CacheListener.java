@@ -1,7 +1,7 @@
 package com.github.fevernova.task.marketcandle.data;
 
 
-import com.github.fevernova.task.exchange.window.WindowListener;
+import com.github.fevernova.framework.window.WindowListener;
 
 
 public class CacheListener implements WindowListener<Point> {

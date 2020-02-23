@@ -1,7 +1,7 @@
 package com.github.fevernova.task.marketcandle.data;
 
 
-import com.github.fevernova.task.exchange.window.SlideWindow;
+import com.github.fevernova.framework.window.SlideWindow;
 import com.google.common.collect.Lists;
 
 import java.util.List;
