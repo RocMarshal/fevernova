@@ -30,11 +30,14 @@ public class DepthEngine implements WriteBytesMarshallable, ReadBytesMarshallabl
 
     private long lastScanTime = Util.nowMS();
 
+    private final DataProvider<Integer, DepthResult> provider;
 
-    public DepthEngine(int maxDepthSize, long interval) {
+
+    public DepthEngine(int maxDepthSize, long interval, DataProvider<Integer, DepthResult> provider) {
 
         this.maxDepthSize = maxDepthSize;
         this.interval = interval;
+        this.provider = provider;
     }
 
 
@@ -42,43 +45,20 @@ public class DepthEngine implements WriteBytesMarshallable, ReadBytesMarshallabl
 
         SymbolDepths symbolDepths = this.data.get(match.getSymbolId());
         if (symbolDepths == null) {
-            symbolDepths = new SymbolDepths();
+            symbolDepths = new SymbolDepths(match.getSymbolId(), this.maxDepthSize);
             this.data.put(match.getSymbolId(), symbolDepths);
         }
-        symbolDepths.handle(match);
+        symbolDepths.handle(match, this.provider, Util.nowMS());
     }
 
 
-    public void scan(DataProvider<Integer, DepthResult> provider) {
+    public void scan() {
 
         long now = Util.nowMS();
         if (now - this.lastScanTime >= this.interval) {
             this.lastScanTime = now;
         }
-        this.data.forEach((id, symbolDepths) -> {
-
-            if (symbolDepths.dump4RealTime()) {
-                dump(id, symbolDepths, provider);
-            }
-        });
-    }
-
-
-    public void forceDump(DataProvider<Integer, DepthResult> provider) {
-
-        this.lastScanTime = Util.nowMS();
-        this.data.forEach((id, symbolDepths) -> dump(id, symbolDepths, provider));
-    }
-
-
-    private void dump(int symbolId, SymbolDepths symbolDepths, DataProvider<Integer, DepthResult> provider) {
-
-        DepthResult depthResult = provider.feedOne(symbolId);
-        depthResult.setSymbolId(symbolId);
-        depthResult.setTimestamp(Util.nowMS());
-        depthResult.dump(symbolDepths, this.maxDepthSize);
-        provider.push();
-        symbolDepths.completedDump();
+        this.data.forEach((id, symbolDepths) -> symbolDepths.scan(provider, now));
     }
 
 

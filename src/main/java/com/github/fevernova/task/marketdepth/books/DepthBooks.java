@@ -1,4 +1,4 @@
-package com.github.fevernova.task.marketdepth.engine;
+package com.github.fevernova.task.marketdepth.books;
 
 
 import com.github.fevernova.task.marketdepth.data.Depth;
@@ -9,14 +9,19 @@ import net.openhft.chronicle.bytes.ReadBytesMarshallable;
 import net.openhft.chronicle.bytes.WriteBytesMarshallable;
 import net.openhft.chronicle.core.io.IORuntimeException;
 
+import java.util.Map;
 import java.util.NavigableMap;
 
 
-public class DepthBooks implements WriteBytesMarshallable, ReadBytesMarshallable {
+public abstract class DepthBooks implements WriteBytesMarshallable, ReadBytesMarshallable {
 
+
+    protected final NavigableMap<Long, Depth> priceTree;
 
     @Getter
-    private NavigableMap<Long, Depth> priceTree;
+    protected long cachePrice;
+
+    protected Depth cacheDepth;
 
 
     public DepthBooks(NavigableMap<Long, Depth> priceTree) {
@@ -29,15 +34,40 @@ public class DepthBooks implements WriteBytesMarshallable, ReadBytesMarshallable
 
         if (size == 0) {
             this.priceTree.remove(price);
+            if (this.cachePrice == price) {
+                Map.Entry<Long, Depth> entry = this.priceTree.ceilingEntry(price);
+                this.cachePrice = entry != null ? entry.getKey() : defaultPrice();
+                this.cacheDepth = entry != null ? entry.getValue() : null;
+            }
+            return;
         }
-        Depth depth = this.priceTree.get(price);
-        if (depth == null) {
-            depth = new Depth();
+
+        if (newEdgePrice(price)) {
+            Depth depth = new Depth();
+            depth.setSize(size);
+            depth.setCount(count);
             this.priceTree.put(price, depth);
+            this.cachePrice = price;
+            this.cacheDepth = depth;
+            return;
         }
+
+        if (this.cachePrice == price) {
+            this.cacheDepth.setSize(size);
+            this.cacheDepth.setCount(count);
+            return;
+        }
+
+        Depth depth = new Depth();
         depth.setSize(size);
         depth.setCount(count);
+        this.priceTree.put(price, depth);
     }
+
+
+    protected abstract long defaultPrice();
+
+    public abstract boolean newEdgePrice(long tmpPrice);
 
 
     @Override public void readMarshallable(BytesIn bytes) throws IORuntimeException {
@@ -49,6 +79,8 @@ public class DepthBooks implements WriteBytesMarshallable, ReadBytesMarshallable
             depth.readMarshallable(bytes);
             this.priceTree.put(price, depth);
         }
+        this.cachePrice = bytes.readLong();
+        this.cacheDepth = this.priceTree.get(this.cachePrice);
     }
 
 
@@ -59,5 +91,6 @@ public class DepthBooks implements WriteBytesMarshallable, ReadBytesMarshallable
             bytes.writeLong(price);
             depth.writeMarshallable(bytes);
         });
+        bytes.writeLong(this.cachePrice);
     }
 }

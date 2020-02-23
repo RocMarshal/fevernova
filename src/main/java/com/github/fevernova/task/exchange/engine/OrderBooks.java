@@ -31,8 +31,10 @@ public final class OrderBooks implements WriteBytesMarshallable {
 
     private final Sequence sequence = new Sequence();
 
+    @Getter
     private final Books askBooks = new AskBooks();
 
+    @Getter
     private final Books bidBooks = new BidBooks();
 
     private final UniqIdFilter uniqIdFilter = new UniqIdFilter(60_000L, 10);

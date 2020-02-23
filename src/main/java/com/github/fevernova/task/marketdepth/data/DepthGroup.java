@@ -1,7 +1,7 @@
 package com.github.fevernova.task.marketdepth.data;
 
 
-import com.github.fevernova.task.marketdepth.engine.DepthBooks;
+import com.github.fevernova.task.marketdepth.books.DepthBooks;
 import lombok.Getter;
 
 import java.util.Map;

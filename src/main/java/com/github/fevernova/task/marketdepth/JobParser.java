@@ -48,7 +48,7 @@ public class JobParser extends AbstractParser<Integer, DepthResult> implements B
                 .identity(DepthEngine.CONS_NAME.toLowerCase()).build();
         int maxDepthSize = taskContext.getInteger("maxdepthsize", 30);
         long interval = taskContext.getLong("interval", 2000L);
-        this.depthEngine = new DepthEngine(maxDepthSize, interval);
+        this.depthEngine = new DepthEngine(maxDepthSize, interval, this);
     }
 
 
@@ -60,14 +60,14 @@ public class JobParser extends AbstractParser<Integer, DepthResult> implements B
         if (match.getOrderPriceDepthSize() >= 0L) {
             this.depthEngine.handle(match);
         }
-        this.depthEngine.scan(this);
+        this.depthEngine.scan();
     }
 
 
     @Override protected void timeOut() {
 
         super.timeOut();
-        this.depthEngine.scan(this);
+        this.depthEngine.scan();
     }
 
 
@@ -81,7 +81,6 @@ public class JobParser extends AbstractParser<Integer, DepthResult> implements B
             checkPoint.getValues().put(this.depthDataIdentity.getIdentity(), path);
         }
         this.checkpoints.put(barrierData.getBarrierId(), checkPoint);
-        this.depthEngine.forceDump(this);
     }
 
 
