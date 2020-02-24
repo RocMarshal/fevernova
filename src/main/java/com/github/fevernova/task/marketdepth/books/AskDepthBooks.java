@@ -19,7 +19,7 @@ public class AskDepthBooks extends DepthBooks {
     }
 
 
-    @Override protected boolean newEdgePrice(long tmpPrice) {
+    @Override public boolean newEdgePrice(long tmpPrice) {
 
         return super.cachePrice > tmpPrice;
     }

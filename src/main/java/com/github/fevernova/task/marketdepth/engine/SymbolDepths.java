@@ -61,7 +61,13 @@ public class SymbolDepths implements WriteBytesMarshallable, ReadBytesMarshallab
     public void scan(DataProvider<Integer, DepthResult> provider, long now) {
 
         if (this.bids.newEdgePrice(this.asks.getCachePrice()) && needDump(now)) {
-            dump(provider, now);
+            DepthResult depthResult = provider.feedOne(this.symbolId);
+            depthResult.setSymbolId(this.symbolId);
+            depthResult.setTimestamp(now);
+            depthResult.dump(this, this.maxDepthSize);
+            provider.push();
+            this.update = false;
+            this.lastDumpTime = now;
         }
     }
 
@@ -74,18 +80,6 @@ public class SymbolDepths implements WriteBytesMarshallable, ReadBytesMarshallab
             return true;
         }
         return false;
-    }
-
-
-    private void dump(DataProvider<Integer, DepthResult> provider, long now) {
-
-        DepthResult depthResult = provider.feedOne(this.symbolId);
-        depthResult.setSymbolId(this.symbolId);
-        depthResult.setTimestamp(now);
-        depthResult.dump(this, this.maxDepthSize);
-        provider.push();
-        this.update = false;
-        this.lastDumpTime = now;
     }
 
 

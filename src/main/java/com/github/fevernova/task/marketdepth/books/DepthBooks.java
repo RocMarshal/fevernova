@@ -13,12 +13,12 @@ import java.util.Map;
 import java.util.NavigableMap;
 
 
+@Getter
 public abstract class DepthBooks implements WriteBytesMarshallable, ReadBytesMarshallable {
 
 
     protected final NavigableMap<Long, Depth> priceTree;
 
-    @Getter
     protected long cachePrice;
 
     protected Depth cacheDepth;

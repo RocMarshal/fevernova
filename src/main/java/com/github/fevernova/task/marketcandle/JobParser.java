@@ -22,8 +22,8 @@ import com.github.fevernova.task.exchange.data.order.OrderAction;
 import com.github.fevernova.task.exchange.data.result.OrderMatch;
 import com.github.fevernova.task.exchange.data.result.OrderMatchFactory;
 import com.github.fevernova.task.exchange.data.result.ResultCode;
-import com.github.fevernova.task.marketcandle.data.CandleDiff;
 import com.github.fevernova.task.marketcandle.data.CandleData;
+import com.github.fevernova.task.marketcandle.data.CandleDiff;
 import com.github.fevernova.task.marketcandle.data.Point;
 import com.github.fevernova.task.marketcandle.data.ScanFunction;
 import lombok.extern.slf4j.Slf4j;
@@ -36,9 +36,9 @@ import java.util.List;
 public class JobParser extends AbstractParser<Integer, CandleDiff> implements BarrierCoordinatorListener, ScanFunction {
 
 
-    protected ICheckPointSaver<MapCheckPoint> checkpoints;
+    private ICheckPointSaver<MapCheckPoint> checkpoints = new CheckPointSaver<>();
 
-    private OrderMatchFactory orderMatchFactory = new OrderMatchFactory();
+    private OrderMatch orderMatch = (OrderMatch) new OrderMatchFactory().createData();
 
     private CandleData candleData = new CandleData();
 
@@ -52,7 +52,6 @@ public class JobParser extends AbstractParser<Integer, CandleDiff> implements Ba
     public JobParser(GlobalContext globalContext, TaskContext taskContext, int index, int inputsNum, ChannelProxy channelProxy) {
 
         super(globalContext, taskContext, index, inputsNum, channelProxy);
-        this.checkpoints = new CheckPointSaver<>();
         this.candleDataIdentity = BinaryFileIdentity.builder().componentType(super.componentType).total(super.total).index(super.index)
                 .identity(CandleData.CONS_NAME.toLowerCase()).build();
         this.interval = taskContext.getLong("interval", 2000L);
@@ -62,10 +61,9 @@ public class JobParser extends AbstractParser<Integer, CandleDiff> implements Ba
     @Override protected void handleEvent(Data event) {
 
         KafkaData kafkaData = (KafkaData) event;
-        OrderMatch match = (OrderMatch) this.orderMatchFactory.createData();
-        match.from(kafkaData.getValue());
-        if (OrderAction.BID == match.getOrderAction() && ResultCode.MATCH == match.getResultCode()) {
-            this.candleData.handle(match, this);
+        this.orderMatch.from(kafkaData.getValue());
+        if (OrderAction.BID == this.orderMatch.getOrderAction() && ResultCode.MATCH == this.orderMatch.getResultCode()) {
+            this.candleData.handle(this.orderMatch, this);
         }
         flush();
     }

@@ -31,9 +31,9 @@ import java.util.List;
 public class JobParser extends AbstractParser<Integer, DepthResult> implements BarrierCoordinatorListener {
 
 
-    protected ICheckPointSaver<MapCheckPoint> checkpoints;
+    private ICheckPointSaver<MapCheckPoint> checkpoints = new CheckPointSaver<>();
 
-    private OrderMatchFactory orderMatchFactory = new OrderMatchFactory();
+    private OrderMatch orderMatch = (OrderMatch) new OrderMatchFactory().createData();
 
     private DepthEngine depthEngine;
 
@@ -43,7 +43,6 @@ public class JobParser extends AbstractParser<Integer, DepthResult> implements B
     public JobParser(GlobalContext globalContext, TaskContext taskContext, int index, int inputsNum, ChannelProxy channelProxy) {
 
         super(globalContext, taskContext, index, inputsNum, channelProxy);
-        this.checkpoints = new CheckPointSaver<>();
         this.depthDataIdentity = BinaryFileIdentity.builder().componentType(super.componentType).total(super.total).index(super.index)
                 .identity(DepthEngine.CONS_NAME.toLowerCase()).build();
         int maxDepthSize = taskContext.getInteger("maxdepthsize", 30);
@@ -55,10 +54,9 @@ public class JobParser extends AbstractParser<Integer, DepthResult> implements B
     @Override protected void handleEvent(Data event) {
 
         KafkaData kafkaData = (KafkaData) event;
-        OrderMatch match = (OrderMatch) this.orderMatchFactory.createData();
-        match.from(kafkaData.getValue());
-        if (match.getOrderPriceDepthSize() >= 0L) {
-            this.depthEngine.handle(match);
+        this.orderMatch.from(kafkaData.getValue());
+        if (this.orderMatch.getOrderPriceDepthSize() >= 0L) {
+            this.depthEngine.handle(this.orderMatch);
         }
         this.depthEngine.scan();
     }

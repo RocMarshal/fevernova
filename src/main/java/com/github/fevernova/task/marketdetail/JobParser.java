@@ -23,7 +23,7 @@ import java.util.Map;
 public class JobParser extends AbstractParser<Integer, OrderDetail> {
 
 
-    private OrderMatchFactory orderMatchFactory = new OrderMatchFactory();
+    private OrderMatch orderMatch = (OrderMatch) new OrderMatchFactory().createData();
 
     private Map<Integer, RateLimiter> limiters = Maps.newHashMap();
 
@@ -40,17 +40,16 @@ public class JobParser extends AbstractParser<Integer, OrderDetail> {
     @Override protected void handleEvent(Data event) {
 
         KafkaData kafkaData = (KafkaData) event;
-        OrderMatch orderMatch = (OrderMatch) this.orderMatchFactory.createData();
-        orderMatch.from(kafkaData.getValue());
-        if (OrderAction.BID == orderMatch.getOrderAction() && ResultCode.MATCH == orderMatch.getResultCode()) {
-            RateLimiter rateLimiter = this.limiters.get(orderMatch.getSymbolId());
+        this.orderMatch.from(kafkaData.getValue());
+        if (OrderAction.BID == this.orderMatch.getOrderAction() && ResultCode.MATCH == this.orderMatch.getResultCode()) {
+            RateLimiter rateLimiter = this.limiters.get(this.orderMatch.getSymbolId());
             if (rateLimiter == null) {
                 rateLimiter = RateLimiter.create(this.ratio);
-                this.limiters.put(orderMatch.getSymbolId(), rateLimiter);
+                this.limiters.put(this.orderMatch.getSymbolId(), rateLimiter);
             }
             if (rateLimiter.tryAcquire()) {
-                OrderDetail orderDetail = feedOne(orderMatch.getSymbolId());
-                orderDetail.from(orderMatch);
+                OrderDetail orderDetail = feedOne(this.orderMatch.getSymbolId());
+                orderDetail.from(this.orderMatch);
                 push();
             }
         }
