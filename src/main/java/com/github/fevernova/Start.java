@@ -12,6 +12,7 @@ import com.github.fevernova.framework.task.BaseTask;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.lang3.Validate;
 import org.slf4j.LoggerFactory;
 
 import static com.github.fevernova.CMD.*;
@@ -45,6 +46,8 @@ public class Start {
                 String configPath = commandLine.getOptionValue(CONFIGPATH.getLongOpt());
                 if (configPath.endsWith(".property")) {
                     context = LoadTaskContext.load(configPath);
+                } else {
+                    Validate.isTrue(false, "config suffix must be .property");
                 }
             }
             String clazzName = "com.github.fevernova.task." + jobTags.getJobType() + ".Task";

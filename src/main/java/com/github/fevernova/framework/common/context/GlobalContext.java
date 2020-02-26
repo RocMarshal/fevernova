@@ -33,7 +33,11 @@ public class GlobalContext {
 
     public void fatalError(String reason, Throwable e) {
 
-        log.error("FatalError : " + reason, e);
+        if (e != null) {
+            log.error("FatalError : " + reason, e);
+        } else {
+            log.error("FatalError : " + reason);
+        }
         this.getEventBus().post(reason);
         while (true) {
             Util.sleepSec(1);

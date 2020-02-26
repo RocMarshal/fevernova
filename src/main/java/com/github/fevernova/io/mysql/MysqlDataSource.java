@@ -1,4 +1,4 @@
-package com.github.fevernova.task.binlog.util;
+package com.github.fevernova.io.mysql;
 
 
 import com.alibaba.druid.pool.DruidDataSource;
@@ -7,8 +7,9 @@ import com.github.fevernova.framework.common.Util;
 import com.github.fevernova.framework.common.context.TaskContext;
 import com.github.fevernova.io.data.TypeRouter;
 import com.github.fevernova.io.data.message.Meta;
-import com.github.fevernova.task.binlog.util.schema.Column;
-import com.github.fevernova.task.binlog.util.schema.Table;
+import com.github.fevernova.io.mysql.schema.Column;
+import com.github.fevernova.io.mysql.schema.Table;
+import com.github.fevernova.task.binlog.util.MysqlType;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -32,6 +33,8 @@ import java.util.Set;
 public class MysqlDataSource {
 
 
+    private TaskContext mysqlContext;
+
     private String host;
 
     private int port;
@@ -39,6 +42,8 @@ public class MysqlDataSource {
     private long serverId;
 
     private long slaveId;
+
+    private String version;
 
     private String username;
 
@@ -48,46 +53,25 @@ public class MysqlDataSource {
 
     private DataSource dataSource;
 
-    private String mysqlVersion;
-
     private Map<String, Table> schema = Maps.newConcurrentMap();
 
 
     public MysqlDataSource(TaskContext mysqlContext) {
 
+        this.mysqlContext = mysqlContext;
         this.host = mysqlContext.getString("host", "127.0.0.1");
         this.port = mysqlContext.getInteger("port", 3306);
-        this.slaveId = mysqlContext.getLong("slaveid");
+        this.slaveId = mysqlContext.getLong("slaveid", 65535L);
         this.username = mysqlContext.get("username");
         this.password = mysqlContext.get("password");
+        String simpleUrl = "jdbc:mysql://" + this.host + ":" + this.port;
+        this.jdbcUrl = this.mysqlContext.getString("url", simpleUrl);
     }
 
 
-    public static String matchCharset(String charset) {
-
-        if (charset == null) {
-            return null;
-        }
-        switch (charset.toLowerCase()) {
-            case "utf8":
-            case "utf8mb4":
-                return "UTF-8";
-            case "latin1":
-            case "ascii":
-                return "Windows-1252";
-            case "ucs2":
-                return "UTF-16";
-            case "ujis":
-                return "EUC-JP";
-            default:
-                return charset;
-        }
-    }
+    public void initJDBC(boolean checkBinlog) throws Exception {
 
 
-    public void initJDBC() throws Exception {
-
-        this.jdbcUrl = "jdbc:mysql://" + this.host + ":" + this.port;
         Map<String, String> config = Maps.newHashMapWithExpectedSize(20);
         config.put("url", this.jdbcUrl);
         config.put("username", this.username);
@@ -95,7 +79,7 @@ public class MysqlDataSource {
         config.put("driverClassName", "com.mysql.jdbc.Driver");
         config.put("initialSize", "1");
         config.put("minIdle", "1");
-        config.put("maxActive", "3");
+        config.put("maxActive", "10");
         config.put("defaultAutoCommit", "true");
         config.put("minEvictableIdleTimeMillis", "300000");
         config.put("validationQuery", "SELECT 'x' FROME DUAL");
@@ -104,19 +88,19 @@ public class MysqlDataSource {
         config.put("testOnReturn", "false");
         config.put("poolPreparedStatements", "false");
         config.put("maxPoolPreparedStatementPerConnectionSize", "-1");
-        //config.put("removeAbandoned", "true");
         config.put("removeAbandonedTimeout", "1200");
         config.put("logAbandoned", "true");
         this.dataSource = DruidDataSourceFactory.createDataSource(config);
         this.serverId = _getServerId();
-        this.mysqlVersion = _getMysqlVersion();
-        _checkVar("log_bin", "ON");
-        _checkVar("binlog_format", "ROW");
-        _checkVar("binlog_row_image", "FULL");
-        //_checkVar("gtid_mode", "ON");
-        //_checkVar("log_slave_updates", "ON");
-        //_checkVar("enforce_gtid_consistency", "ON");
-
+        this.version = _getMysqlVersion();
+        if (checkBinlog) {
+            _checkVar("log_bin", "ON");
+            _checkVar("binlog_format", "ROW");
+            _checkVar("binlog_row_image", "FULL");
+            //_checkVar("gtid_mode", "ON");
+            //_checkVar("log_slave_updates", "ON");
+            //_checkVar("enforce_gtid_consistency", "ON");
+        }
     }
 
 
@@ -140,28 +124,37 @@ public class MysqlDataSource {
     }
 
 
+    public void config(String dbName, String tableName, String sensitiveColumns) {
+
+        Set<String> ignoreColumnNames = Sets.newHashSet();
+        if (!StringUtils.isEmpty(sensitiveColumns)) {
+            List<String> columnNames = Util.splitStringWithFilter(sensitiveColumns, "\\s|,", null);
+            ignoreColumnNames.addAll(columnNames);
+        }
+        String dbTableName = dbName + "." + tableName;
+        Table table = Table.builder().dbTableName(dbTableName).db(dbName).table(tableName).columns(Lists.newArrayList())
+                .ignoreColumnName(ignoreColumnNames).build();
+        this.schema.put(dbTableName, table);
+    }
+
+
     public Table getTable(String dbTableName, boolean forceReload) {
 
-        if (forceReload) {
-            return reloadSchema(dbTableName);
-        }
         Table table = this.schema.get(dbTableName);
-        if (table.getColumns().isEmpty()) {
-            return reloadSchema(dbTableName);
+        if (forceReload || table.getColumns().isEmpty()) {
+            return reloadSchema(table);
         }
         return table;
     }
 
 
-    private Table reloadSchema(String dbTableName) {
+    private Table reloadSchema(Table table) {
 
-        Table table = this.schema.get(dbTableName);
         table.getColumns().clear();
         _getColumns(table);
         List<Meta.MetaEntity> entityList = Lists.newArrayList();
         table.getColumns().forEach(column -> entityList.add(new Meta.MetaEntity(column.getName(), column.getTypeRouter().getTargetType())));
         table.setMeta(new Meta(entityList));
-        this.schema.put(dbTableName, table);
         return table;
     }
 
@@ -205,19 +198,14 @@ public class MysqlDataSource {
     private void _checkVar(String var, String expect) {
 
         String sql = "show variables like '" + var + "';";
-        executeQuery(sql, new ResultSetICallable<Long>() {
+        executeQuery(sql, (ICallable<Long>) r -> {
 
-
-            @Override
-            public Long handleResultSet(ResultSet r) throws Exception {
-
-                if (!r.next()) {
-                    Validate.isTrue(false, var + " is null");
-                }
-                String s = r.getString("Value");
-                Validate.isTrue(expect.equals(s));
-                return null;
+            if (!r.next()) {
+                Validate.isTrue(false, var + " is null");
             }
+            String s = r.getString("Value");
+            Validate.isTrue(expect.equals(s));
+            return null;
         });
     }
 
@@ -250,15 +238,7 @@ public class MysqlDataSource {
     private long _getServerId() {
 
         String sql = "show variables like 'server_id';";
-        Long result = executeQuery(sql, new ResultSetICallable<Long>() {
-
-
-            @Override
-            public Long handleResultSet(ResultSet r) throws Exception {
-
-                return r.next() ? r.getLong(2) : null;
-            }
-        });
+        Long result = executeQuery(sql, r -> r.next() ? r.getLong(2) : null);
         return result;
     }
 
@@ -266,15 +246,7 @@ public class MysqlDataSource {
     private String _getMysqlVersion() {
 
         String sql = "select version();";
-        String result = executeQuery(sql, new ResultSetICallable<String>() {
-
-
-            @Override
-            public String handleResultSet(ResultSet r) throws Exception {
-
-                return r.next() ? r.getString(1) : null;
-            }
-        });
+        String result = executeQuery(sql, r -> r.next() ? r.getString(1) : null);
         return result;
     }
 
@@ -319,25 +291,36 @@ public class MysqlDataSource {
     }
 
 
-    abstract class ICallable<V> {
+    public static String matchCharset(String charset) {
 
-
-        public abstract void handleParams(PreparedStatement p) throws Exception;
-
-        public abstract V handleResultSet(ResultSet r) throws Exception;
-
+        if (charset == null) {
+            return null;
+        }
+        switch (charset.toLowerCase()) {
+            case "utf8":
+            case "utf8mb4":
+                return "UTF-8";
+            case "latin1":
+            case "ascii":
+                return "Windows-1252";
+            case "ucs2":
+                return "UTF-16";
+            case "ujis":
+                return "EUC-JP";
+            default:
+                return charset;
+        }
     }
 
 
-    abstract class ResultSetICallable<V> extends ICallable<V> {
+    public interface ICallable<V> {
 
 
-        @Override
-        public void handleParams(PreparedStatement p) throws Exception {
+        default void handleParams(PreparedStatement p) throws Exception {
 
         }
 
+        V handleResultSet(ResultSet r) throws Exception;
 
-        @Override public abstract V handleResultSet(ResultSet r) throws Exception;
     }
 }

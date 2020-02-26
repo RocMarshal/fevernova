@@ -9,6 +9,7 @@ import com.github.fevernova.io.data.type.impl.date.UDate;
 import com.github.fevernova.io.data.type.impl.date.UDateTime;
 import com.github.fevernova.io.data.type.impl.date.UTime;
 import com.github.fevernova.io.data.type.impl.date.UYear;
+import com.github.fevernova.io.mysql.MysqlDataSource;
 
 
 public class MysqlType {

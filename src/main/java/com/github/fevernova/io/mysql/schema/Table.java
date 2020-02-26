@@ -1,4 +1,4 @@
-package com.github.fevernova.task.binlog.util.schema;
+package com.github.fevernova.io.mysql.schema;
 
 
 import com.github.fevernova.io.data.message.Meta;
