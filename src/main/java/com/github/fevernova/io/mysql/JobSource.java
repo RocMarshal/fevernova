@@ -19,6 +19,7 @@ import org.apache.commons.lang3.tuple.Pair;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.Timestamp;
 import java.util.List;
 
 
@@ -35,6 +36,8 @@ public class JobSource extends AbstractSource<Long, ListData> implements MysqlDa
     protected MysqlDataSource dataSource;
 
     protected int stepSize;
+
+    protected boolean stepByTimeStamp;
 
     protected String dbName;
 
@@ -72,7 +75,8 @@ public class JobSource extends AbstractSource<Long, ListData> implements MysqlDa
             log.error("source init error : ", e);
             Validate.isTrue(false);
         }
-        this.stepSize = taskContext.getInteger("stepsize", 100);
+        this.stepByTimeStamp = taskContext.getBoolean("stepbytimestamp", false);
+        this.stepSize = taskContext.getInteger("stepsize", 1000);
         this.dbName = taskContext.getString("db");
         this.tableName = taskContext.getString("table");
         this.dbTableName = this.dbName + "." + this.tableName;
@@ -136,8 +140,13 @@ public class JobSource extends AbstractSource<Long, ListData> implements MysqlDa
 
     @Override public void handleParams(PreparedStatement p) throws Exception {
 
-        p.setLong(1, this.currentStart);
-        p.setLong(2, this.currentEnd);
+        if (this.stepByTimeStamp) {
+            p.setTimestamp(1, new Timestamp(this.currentStart));
+            p.setTimestamp(2, new Timestamp(this.currentEnd));
+        } else {
+            p.setLong(1, this.currentStart);
+            p.setLong(2, this.currentEnd);
+        }
     }
 
 
@@ -150,7 +159,7 @@ public class JobSource extends AbstractSource<Long, ListData> implements MysqlDa
                 if (column.isIgnore()) {
                     continue;
                 }
-                listData.getValues().add(Pair.of(column, r.getObject(i++)));
+                listData.getValues().add(r.getObject(i++));
             }
             push();
         }

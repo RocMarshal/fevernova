@@ -2,11 +2,9 @@ package com.github.fevernova.io.mysql.data;
 
 
 import com.github.fevernova.framework.common.data.Data;
-import com.github.fevernova.io.mysql.schema.Column;
 import com.google.common.collect.Lists;
 import lombok.Getter;
 import lombok.Setter;
-import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.List;
 
@@ -16,7 +14,7 @@ import java.util.List;
 public class ListData implements Data {
 
 
-    private List<Pair<Column, Object>> values = Lists.newArrayList();
+    private List<Object> values = Lists.newArrayList();
 
 
     @Override public void clearData() {
