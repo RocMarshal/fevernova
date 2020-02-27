@@ -1,4 +1,4 @@
-package com.github.fevernova.io.mysql;
+package com.github.fevernova.task.mysql;
 
 
 import com.github.fevernova.framework.common.context.GlobalContext;
@@ -8,9 +8,10 @@ import com.github.fevernova.framework.component.ComponentStatus;
 import com.github.fevernova.framework.component.channel.ChannelProxy;
 import com.github.fevernova.framework.component.source.AbstractSource;
 import com.github.fevernova.framework.service.barrier.listener.BarrierCompletedListener;
-import com.github.fevernova.io.mysql.data.ListData;
+import com.github.fevernova.io.mysql.MysqlDataSource;
 import com.github.fevernova.io.mysql.schema.Column;
 import com.github.fevernova.io.mysql.schema.Table;
+import com.github.fevernova.task.mysql.data.ListData;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -76,7 +77,7 @@ public class JobSource extends AbstractSource<Long, ListData> implements MysqlDa
             Validate.isTrue(false);
         }
         this.stepByTimeStamp = taskContext.getBoolean("stepbytimestamp", false);
-        this.stepSize = taskContext.getInteger("stepsize", 1000);
+        this.stepSize = taskContext.getInteger("stepsize", this.stepByTimeStamp ? 60 * 1000 : 1000);
         this.dbName = taskContext.getString("db");
         this.tableName = taskContext.getString("table");
         this.dbTableName = this.dbName + "." + this.tableName;
@@ -104,7 +105,10 @@ public class JobSource extends AbstractSource<Long, ListData> implements MysqlDa
         this.sqlQuery = String.format(SQL_QUERY_TEMPLETE, columnsNameString, this.dbTableName, primaryColumnNameString, primaryColumnNameString);
         this.sqlRange = String.format(SQL_RANGE_TEMPLETE, primaryColumnNameString, primaryColumnNameString, this.dbTableName);
 
-        Pair<Long, Long> ps = this.dataSource.executeQuery(this.sqlRange, r -> {
+        Pair<Long, Long> ps = this.stepByTimeStamp ? this.dataSource.executeQuery(this.sqlRange, r -> {
+            r.next();
+            return Pair.of(r.getTimestamp(1).getTime(), r.getTimestamp(2).getTime());
+        }) : this.dataSource.executeQuery(this.sqlRange, r -> {
             r.next();
             return Pair.of(r.getLong(1), r.getLong(2));
         });

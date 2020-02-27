@@ -1,4 +1,4 @@
-package com.github.fevernova.io.mysql.data;
+package com.github.fevernova.task.mysql.data;
 
 
 import com.github.fevernova.framework.common.data.Data;

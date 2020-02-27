@@ -40,7 +40,7 @@ public abstract class AbstractHDFSBatchSink extends AbstractBatchSink implements
     }
 
 
-    @Override protected void snapshotWhenBarrierAfterBatch(BarrierData barrierData) {
+    @Override protected void batchWhenBarrierSnaptshot(BarrierData barrierData) {
 
         this.checkpoints.put(barrierData.getBarrierId(), new HDFSCheckPoint(this.hdfsFilePathList));
         this.hdfsFilePathList = Lists.newLinkedList();
@@ -48,7 +48,7 @@ public abstract class AbstractHDFSBatchSink extends AbstractBatchSink implements
     }
 
 
-    @Override protected void prepare(Data data) {
+    @Override protected void batchPrepare(Data data) {
 
         try {
             this.hdfsWriter.open();
@@ -59,7 +59,7 @@ public abstract class AbstractHDFSBatchSink extends AbstractBatchSink implements
     }
 
 
-    @Override protected int handleEventAndReturnSize(Data data) {
+    @Override protected int batchHandleEvent(Data data) {
 
         try {
             return this.hdfsWriter.writeData(data);
@@ -71,18 +71,18 @@ public abstract class AbstractHDFSBatchSink extends AbstractBatchSink implements
     }
 
 
-    @Override protected void close() throws Exception {
+    @Override protected void batchSync() throws IOException {
+
+        this.hdfsWriter.sync();
+    }
+
+
+    @Override protected void batchClose() throws Exception {
 
         if (this.hdfsWriter != null) {
             Pair<String, String> p = this.hdfsWriter.close();
             this.hdfsFilePathList.add(FileInfo.builder().from(p.getKey()).to(p.getValue()).build());
         }
-    }
-
-
-    @Override protected void sendBatch() throws IOException {
-
-        this.hdfsWriter.sync();
     }
 
 

@@ -6,7 +6,7 @@ import com.github.fevernova.framework.common.context.TaskContext;
 import com.github.fevernova.framework.common.data.Data;
 import com.github.fevernova.framework.component.channel.ChannelProxy;
 import com.github.fevernova.framework.component.parser.AbstractParser;
-import com.github.fevernova.io.mysql.data.ListData;
+import com.github.fevernova.task.mysql.data.ListData;
 import lombok.extern.slf4j.Slf4j;
 
 

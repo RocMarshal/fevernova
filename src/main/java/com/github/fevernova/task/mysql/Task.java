@@ -9,8 +9,7 @@ import com.github.fevernova.framework.metric.evaluate.NoMetricEvaluate;
 import com.github.fevernova.framework.service.config.TaskConfig;
 import com.github.fevernova.framework.task.BaseTask;
 import com.github.fevernova.framework.task.TaskTopology;
-import com.github.fevernova.io.mysql.JobSource;
-import com.github.fevernova.io.mysql.data.ListDataFactory;
+import com.github.fevernova.task.mysql.data.ListDataFactory;
 
 import java.util.concurrent.atomic.AtomicInteger;
 

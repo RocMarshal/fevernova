@@ -71,7 +71,6 @@ public class MysqlDataSource {
 
     public void initJDBC(boolean checkBinlog) throws Exception {
 
-
         Map<String, String> config = Maps.newHashMapWithExpectedSize(20);
         config.put("url", this.jdbcUrl);
         config.put("username", this.username);
@@ -105,7 +104,6 @@ public class MysqlDataSource {
 
 
     public void config(Set<String> whiteList, Map<String, String> mapping) {
-
 
         for (String item : whiteList) {
             String topic = mapping.get(item + ".topic");

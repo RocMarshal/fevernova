@@ -44,18 +44,18 @@ public abstract class AbstractBatchSink extends AbstractSink {
     @Override protected void handleEvent(Data event) {
 
         if (!this.inBatch) {
-            prepare(event);
+            batchPrepare(event);
             this.inBatch = true;
         }
-        int dataSize = handleEventAndReturnSize(event);
+        int dataSize = batchHandleEvent(event);
         this.accumulateSize4Sync += dataSize;
         this.accumulateSize4Rolling += dataSize;
 
         if (isSizeReady4Rolling()) {
-            sync();
+            syncBatch();
             closeBatch();
         } else if (isSizeReady4Sync()) {
-            sync();
+            syncBatch();
         }
     }
 
@@ -64,18 +64,12 @@ public abstract class AbstractBatchSink extends AbstractSink {
 
         if (isTimeReady4Rolling(barrierData.getTimestamp())) {
             if (this.inBatch) {
-                sync();
+                syncBatch();
                 closeBatch();
             }
             this.lastRollingSeq = barrierData.getTimestamp() / this.rollingPeriod;
-            snapshotWhenBarrierAfterBatch(barrierData);
+            batchWhenBarrierSnaptshot(barrierData);
         }
-    }
-
-
-    private boolean isTimeReady4Rolling(long barrierTimestamp) {
-
-        return (barrierTimestamp / this.rollingPeriod) > this.lastRollingSeq;
     }
 
 
@@ -85,16 +79,22 @@ public abstract class AbstractBatchSink extends AbstractSink {
     }
 
 
+    private boolean isTimeReady4Rolling(long barrierTimestamp) {
+
+        return (barrierTimestamp / this.rollingPeriod) > this.lastRollingSeq;
+    }
+
+
     private boolean isSizeReady4Rolling() {
 
         return this.accumulateSize4Rolling >= this.rollingSize;
     }
 
 
-    protected void sync() {
+    protected void syncBatch() {
 
         try {
-            sendBatch();
+            batchSync();
             this.accumulateSize4Sync = 0L;
         } catch (Throwable e) {
             log.error("sync : ", e);
@@ -106,7 +106,7 @@ public abstract class AbstractBatchSink extends AbstractSink {
     protected void closeBatch() {
 
         try {
-            close();
+            batchClose();
             this.inBatch = false;
             this.accumulateSize4Rolling = 0L;
         } catch (Throwable e) {
@@ -116,14 +116,14 @@ public abstract class AbstractBatchSink extends AbstractSink {
     }
 
 
-    protected abstract void prepare(Data event);
+    protected abstract void batchPrepare(Data event);
 
-    protected abstract int handleEventAndReturnSize(Data dataEvent);
+    protected abstract int batchHandleEvent(Data dataEvent);
 
-    protected abstract void close() throws Exception;
+    protected abstract void batchSync() throws IOException;
 
-    protected abstract void sendBatch() throws IOException;
+    protected abstract void batchClose() throws Exception;
 
-    protected abstract void snapshotWhenBarrierAfterBatch(BarrierData barrierData);
+    protected abstract void batchWhenBarrierSnaptshot(BarrierData barrierData);
 
 }
