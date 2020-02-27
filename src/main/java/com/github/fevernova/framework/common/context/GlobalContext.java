@@ -43,4 +43,10 @@ public class GlobalContext {
             Util.sleepSec(1);
         }
     }
+
+
+    public void jobFinished() {
+
+        this.getEventBus().post("Job Finished");
+    }
 }

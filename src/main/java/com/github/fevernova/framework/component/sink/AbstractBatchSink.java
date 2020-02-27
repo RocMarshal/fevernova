@@ -37,7 +37,7 @@ public abstract class AbstractBatchSink extends AbstractSink {
         this.syncSize = super.taskContext.getLong("syncsize", 8 * 1024 * 1024L);
         this.rollingSize = super.taskContext.getLong("rollingsize", 256 * 1024 * 1024L);
         this.rollingPeriod = super.taskContext.getLong("flushperiod", 5 * 60 * 1000L);
-        this.lastRollingSeq = (Util.nowMS() / this.rollingPeriod) * this.rollingPeriod;
+        this.lastRollingSeq = Util.nowMS() / this.rollingPeriod;
     }
 
 

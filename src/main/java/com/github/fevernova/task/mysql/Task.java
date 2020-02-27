@@ -4,7 +4,7 @@ package com.github.fevernova.task.mysql;
 import com.github.fevernova.framework.common.Constants;
 import com.github.fevernova.framework.common.context.JobTags;
 import com.github.fevernova.framework.common.context.TaskContext;
-import com.github.fevernova.framework.component.channel.selector.LongSelector;
+import com.github.fevernova.framework.component.channel.selector.IntSelector;
 import com.github.fevernova.framework.metric.evaluate.NoMetricEvaluate;
 import com.github.fevernova.framework.service.config.TaskConfig;
 import com.github.fevernova.framework.task.BaseTask;
@@ -44,8 +44,8 @@ public class Task extends BaseTask {
                 .sinkClass(JobSink.class)
                 .inputDataFactoryClass(ListDataFactory.class)
                 .outputDataFactoryClass(ListDataFactory.class)
-                .inputSelectorClass(LongSelector.class)
-                .outputSelectorClass(LongSelector.class)
+                .inputSelectorClass(IntSelector.class)
+                .outputSelectorClass(IntSelector.class)
                 .sourceParallelism(this.sourceParallelism)
                 .parserParallelism(this.parserParallelism)
                 .sinkParallelism(this.sinkParallelism)

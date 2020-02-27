@@ -69,36 +69,41 @@ public class MysqlDataSource {
     }
 
 
-    public void initJDBC(boolean checkBinlog) throws Exception {
+    public void initJDBC(boolean checkBinlog) {
 
-        Map<String, String> config = Maps.newHashMapWithExpectedSize(20);
-        config.put("url", this.jdbcUrl);
-        config.put("username", this.username);
-        config.put("password", this.password);
-        config.put("driverClassName", "com.mysql.jdbc.Driver");
-        config.put("initialSize", "1");
-        config.put("minIdle", "1");
-        config.put("maxActive", "10");
-        config.put("defaultAutoCommit", "true");
-        config.put("minEvictableIdleTimeMillis", "300000");
-        config.put("validationQuery", "SELECT 'x' FROME DUAL");
-        config.put("testWhileIdle", "true");
-        config.put("testOnBorrow", "false");
-        config.put("testOnReturn", "false");
-        config.put("poolPreparedStatements", "false");
-        config.put("maxPoolPreparedStatementPerConnectionSize", "-1");
-        config.put("removeAbandonedTimeout", "1200");
-        config.put("logAbandoned", "true");
-        this.dataSource = DruidDataSourceFactory.createDataSource(config);
-        this.serverId = _getServerId();
-        this.version = _getMysqlVersion();
-        if (checkBinlog) {
-            _checkVar("log_bin", "ON");
-            _checkVar("binlog_format", "ROW");
-            _checkVar("binlog_row_image", "FULL");
-            //_checkVar("gtid_mode", "ON");
-            //_checkVar("log_slave_updates", "ON");
-            //_checkVar("enforce_gtid_consistency", "ON");
+        try {
+            Map<String, String> config = Maps.newHashMapWithExpectedSize(20);
+            config.put("url", this.jdbcUrl);
+            config.put("username", this.username);
+            config.put("password", this.password);
+            config.put("driverClassName", "com.mysql.jdbc.Driver");
+            config.put("initialSize", "1");
+            config.put("minIdle", "1");
+            config.put("maxActive", "10");
+            config.put("defaultAutoCommit", "true");
+            config.put("minEvictableIdleTimeMillis", "300000");
+            config.put("validationQuery", "SELECT 'x' FROME DUAL");
+            config.put("testWhileIdle", "true");
+            config.put("testOnBorrow", "false");
+            config.put("testOnReturn", "false");
+            config.put("poolPreparedStatements", "false");
+            config.put("maxPoolPreparedStatementPerConnectionSize", "-1");
+            config.put("removeAbandonedTimeout", "1200");
+            config.put("logAbandoned", "true");
+            this.dataSource = DruidDataSourceFactory.createDataSource(config);
+            this.serverId = _getServerId();
+            this.version = _getMysqlVersion();
+            if (checkBinlog) {
+                _checkVar("log_bin", "ON");
+                _checkVar("binlog_format", "ROW");
+                _checkVar("binlog_row_image", "FULL");
+                //_checkVar("gtid_mode", "ON");
+                //_checkVar("log_slave_updates", "ON");
+                //_checkVar("enforce_gtid_consistency", "ON");
+            }
+        } catch (Exception e) {
+            log.error("init jdbc error : ", e);
+            Validate.isTrue(false);
         }
     }
 
@@ -133,6 +138,12 @@ public class MysqlDataSource {
         Table table = Table.builder().dbTableName(dbTableName).db(dbName).table(tableName).columns(Lists.newArrayList())
                 .ignoreColumnName(ignoreColumnNames).build();
         this.schema.put(dbTableName, table);
+    }
+
+
+    public Table getTable(String dbName, String tableName, boolean forceReload) {
+
+        return getTable(dbName + "." + tableName, forceReload);
     }
 
 

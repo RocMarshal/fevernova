@@ -27,4 +27,9 @@ public class Column {
 
     private TypeRouter typeRouter;
 
+
+    public String escapeName() {
+
+        return "`" + this.name + "`";
+    }
 }

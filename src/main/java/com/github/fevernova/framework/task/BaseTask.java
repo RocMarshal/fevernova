@@ -98,9 +98,9 @@ public abstract class BaseTask {
 
 
     @Subscribe
-    public void errorCalBack(String reason) {
+    public void callBack(String reason) {
 
-        log.error(this.named.render(true) + " will be killed , " + reason);
+        log.error(this.named.render(true) + " is closing : " + reason);
         close();
     }
 }
