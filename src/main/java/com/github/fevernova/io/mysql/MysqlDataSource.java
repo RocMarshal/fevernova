@@ -19,10 +19,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 
 import javax.sql.DataSource;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -257,6 +254,21 @@ public class MysqlDataSource {
         String sql = "select version();";
         String result = executeQuery(sql, r -> r.next() ? r.getString(1) : null);
         return result;
+    }
+
+
+    public void executeQuery(String sql) {
+
+        try {
+            Connection con = this.dataSource.getConnection();
+            Statement st = con.createStatement();
+            st.execute(sql);
+            st.close();
+            con.close();
+        } catch (Throwable e) {
+            log.error("MysqlDataSource.executequery", e);
+            Validate.isTrue(false);
+        }
     }
 
 

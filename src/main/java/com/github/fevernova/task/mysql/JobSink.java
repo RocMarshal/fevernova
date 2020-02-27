@@ -31,6 +31,8 @@ public class JobSink extends AbstractBatchSink {
 
     protected Table table;
 
+    protected boolean truncate;
+
     protected int columnsNum;
 
     protected String sqlInsert;
@@ -53,6 +55,7 @@ public class JobSink extends AbstractBatchSink {
         String tableName = taskContext.getString("table");
         this.dataSource.config(dbName, tableName, taskContext.getString("sensitivecolumns"));
         this.table = this.dataSource.getTable(dbName, tableName, true);
+        this.truncate = taskContext.getBoolean("truncate", false);
 
         String mode = taskContext.getString("mode", "INSERT");//INSERT/REPLACE/INSERT IGNORE
         final List<String> columnsName = this.table.getColumns().stream().
@@ -63,6 +66,15 @@ public class JobSink extends AbstractBatchSink {
         this.columnsNum = columnsName.size();
         this.sqlInsert = String.format(SQL_INSERT_TEMPLETE, mode, this.table.getDbTableName(),
                                        StringUtils.join(columnsName, ","), StringUtils.join(paramsArray, ","));
+    }
+
+
+    @Override public void onStart() {
+
+        super.onStart();
+        if (isFirst() && this.truncate) {
+            this.dataSource.executeQuery("truncate table " + this.table.getDbTableName());
+        }
     }
 
 
