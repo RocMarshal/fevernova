@@ -17,7 +17,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class Task extends BaseTask {
 
 
-    int sourceParallelism = 0;
+    int sourceParallelism = 1;
 
     int parserParallelism = 0;
 
@@ -28,10 +28,9 @@ public class Task extends BaseTask {
 
         super(context, tags);
         context.put(Constants.INPUTCHANNEL_ + Constants.SIZE, "1024");
-        context.put(Constants.OUTPUTCHANNEL_ + Constants.SIZE, "512");
-        this.sourceParallelism = context.getInteger(Constants.SOURCE_ + Constants.PARALLELISM, super.globalContext.getJobTags().getUnit());
-        this.parserParallelism = context.getInteger(Constants.PARSER_ + Constants.PARALLELISM, super.globalContext.getJobTags().getUnit());
-        this.sinkParallelism = context.getInteger(Constants.SINK_ + Constants.PARALLELISM, super.globalContext.getJobTags().getUnit());
+        context.put(Constants.OUTPUTCHANNEL_ + Constants.SIZE, "1024");
+        this.parserParallelism = context.getInteger(Constants.PARSER_ + Constants.PARALLELISM, 1);
+        this.sinkParallelism = context.getInteger(Constants.SINK_ + Constants.PARALLELISM, 1);
     }
 
 
