@@ -45,7 +45,7 @@ public class T_DataSource {
         this.mysql.config(whiteList, Maps.newHashMap());
 
         try {
-            this.mysql.initJDBC();
+            this.mysql.initJDBC(false);
         } catch (Exception e) {
             e.printStackTrace();
         }

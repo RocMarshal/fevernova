@@ -17,6 +17,8 @@ import org.apache.commons.lang3.Validate;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -27,11 +29,13 @@ public class JobSink extends AbstractBatchSink {
 
     private static final String SQL_INSERT_TEMPLETE = "%s INTO %s ( %s ) VALUES ( %s )";
 
+    private static final String SQL_CREATE_TEMPLETE = "CREATE TABLE IF NOT EXISTS %s.%s like %s.%s ";
+
     protected MysqlDataSource dataSource;
 
     protected Table table;
 
-    protected boolean truncate;
+    protected String baseTableName;
 
     protected int columnsNum;
 
@@ -53,9 +57,24 @@ public class JobSink extends AbstractBatchSink {
         this.dataSource.initJDBC(false);
         String dbName = taskContext.getString("db");
         String tableName = taskContext.getString("table");
+
+        String dateSuffix = taskContext.getString("tabledatesuffix");
+        if (StringUtils.isNotBlank(dateSuffix)) {
+            SimpleDateFormat simpleDateFormat = new SimpleDateFormat(dateSuffix);
+            this.baseTableName = tableName;
+            tableName = tableName + simpleDateFormat.format(new Date());
+        }
+        boolean createTable = taskContext.getBoolean("createtable", false);
+        if (isFirst() && createTable) {
+            this.dataSource.executeQuery(String.format(SQL_CREATE_TEMPLETE, dbName, tableName, dbName, this.baseTableName));
+        }
+
         this.dataSource.config(dbName, tableName, taskContext.getString("sensitivecolumns"));
         this.table = this.dataSource.getTable(dbName, tableName, true);
-        this.truncate = taskContext.getBoolean("truncate", false);
+        boolean truncate = taskContext.getBoolean("truncate", false);
+        if (isFirst() && truncate) {
+            this.dataSource.executeQuery("truncate table " + this.table.getDbTableName());
+        }
 
         String mode = taskContext.getString("mode", "INSERT");//INSERT/REPLACE/INSERT IGNORE
         final List<String> columnsName = this.table.getColumns().stream().
@@ -66,15 +85,6 @@ public class JobSink extends AbstractBatchSink {
         this.columnsNum = columnsName.size();
         this.sqlInsert = String.format(SQL_INSERT_TEMPLETE, mode, this.table.getDbTableName(),
                                        StringUtils.join(columnsName, ","), StringUtils.join(paramsArray, ","));
-    }
-
-
-    @Override public void onStart() {
-
-        super.onStart();
-        if (isFirst() && this.truncate) {
-            this.dataSource.executeQuery("truncate table " + this.table.getDbTableName());
-        }
     }
 
 

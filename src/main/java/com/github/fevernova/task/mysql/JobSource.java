@@ -74,6 +74,8 @@ public class JobSource extends AbstractBatchSource<Integer, ListData> implements
             primaryKey = primaryKeys.get(0);
         }
         this.sqlQuery = String.format(SQL_QUERY_TEMPLETE, StringUtils.join(columnsName, ","), this.table.getDbTableName(), primaryKey, primaryKey);
+        String extraSql = taskContext.getString("extrasql", "");
+        this.sqlQuery = this.sqlQuery + extraSql;
         this.sqlRange = String.format(SQL_RANGE_TEMPLETE, primaryKey, primaryKey, this.table.getDbTableName());
 
         Pair<Long, Long> range = this.stepByTimeStamp ? this.dataSource.executeQuery(this.sqlRange, r -> {
