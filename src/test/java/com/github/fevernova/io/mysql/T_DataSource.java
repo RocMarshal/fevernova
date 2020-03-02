@@ -3,6 +3,7 @@ package com.github.fevernova.io.mysql;
 
 import com.github.fevernova.framework.common.context.TaskContext;
 import com.github.fevernova.io.mysql.schema.Table;
+import com.github.fevernova.task.binlog.util.MysqlBinlogType;
 import com.github.shyiko.mysql.binlog.BinaryLogClient;
 import com.github.shyiko.mysql.binlog.event.Event;
 import com.github.shyiko.mysql.binlog.event.TableMapEventData;
@@ -45,7 +46,7 @@ public class T_DataSource {
         this.mysql.config(whiteList, Maps.newHashMap());
 
         try {
-            this.mysql.initJDBC(false);
+            this.mysql.init(new MysqlBinlogType(), false);
         } catch (Exception e) {
             e.printStackTrace();
         }

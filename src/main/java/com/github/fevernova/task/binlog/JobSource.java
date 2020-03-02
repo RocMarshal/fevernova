@@ -16,9 +16,10 @@ import com.github.fevernova.framework.service.barrier.listener.BarrierCoordinato
 import com.github.fevernova.framework.service.checkpoint.CheckPointSaver;
 import com.github.fevernova.framework.service.checkpoint.ICheckPointSaver;
 import com.github.fevernova.framework.service.state.StateValue;
+import com.github.fevernova.io.mysql.MysqlDataSource;
 import com.github.fevernova.task.binlog.data.BinlogData;
 import com.github.fevernova.task.binlog.data.MysqlCheckPoint;
-import com.github.fevernova.io.mysql.MysqlDataSource;
+import com.github.fevernova.task.binlog.util.MysqlBinlogType;
 import com.github.fevernova.task.binlog.util.SimpleBinlogClient;
 import com.github.shyiko.mysql.binlog.BinaryLogClient;
 import com.github.shyiko.mysql.binlog.event.*;
@@ -76,7 +77,7 @@ public class JobSource extends AbstractSource<String, BinlogData>
         this.dataSourceContext = new TaskContext("mysql", super.taskContext.getSubProperties("mysql."));
         this.mysqlDataSource = new MysqlDataSource(this.dataSourceContext);
         try {
-            this.mysqlDataSource.initJDBC(true);
+            this.mysqlDataSource.init(new MysqlBinlogType(), true);
         } catch (Exception e) {
             log.error("source init error : ", e);
             Validate.isTrue(false);
@@ -220,7 +221,7 @@ public class JobSource extends AbstractSource<String, BinlogData>
         }
 
         TableMapEventData tmed = currentTableMapEvent.getData();
-        String dbTableName = tmed.getDatabase() + "." + tmed.getTable();
+        String dbTableName = MysqlDataSource.buildDbTableName(tmed.getDatabase(), tmed.getTable());
 
         BinlogData binlogData = feedOne(dbTableName);
         binlogData.setDbTableName(dbTableName);

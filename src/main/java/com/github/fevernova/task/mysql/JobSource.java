@@ -9,6 +9,7 @@ import com.github.fevernova.io.mysql.MysqlDataSource;
 import com.github.fevernova.io.mysql.schema.Column;
 import com.github.fevernova.io.mysql.schema.Table;
 import com.github.fevernova.task.mysql.data.ListData;
+import com.github.fevernova.task.mysql.data.MysqlJDBCType;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -49,12 +50,14 @@ public class JobSource extends AbstractBatchSource<Integer, ListData> implements
 
     protected long currentEnd;
 
+    protected long totalCount;
+
 
     public JobSource(GlobalContext globalContext, TaskContext taskContext, int index, int inputsNum, ChannelProxy channelProxy) {
 
         super(globalContext, taskContext, index, inputsNum, channelProxy);
         this.dataSource = new MysqlDataSource(new TaskContext("mysql", super.taskContext.getSubProperties("mysql.")));
-        this.dataSource.initJDBC(false);
+        this.dataSource.init(new MysqlJDBCType(), false);
         String dbName = taskContext.getString("db");
         String tableName = taskContext.getString("table");
         this.dataSource.config(dbName, tableName, taskContext.getString("sensitivecolumns"));
@@ -137,8 +140,15 @@ public class JobSource extends AbstractBatchSource<Integer, ListData> implements
                     listData.getValues().add(Pair.of(column.getName(), r.getObject(i++)));
                 }
             }
+            this.totalCount++;
             push();
         }
         return true;
+    }
+
+
+    @Override public void jobFinishedListener() {
+
+        log.info("job.job_history : {} , {} , {} , {} .", this.table.getDbTableName(), this.totalCount, this.startTime, this.endTime);
     }
 }

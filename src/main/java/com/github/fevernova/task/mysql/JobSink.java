@@ -10,6 +10,7 @@ import com.github.fevernova.framework.component.sink.AbstractBatchSink;
 import com.github.fevernova.io.mysql.MysqlDataSource;
 import com.github.fevernova.io.mysql.schema.Table;
 import com.github.fevernova.task.mysql.data.ListData;
+import com.github.fevernova.task.mysql.data.MysqlJDBCType;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -54,7 +55,7 @@ public class JobSink extends AbstractBatchSink {
         super.lastRollingSeq = (Util.nowMS() / super.rollingPeriod);
 
         this.dataSource = new MysqlDataSource(new TaskContext("mysql", super.taskContext.getSubProperties("mysql.")));
-        this.dataSource.initJDBC(false);
+        this.dataSource.init(new MysqlJDBCType(), false);
         String dbName = taskContext.getString("db");
         String tableName = taskContext.getString("table");
 

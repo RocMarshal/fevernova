@@ -1,6 +1,7 @@
 package com.github.fevernova.task.binlog.util;
 
 
+import com.github.fevernova.io.data.TypeMatchRouter;
 import com.github.fevernova.io.data.TypeRouter;
 import com.github.fevernova.io.data.message.DataType;
 import com.github.fevernova.io.data.type.MethodType;
@@ -12,13 +13,13 @@ import com.github.fevernova.io.data.type.impl.date.UYear;
 import com.github.fevernova.io.mysql.MysqlDataSource;
 
 
-public class MysqlType {
+public class MysqlBinlogType implements TypeMatchRouter {
 
 
-    public static boolean lazy = true;
+    private static boolean lazy = true;
 
 
-    public static TypeRouter convert(String mysqlType, String charset) {
+    public TypeRouter convert(String mysqlType, String charset) {
 
         switch (mysqlType) {
             case "tinyint":

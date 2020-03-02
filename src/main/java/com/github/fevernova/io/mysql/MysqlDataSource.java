@@ -5,11 +5,11 @@ import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.druid.pool.DruidDataSourceFactory;
 import com.github.fevernova.framework.common.Util;
 import com.github.fevernova.framework.common.context.TaskContext;
+import com.github.fevernova.io.data.TypeMatchRouter;
 import com.github.fevernova.io.data.TypeRouter;
 import com.github.fevernova.io.data.message.Meta;
 import com.github.fevernova.io.mysql.schema.Column;
 import com.github.fevernova.io.mysql.schema.Table;
-import com.github.fevernova.task.binlog.util.MysqlType;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -52,6 +52,8 @@ public class MysqlDataSource {
 
     private Map<String, Table> schema = Maps.newConcurrentMap();
 
+    private TypeMatchRouter typeMatchRouter;
+
 
     public MysqlDataSource(TaskContext mysqlContext) {
 
@@ -66,8 +68,9 @@ public class MysqlDataSource {
     }
 
 
-    public void initJDBC(boolean checkBinlog) {
+    public void init(TypeMatchRouter typeMatchRouter, boolean checkBinlog) {
 
+        this.typeMatchRouter = typeMatchRouter;
         try {
             Map<String, String> config = Maps.newHashMapWithExpectedSize(20);
             config.put("url", this.jdbcUrl);
@@ -105,6 +108,20 @@ public class MysqlDataSource {
     }
 
 
+    public void config(String dbName, String tableName, String sensitiveColumns) {
+
+        Set<String> ignoreColumnNames = Sets.newHashSet();
+        if (!StringUtils.isEmpty(sensitiveColumns)) {
+            List<String> columnNames = Util.splitStringWithFilter(sensitiveColumns, "\\s|,", null);
+            ignoreColumnNames.addAll(columnNames);
+        }
+        String dbTableName = buildDbTableName(dbName, tableName);
+        Table table = Table.builder().dbTableName(dbTableName).db(dbName).table(tableName).columns(Lists.newArrayList())
+                .ignoreColumnName(ignoreColumnNames).build();
+        this.schema.put(dbTableName, table);
+    }
+
+
     public void config(Set<String> whiteList, Map<String, String> mapping) {
 
         for (String item : whiteList) {
@@ -124,23 +141,9 @@ public class MysqlDataSource {
     }
 
 
-    public void config(String dbName, String tableName, String sensitiveColumns) {
-
-        Set<String> ignoreColumnNames = Sets.newHashSet();
-        if (!StringUtils.isEmpty(sensitiveColumns)) {
-            List<String> columnNames = Util.splitStringWithFilter(sensitiveColumns, "\\s|,", null);
-            ignoreColumnNames.addAll(columnNames);
-        }
-        String dbTableName = dbName + "." + tableName;
-        Table table = Table.builder().dbTableName(dbTableName).db(dbName).table(tableName).columns(Lists.newArrayList())
-                .ignoreColumnName(ignoreColumnNames).build();
-        this.schema.put(dbTableName, table);
-    }
-
-
     public Table getTable(String dbName, String tableName, boolean forceReload) {
 
-        return getTable(dbName + "." + tableName, forceReload);
+        return getTable(buildDbTableName(dbName, tableName), forceReload);
     }
 
 
@@ -185,7 +188,7 @@ public class MysqlDataSource {
                 while (r.next()) {
                     boolean ignore = table.getIgnoreColumnName().contains(r.getString("COLUMN_NAME"));
                     String charset = r.getString("CHARACTER_SET_NAME");
-                    TypeRouter typeRouter = MysqlType.convert(r.getString("DATA_TYPE"), charset);
+                    TypeRouter typeRouter = typeMatchRouter.convert(r.getString("DATA_TYPE"), charset);
                     table.getColumns().add(Column.builder().name(r.getString("COLUMN_NAME"))
                                                    .seq(r.getInt("ORDINAL_POSITION"))
                                                    .type(r.getString("DATA_TYPE"))
@@ -267,6 +270,7 @@ public class MysqlDataSource {
             con.close();
         } catch (Throwable e) {
             log.error("MysqlDataSource.executequery", e);
+            e.printStackTrace();
             Validate.isTrue(false);
         }
     }
@@ -309,6 +313,12 @@ public class MysqlDataSource {
         if (this.dataSource != null) {
             ((DruidDataSource) this.dataSource).close();
         }
+    }
+
+
+    public static String buildDbTableName(String db, String table) {
+
+        return db + "." + table;
     }
 
 
