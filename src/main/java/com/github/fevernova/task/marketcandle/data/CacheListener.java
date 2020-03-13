@@ -2,12 +2,16 @@ package com.github.fevernova.task.marketcandle.data;
 
 
 import com.github.fevernova.framework.window.WindowListener;
+import lombok.Getter;
 
 
 public class CacheListener implements WindowListener<Point> {
 
 
     private Point cache;
+
+    @Getter
+    private Point maxPoint;
 
 
     public Point getAndClear() {
@@ -20,6 +24,9 @@ public class CacheListener implements WindowListener<Point> {
 
     @Override public void createNewWindow(Point window) {
 
+        if (this.maxPoint == null || window.getId() > this.maxPoint.getId()) {
+            this.maxPoint = window;
+        }
     }
 
 

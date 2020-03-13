@@ -34,7 +34,6 @@ public class Point extends ObjectWithId {
     @Setter
     private boolean completed = false;
 
-    @Setter
     private boolean update = false;
 
 
@@ -56,7 +55,7 @@ public class Point extends ObjectWithId {
         this.totalSize += size;
         this.amount += price * size;
         this.count++;
-        this.firstSequence = this.totalSize == 0L ? price : sequence;
+        this.firstSequence = this.totalSize == 0L ? sequence : this.firstSequence;
         this.lastSequence = sequence;
         this.update = true;
     }

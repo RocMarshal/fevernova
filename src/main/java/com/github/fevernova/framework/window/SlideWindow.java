@@ -14,7 +14,7 @@ public abstract class SlideWindow<W extends ObjectWithId> implements WriteBytesM
 
     protected IntObjectHashMap<W> windows;
 
-    private long span;
+    protected long span;
 
     private int windowNum;
 
