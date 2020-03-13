@@ -13,7 +13,7 @@ public class Line extends SlideWindow<Point> {
 
     public Line(long span, int windowNum) {
 
-        super(span, windowNum, new CacheListener());
+        super(span, windowNum, new LineListener());
     }
 
 
@@ -33,7 +33,7 @@ public class Line extends SlideWindow<Point> {
 
     public List<Point> pollRemoved() {
 
-        Point point = ((CacheListener) super.windowListener).getAndClear();
+        Point point = ((LineListener) super.windowListener).getAndClear();
         return point == null ? null : Lists.newArrayList(point);
     }
 

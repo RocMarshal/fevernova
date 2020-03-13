@@ -1,6 +1,7 @@
 package com.github.fevernova.task.marketcandle.data;
 
 
+import com.github.fevernova.framework.common.Util;
 import com.github.fevernova.framework.window.ObjectWithId;
 import lombok.Getter;
 import lombok.Setter;
@@ -36,10 +37,13 @@ public class Point extends ObjectWithId {
 
     private boolean update = false;
 
+    private long updateTime;
+
 
     public Point(int id) {
 
         super(id);
+        this.updateTime = Util.nowMS();
     }
 
 
@@ -58,6 +62,7 @@ public class Point extends ObjectWithId {
         this.firstSequence = this.totalSize == 0L ? sequence : this.firstSequence;
         this.lastSequence = sequence;
         this.update = true;
+        this.updateTime = Util.nowMS();
     }
 
 

@@ -5,7 +5,7 @@ import com.github.fevernova.framework.window.WindowListener;
 import lombok.Getter;
 
 
-public class CacheListener implements WindowListener<Point> {
+public class LineListener implements WindowListener<Point> {
 
 
     private Point cache;

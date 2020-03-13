@@ -103,6 +103,9 @@ public abstract class SlideWindow<W extends ObjectWithId> implements WriteBytesM
             W w = newWindow(k);
             w.readMarshallable(bytes);
             this.windows.put(k, w);
+            if (this.windowListener != null) {
+                this.windowListener.createNewWindow(w);
+            }
         }
     }
 
