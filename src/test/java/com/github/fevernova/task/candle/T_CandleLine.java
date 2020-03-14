@@ -55,11 +55,13 @@ public class T_CandleLine {
     @Test
     public void T_CandleLIne() {
 
+        this.orderMatch.setSequence(this.orderMatch.getSequence() + 1);
+        this.orderMatch.setTimestamp(Util.nowMS());
+        this.orderMatch.setMatchPrice(this.orderMatch.getMatchPrice() + 1);
+        this.candleData.handle(this.orderMatch, this.notify);
         while (true) {
-            this.orderMatch.setSequence(this.orderMatch.getSequence() + 1);
-            this.orderMatch.setTimestamp(this.orderMatch.getTimestamp() + 1000);
-            this.orderMatch.setMatchPrice(this.orderMatch.getMatchPrice() + 1);
-            this.candleData.handle(this.orderMatch, this.notify);
+            this.orderMatch.setTimestamp(this.orderMatch.getTimestamp());
+            this.candleData.scan4Update(true, this.notify, Util.nowMS());
             Util.sleepMS(100);
         }
     }
