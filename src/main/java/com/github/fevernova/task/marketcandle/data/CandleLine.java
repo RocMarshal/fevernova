@@ -81,7 +81,7 @@ public class CandleLine implements WriteBytesMarshallable, ReadBytesMarshallable
                 point.initPrice(this.first.getEndPrice(), this.first.getLastSequence());
                 rolling(notify);
                 this.first = point;
-            } while (this.first.getId() == seq);
+            } while (this.first.getId() < seq);
             return this.first;
         } else {
             if (this.second == null || this.second.getId() == seq) {
@@ -101,7 +101,9 @@ public class CandleLine implements WriteBytesMarshallable, ReadBytesMarshallable
         this.third = this.second;
         this.second = this.first;
         this.first = null;
-        notify.onChange(this.symbolId, Lists.newArrayList(result));
+        if (result != null) {
+            notify.onChange(this.symbolId, Lists.newArrayList(result));
+        }
     }
 
 

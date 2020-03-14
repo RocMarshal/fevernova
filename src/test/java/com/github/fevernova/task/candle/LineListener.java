@@ -33,7 +33,6 @@ public class LineListener implements WindowListener<Point> {
 
     @Override public void removeOldWindow(Point window) {
 
-        window.setCompleted(true);
         this.cache = window;
     }
 }

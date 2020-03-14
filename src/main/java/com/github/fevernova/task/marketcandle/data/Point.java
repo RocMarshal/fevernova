@@ -4,13 +4,14 @@ package com.github.fevernova.task.marketcandle.data;
 import com.github.fevernova.framework.common.Util;
 import com.github.fevernova.framework.window.ObjectWithId;
 import lombok.Getter;
-import lombok.Setter;
+import lombok.ToString;
 import net.openhft.chronicle.bytes.BytesIn;
 import net.openhft.chronicle.bytes.BytesOut;
 import net.openhft.chronicle.core.io.IORuntimeException;
 
 
 @Getter
+@ToString
 public class Point extends ObjectWithId {
 
 
@@ -32,9 +33,6 @@ public class Point extends ObjectWithId {
 
     private long lastSequence = Long.MIN_VALUE;
 
-    @Setter
-    private boolean completed = false;
-
     private boolean update = false;
 
     private long updateTime;
@@ -52,15 +50,22 @@ public class Point extends ObjectWithId {
         if (this.lastSequence >= sequence) {
             return;
         }
-        this.startPrice = this.totalSize == 0L ? price : this.startPrice;
-        this.endPrice = price;
-        this.minPrice = Math.min(price, this.minPrice);
-        this.maxPrice = Math.max(price, this.maxPrice);
+        if (this.totalSize == 0L) {
+            this.startPrice = price;
+            this.minPrice = price;
+            this.maxPrice = price;
+            this.firstSequence = sequence;
+        } else {
+            this.minPrice = Math.min(price, this.minPrice);
+            this.maxPrice = Math.max(price, this.maxPrice);
+        }
         this.totalSize += size;
         this.amount += price * size;
         this.count++;
-        this.firstSequence = this.totalSize == 0L ? sequence : this.firstSequence;
+
+        this.endPrice = price;
         this.lastSequence = sequence;
+
         this.update = true;
         this.updateTime = Util.nowMS();
     }
