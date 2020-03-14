@@ -24,8 +24,8 @@ import com.github.fevernova.task.exchange.data.result.OrderMatchFactory;
 import com.github.fevernova.task.exchange.data.result.ResultCode;
 import com.github.fevernova.task.marketcandle.data.CandleData;
 import com.github.fevernova.task.marketcandle.data.CandleDiff;
+import com.github.fevernova.task.marketcandle.data.INotify;
 import com.github.fevernova.task.marketcandle.data.Point;
-import com.github.fevernova.task.marketcandle.data.ScanFunction;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.Validate;
 
@@ -33,7 +33,7 @@ import java.util.List;
 
 
 @Slf4j
-public class JobParser extends AbstractParser<Integer, CandleDiff> implements BarrierCoordinatorListener, ScanFunction {
+public class JobParser extends AbstractParser<Integer, CandleDiff> implements BarrierCoordinatorListener, INotify {
 
 
     private ICheckPointSaver<MapCheckPoint> checkpoints = new CheckPointSaver<>();
@@ -65,18 +65,19 @@ public class JobParser extends AbstractParser<Integer, CandleDiff> implements Ba
         if (OrderAction.BID == this.orderMatch.getOrderAction() && ResultCode.MATCH == this.orderMatch.getResultCode()) {
             this.candleData.handle(this.orderMatch, this);
         }
-        flush();
+        boolean repair = (Util.nowMS() - this.orderMatch.getTimestamp()) < 15 * 1000L;
+        flush(repair);
     }
 
 
-    private void flush() {
+    private void flush(boolean repair) {
 
         long ts = Util.nowMS();
         if (ts - this.lastScanTime < this.interval) {
             return;
         }
         this.lastScanTime = ts;
-        this.candleData.scan4Update(this);
+        this.candleData.scan4Update(repair, this, ts);
     }
 
 
@@ -92,7 +93,7 @@ public class JobParser extends AbstractParser<Integer, CandleDiff> implements Ba
     @Override protected void timeOut() {
 
         super.timeOut();
-        flush();
+        flush(true);
     }
 
 
@@ -106,7 +107,7 @@ public class JobParser extends AbstractParser<Integer, CandleDiff> implements Ba
             checkPoint.getValues().put(this.candleDataIdentity.getIdentity(), path);
         }
         this.checkpoints.put(barrierData.getBarrierId(), checkPoint);
-        flush();
+        flush(false);
     }
 
 

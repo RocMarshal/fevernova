@@ -66,6 +66,17 @@ public class Point extends ObjectWithId {
     }
 
 
+    public void initPrice(long price, long sequence) {
+
+        this.startPrice = price;
+        this.endPrice = price;
+        this.minPrice = price;
+        this.maxPrice = price;
+        this.firstSequence = sequence;
+        this.lastSequence = sequence;
+    }
+
+
     public Point copyByScan() {
 
         Point point = new Point(getId());

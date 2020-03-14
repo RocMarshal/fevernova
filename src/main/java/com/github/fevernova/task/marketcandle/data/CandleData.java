@@ -9,10 +9,8 @@ import net.openhft.chronicle.bytes.BytesOut;
 import net.openhft.chronicle.bytes.ReadBytesMarshallable;
 import net.openhft.chronicle.bytes.WriteBytesMarshallable;
 import net.openhft.chronicle.core.io.IORuntimeException;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.Validate;
 
-import java.util.List;
 import java.util.Map;
 
 
@@ -21,40 +19,30 @@ public class CandleData implements WriteBytesMarshallable, ReadBytesMarshallable
 
     public static final String CONS_NAME = "CandleData";
 
-    private Map<Integer, Line> data = Maps.newHashMap();
+    private Map<Integer, CandleLine> data = Maps.newHashMap();
 
 
-    public void handle(OrderMatch orderMatch, ScanFunction function) {
+    public void handle(OrderMatch orderMatch, INotify notify) {
 
-        Line line = getOrCreateLine(orderMatch.getSymbolId());
-        line.acc(orderMatch.getTimestamp(), orderMatch.getMatchPrice(), orderMatch.getMatchSize(), orderMatch.getSequence());
-        List<Point> removes = line.pollRemoved();
-        if (CollectionUtils.isNotEmpty(removes)) {
-            function.onChange(orderMatch.getSymbolId(), removes);
-        }
+        CandleLine line = getOrCreateLine(orderMatch.getSymbolId());
+        line.acc(orderMatch.getTimestamp(), orderMatch.getMatchPrice(), orderMatch.getMatchSize(), orderMatch.getSequence(), notify);
     }
 
 
-    private Line getOrCreateLine(int symbolId) {
+    private CandleLine getOrCreateLine(int symbolId) {
 
-        Line line = this.data.get(symbolId);
+        CandleLine line = this.data.get(symbolId);
         if (line == null) {
-            line = new Line(60 * 1000L, 3);
+            line = new CandleLine(symbolId);
             this.data.put(symbolId, line);
         }
         return line;
     }
 
 
-    public void scan4Update(ScanFunction function) {
+    public void scan4Update(boolean repair, INotify notify, long now) {
 
-        this.data.forEach((id, line) -> {
-
-            List<Point> points = line.scan4Update();
-            if (CollectionUtils.isNotEmpty(points)) {
-                function.onChange(id, points);
-            }
-        });
+        this.data.forEach((id, line) -> line.scan4Update(repair, notify, now));
     }
 
 
@@ -70,7 +58,7 @@ public class CandleData implements WriteBytesMarshallable, ReadBytesMarshallable
         Validate.isTrue(bytes.readInt() == 0);
         this.data = SerializationUtils.readIntHashMap(bytes, bytesIn -> {
 
-            Line line = new Line(60 * 1000, 3);
+            CandleLine line = new CandleLine(0);
             line.readMarshallable(bytesIn);
             return line;
         });
