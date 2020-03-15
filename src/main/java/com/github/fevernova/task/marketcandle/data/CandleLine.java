@@ -46,7 +46,7 @@ public class CandleLine implements WriteBytesMarshallable, ReadBytesMarshallable
     public void scan4Update(boolean repair, INotify notify, long now) {
 
         if (repair && this.first != null) {
-            if (((now - SPAN * this.first.getId()) > 90 * 1000L) && ((now - this.first.getUpdateTime()) > 15 * 1000L)) {
+            if (((now - SPAN * this.first.getId()) >= 90 * 1000L) && ((now - this.first.getUpdateTime()) >= 15 * 1000L)) {
                 locate(this.first.getId() + 1, notify);
             }
         }

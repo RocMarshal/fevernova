@@ -46,7 +46,11 @@ public class JobParser extends AbstractParser<Integer, CandleDiff> implements Ba
 
     private long lastScanTime = Util.nowMS();
 
+    private long lastMsgTime;
+
     private long interval;
+
+    private long maxDelayRepair;
 
 
     public JobParser(GlobalContext globalContext, TaskContext taskContext, int index, int inputsNum, ChannelProxy channelProxy) {
@@ -55,6 +59,7 @@ public class JobParser extends AbstractParser<Integer, CandleDiff> implements Ba
         this.candleDataIdentity = BinaryFileIdentity.builder().componentType(super.componentType).total(super.total).index(super.index)
                 .identity(CandleData.CONS_NAME.toLowerCase()).build();
         this.interval = taskContext.getLong("interval", 2000L);
+        this.maxDelayRepair = taskContext.getLong("maxdelayrepair", 30 * 1000L);
     }
 
 
@@ -62,38 +67,30 @@ public class JobParser extends AbstractParser<Integer, CandleDiff> implements Ba
 
         KafkaData kafkaData = (KafkaData) event;
         this.orderMatch.from(kafkaData.getValue());
+        this.lastMsgTime = this.orderMatch.getTimestamp();
         if (OrderAction.BID == this.orderMatch.getOrderAction() && ResultCode.MATCH == this.orderMatch.getResultCode()) {
             this.candleData.handle(this.orderMatch, this);
         }
-        boolean repair = (Util.nowMS() - this.orderMatch.getTimestamp()) < 15 * 1000L;
-        flush(repair);
-    }
-
-
-    private void flush(boolean repair) {
-
-        long ts = Util.nowMS();
-        if (ts - this.lastScanTime < this.interval) {
-            return;
-        }
-        this.lastScanTime = ts;
-        this.candleData.scan4Update(repair, this, ts);
-    }
-
-
-    @Override public void onChange(Integer symbolId, List<Point> points) {
-
-        CandleDiff candleDiff = feedOne(symbolId);
-        candleDiff.setSymbolId(symbolId);
-        candleDiff.setDiff(points);
-        push();
+        flush();
     }
 
 
     @Override protected void timeOut() {
 
         super.timeOut();
-        flush(true);
+        flush();
+    }
+
+
+    private void flush() {
+
+        long ts = Util.nowMS();
+        if (ts - this.lastScanTime < this.interval) {
+            return;
+        }
+        boolean repair = (ts - this.lastMsgTime) < this.maxDelayRepair;
+        this.lastScanTime = ts;
+        this.candleData.scan4Update(repair, this, ts);
     }
 
 
@@ -107,7 +104,7 @@ public class JobParser extends AbstractParser<Integer, CandleDiff> implements Ba
             checkPoint.getValues().put(this.candleDataIdentity.getIdentity(), path);
         }
         this.checkpoints.put(barrierData.getBarrierId(), checkPoint);
-        flush(false);
+        flush();
     }
 
 
@@ -151,5 +148,14 @@ public class JobParser extends AbstractParser<Integer, CandleDiff> implements Ba
     @Override public boolean needRecovery() {
 
         return true;
+    }
+
+
+    @Override public void onChange(Integer symbolId, List<Point> points) {
+
+        CandleDiff candleDiff = feedOne(symbolId);
+        candleDiff.setSymbolId(symbolId);
+        candleDiff.setDiff(points);
+        push();
     }
 }
