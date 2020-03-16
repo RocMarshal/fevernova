@@ -59,7 +59,7 @@ public class JobParser extends AbstractParser<Integer, CandleDiff> implements Ba
         this.candleDataIdentity = BinaryFileIdentity.builder().componentType(super.componentType).total(super.total).index(super.index)
                 .identity(CandleData.CONS_NAME.toLowerCase()).build();
         this.interval = taskContext.getLong("interval", 2000L);
-        this.maxDelayRepair = taskContext.getLong("maxdelayrepair", 30 * 1000L);
+        this.maxDelayRepair = taskContext.getLong("maxdelayrepair", 60 * 1000L);
     }
 
 

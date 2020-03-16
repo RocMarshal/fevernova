@@ -79,6 +79,8 @@ public class Point extends ObjectWithId {
         this.maxPrice = price;
         this.firstSequence = sequence;
         this.lastSequence = sequence;
+        this.update = true;
+        this.updateTime = Util.nowMS();
     }
 
 
