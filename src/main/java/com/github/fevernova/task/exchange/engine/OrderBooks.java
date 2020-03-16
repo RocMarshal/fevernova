@@ -128,6 +128,15 @@ public final class OrderBooks implements WriteBytesMarshallable {
     }
 
 
+    public void heartBeat(OrderCommand orderCommand, DataProvider<Integer, OrderMatch> provider) {
+
+        OrderMatch orderMatch = provider.feedOne(orderCommand.getSymbolId());
+        orderMatch.from(this.sequence, orderCommand);
+        orderMatch.setResultCode(ResultCode.HEARTBEAT);
+        provider.push();
+    }
+
+
     @Override public void writeMarshallable(BytesOut bytes) {
 
         bytes.writeInt(this.symbolId);

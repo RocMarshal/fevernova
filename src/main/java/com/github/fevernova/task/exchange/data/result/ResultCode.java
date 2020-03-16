@@ -12,7 +12,7 @@ public enum ResultCode {
 
     MATCH(300),
 
-    INVALID(-100);
+    HEARTBEAT(400);
 
     public int code;
 
@@ -38,8 +38,8 @@ public enum ResultCode {
                 return CANCEL_FOK;
             case 300:
                 return MATCH;
-            case -100:
-                return INVALID;
+            case 400:
+                return HEARTBEAT;
             default:
                 throw new IllegalArgumentException("unknown ResultCode:" + code);
         }

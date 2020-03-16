@@ -66,7 +66,7 @@ public class OrderMatch implements Data {
     }
 
 
-    //FOK CANCEL
+    //FOK CANCEL or HEARTBEAT
     public void from(Sequence sequence, OrderCommand orderCommand) {
 
         this.sequence = sequence.getAndIncrement();

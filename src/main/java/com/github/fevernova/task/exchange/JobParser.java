@@ -61,6 +61,8 @@ public class JobParser extends AbstractParser<Integer, OrderMatch> implements Ba
             this.matchEngine.placeOrder(orderCommand, this);
         } else if (OrderCommandType.CANCEL_ORDER == orderCommand.getOrderCommandType()) {
             this.matchEngine.cancelOrder(orderCommand, this);
+        } else if (OrderCommandType.HEARTBEAT == orderCommand.getOrderCommandType()) {
+            this.matchEngine.heartBeat(orderCommand, this);
         }
     }
 
