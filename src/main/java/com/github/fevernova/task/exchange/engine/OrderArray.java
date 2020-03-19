@@ -25,6 +25,8 @@ public final class OrderArray implements WriteBytesMarshallable {
 
     private long price;
 
+    private long postOnlySize;
+
     private long size;
 
     @Setter
@@ -40,6 +42,7 @@ public final class OrderArray implements WriteBytesMarshallable {
             Order order = new Order(bytes);
             this.queue.offer(order);
             this.size += order.getRemainSize();
+            this.postOnlySize += (OrderType.POSTONLY == order.getOrderType() ? order.getRemainSize() : 0);
         }
     }
 
@@ -56,6 +59,7 @@ public final class OrderArray implements WriteBytesMarshallable {
 
         this.queue.offer(order);
         this.size += order.getRemainSize();
+        this.postOnlySize += (OrderType.POSTONLY == order.getOrderType() ? order.getRemainSize() : 0);
     }
 
 
