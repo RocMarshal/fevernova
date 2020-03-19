@@ -116,6 +116,31 @@ public class OrderMatch implements Data {
     }
 
 
+    //CANCEL BY POST ONLY
+    public void from(Sequence sequence, int symbolId, Order order, OrderArray orderArray, long timestamp) {
+
+        this.sequence = sequence.getAndIncrement();
+        this.symbolId = symbolId;
+        this.orderId = order.getOrderId();
+        this.userId = order.getUserId();
+        this.timestamp = timestamp;
+        this.orderAction = orderArray.getOrderAction();
+        this.orderType = order.getOrderType();
+        this.orderPrice = orderArray.getPrice();
+        this.orderPriceDepthSize = orderArray.getSize();
+        this.orderPriceOrderCount = orderArray.getQueue().size();
+        this.orderTotalSize = order.getRemainSize() + order.getFilledSize();
+        this.orderAccFilledSize = order.getFilledSize();
+        this.orderVersion = order.getVersion();
+        this.matchPrice = -1L;
+        this.matchSize = 0L;
+        this.matchOrderId = 0L;
+        this.matchOrderUserId = 0L;
+        this.driverAction = orderArray.getOrderAction();
+        this.resultCode = ResultCode.CANCEL_POSTONLY;
+    }
+
+
     //MATCH
     public void from(Sequence sequence, int symbolId, Order order, Order thatOrder, OrderArray orderArray,
                      long matchPrice, long matchSize, long timestamp, OrderAction driverAction) {

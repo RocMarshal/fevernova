@@ -6,6 +6,7 @@ import com.github.fevernova.framework.component.DataProvider;
 import com.github.fevernova.task.exchange.data.Sequence;
 import com.github.fevernova.task.exchange.data.order.Order;
 import com.github.fevernova.task.exchange.data.order.OrderAction;
+import com.github.fevernova.task.exchange.data.order.OrderType;
 import com.github.fevernova.task.exchange.data.result.OrderMatch;
 import lombok.Getter;
 import lombok.Setter;
@@ -75,6 +76,12 @@ public final class OrderArray implements WriteBytesMarshallable {
         do {
             Order thisOrder = this.queue.peek();
             Order thatOrder = that.queue.peek();
+
+            if (cancelPostOnlyOrder(sequence, symbolId, timestamp, thisOrder, this, provider)
+                || cancelPostOnlyOrder(sequence, symbolId, timestamp, thatOrder, that, provider)) {
+                return;
+            }
+
             long delta = Math.min(thisOrder.getRemainSize(), thatOrder.getRemainSize());
             thisOrder.decrement(delta);
             thatOrder.decrement(delta);
@@ -87,6 +94,24 @@ public final class OrderArray implements WriteBytesMarshallable {
             thatOrderMatch.from(sequence, symbolId, thatOrder, thisOrder, that, matchPrice, delta, timestamp, driverAction);
             provider.push();
         } while (that.getSize() > 0L);
+    }
+
+
+    private boolean cancelPostOnlyOrder(Sequence sequence, int symbolId, long timestamp, Order order, OrderArray orderArray,
+                                        DataProvider<Integer, OrderMatch> provider) {
+
+        if (OrderType.POSTONLY != order.getOrderType()) {
+            return false;
+        }
+
+        this.queue.remove(order);
+        this.size -= order.getRemainSize();
+        order.cancel();
+
+        OrderMatch postOnlyMatch = provider.feedOne(symbolId);
+        postOnlyMatch.from(sequence, symbolId, order, orderArray, timestamp);
+        provider.push();
+        return true;
     }
 
 
