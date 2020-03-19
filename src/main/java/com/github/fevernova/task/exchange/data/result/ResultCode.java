@@ -9,7 +9,8 @@ public enum ResultCode {
     CANCEL_USER(201),
     CANCEL_IOC(202),
     CANCEL_FOK(203),
-    CANCEL_POSTONLY(204),
+    CANCEL_DEPTHONLY(204),
+    CANCEL_POSTONLY(205),
 
     MATCH(300),
 
@@ -38,6 +39,8 @@ public enum ResultCode {
             case 203:
                 return CANCEL_FOK;
             case 204:
+                return CANCEL_DEPTHONLY;
+            case 205:
                 return CANCEL_POSTONLY;
             case 300:
                 return MATCH;

@@ -66,7 +66,7 @@ public class OrderMatch implements Data {
     }
 
 
-    //FOK CANCEL or HEARTBEAT
+    //FOK CANCEL or POSTONLY CANCEL or HEARTBEAT
     public void from(Sequence sequence, OrderCommand orderCommand) {
 
         this.sequence = sequence.getAndIncrement();
@@ -116,7 +116,7 @@ public class OrderMatch implements Data {
     }
 
 
-    //CANCEL BY POST ONLY
+    //CANCEL BY DEPTH ONLY
     public void from(Sequence sequence, int symbolId, Order order, OrderArray orderArray, long timestamp) {
 
         this.sequence = sequence.getAndIncrement();
@@ -137,7 +137,7 @@ public class OrderMatch implements Data {
         this.matchOrderId = 0L;
         this.matchOrderUserId = 0L;
         this.driverAction = orderArray.getOrderAction();
-        this.resultCode = ResultCode.CANCEL_POSTONLY;
+        this.resultCode = ResultCode.CANCEL_DEPTHONLY;
     }
 
 

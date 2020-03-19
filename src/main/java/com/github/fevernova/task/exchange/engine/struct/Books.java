@@ -52,7 +52,7 @@ public abstract class Books implements WriteBytesMarshallable, ReadBytesMarshall
         long acc = 0L;
         for (Map.Entry<Long, OrderArray> entry : subMap.entrySet()) {
             acc += entry.getValue().getSize();
-            acc -= entry.getValue().getPostOnlySize();
+            acc -= entry.getValue().getDepthOnlySize();
             if (acc >= orderCommand.getSize()) {
                 return true;
             }

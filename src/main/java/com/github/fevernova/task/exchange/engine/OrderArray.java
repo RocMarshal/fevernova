@@ -25,7 +25,7 @@ public final class OrderArray implements WriteBytesMarshallable {
 
     private long price;
 
-    private long postOnlySize;
+    private long depthOnlySize;
 
     private long size;
 
@@ -42,7 +42,7 @@ public final class OrderArray implements WriteBytesMarshallable {
             Order order = new Order(bytes);
             this.queue.offer(order);
             this.size += order.getRemainSize();
-            this.postOnlySize += (OrderType.POSTONLY == order.getOrderType() ? order.getRemainSize() : 0);
+            this.depthOnlySize += (OrderType.DEPTHONLY == order.getOrderType() ? order.getRemainSize() : 0);
         }
     }
 
@@ -59,7 +59,7 @@ public final class OrderArray implements WriteBytesMarshallable {
 
         this.queue.offer(order);
         this.size += order.getRemainSize();
-        this.postOnlySize += (OrderType.POSTONLY == order.getOrderType() ? order.getRemainSize() : 0);
+        this.depthOnlySize += (OrderType.DEPTHONLY == order.getOrderType() ? order.getRemainSize() : 0);
     }
 
 
@@ -81,8 +81,8 @@ public final class OrderArray implements WriteBytesMarshallable {
             Order thisOrder = this.queue.peek();
             Order thatOrder = that.queue.peek();
 
-            if (cancelPostOnlyOrder(sequence, symbolId, timestamp, thisOrder, this, provider)
-                || cancelPostOnlyOrder(sequence, symbolId, timestamp, thatOrder, that, provider)) {
+            if (cancelDepthOnlyOrder(sequence, symbolId, timestamp, thisOrder, this, provider)
+                || cancelDepthOnlyOrder(sequence, symbolId, timestamp, thatOrder, that, provider)) {
                 return;
             }
 
@@ -101,10 +101,10 @@ public final class OrderArray implements WriteBytesMarshallable {
     }
 
 
-    private boolean cancelPostOnlyOrder(Sequence sequence, int symbolId, long timestamp, Order order, OrderArray orderArray,
-                                        DataProvider<Integer, OrderMatch> provider) {
+    private boolean cancelDepthOnlyOrder(Sequence sequence, int symbolId, long timestamp, Order order, OrderArray orderArray,
+                                         DataProvider<Integer, OrderMatch> provider) {
 
-        if (OrderType.POSTONLY != order.getOrderType()) {
+        if (OrderType.DEPTHONLY != order.getOrderType()) {
             return false;
         }
 
@@ -112,8 +112,8 @@ public final class OrderArray implements WriteBytesMarshallable {
         this.size -= order.getRemainSize();
         order.cancel();
 
-        OrderMatch postOnlyMatch = provider.feedOne(symbolId);
-        postOnlyMatch.from(sequence, symbolId, order, orderArray, timestamp);
+        OrderMatch depthOnlyMatch = provider.feedOne(symbolId);
+        depthOnlyMatch.from(sequence, symbolId, order, orderArray, timestamp);
         provider.push();
         return true;
     }

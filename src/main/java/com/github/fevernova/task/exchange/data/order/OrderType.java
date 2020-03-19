@@ -5,7 +5,8 @@ public enum OrderType {
     GTC(0),//限价
     IOC(1),//限价市价
     FOK(2),//全部成交或者取消
-    POSTONLY(3);//只挂深度不成交
+    DEPTHONLY(3),//只挂深度不成交
+    POSTONLY(4);//只做Maker
 
     public byte code;
 
@@ -25,8 +26,12 @@ public enum OrderType {
                 return IOC;
             case 2:
                 return FOK;
+            case 3:
+                return DEPTHONLY;
+            case 4:
+                return POSTONLY;
             default:
-                throw new IllegalArgumentException("unknown OrderType:" + code);
+                throw new IllegalArgumentException("Unknown OrderType:" + code);
         }
     }
 
