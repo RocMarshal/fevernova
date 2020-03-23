@@ -4,10 +4,11 @@ package com.github.fevernova.task.exchange.data.result;
 import com.github.fevernova.framework.common.data.Data;
 import com.github.fevernova.task.exchange.data.Sequence;
 import com.github.fevernova.task.exchange.data.cmd.OrderCommand;
+import com.github.fevernova.task.exchange.data.condition.ConditionOrder;
 import com.github.fevernova.task.exchange.data.order.Order;
 import com.github.fevernova.task.exchange.data.order.OrderAction;
-import com.github.fevernova.task.exchange.data.order.OrderType;
-import com.github.fevernova.task.exchange.engine.OrderArray;
+import com.github.fevernova.task.exchange.data.order.OrderArray;
+import com.github.fevernova.task.exchange.data.order.OrderMode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -22,43 +23,23 @@ import java.nio.ByteBuffer;
 public class OrderMatch implements Data {
 
 
-    private long sequence;
-
     private int symbolId;
-
-    private long orderId;
-
-    private long userId;
 
     private long timestamp;
 
-    private OrderAction orderAction;
+    private OrderMode orderMode;
 
-    private OrderType orderType;
+    private ResultCode resultCode;
 
-    private long orderPrice;
+    private OrderMatchPart part0;
 
-    private long orderPriceDepthSize;
-
-    private int orderPriceOrderCount;
-
-    private long orderTotalSize;
-
-    private long orderAccFilledSize;
-
-    private int orderVersion;
+    private OrderMatchPart part1;
 
     private long matchPrice;
 
     private long matchSize;
 
-    private long matchOrderId;
-
-    private long matchOrderUserId;
-
     private OrderAction driverAction;
-
-    private ResultCode resultCode;
 
 
     protected OrderMatch() {
@@ -66,104 +47,154 @@ public class OrderMatch implements Data {
     }
 
 
-    //FOK CANCEL or POSTONLY CANCEL or HEARTBEAT
-    public void from(Sequence sequence, OrderCommand orderCommand) {
-
-        this.sequence = sequence.getAndIncrement();
-        this.symbolId = orderCommand.getSymbolId();
-        this.orderId = orderCommand.getOrderId();
-        this.userId = orderCommand.getUserId();
-        this.timestamp = orderCommand.getTimestamp();
-        this.orderAction = orderCommand.getOrderAction();
-        this.orderType = orderCommand.getOrderType();
-        this.orderPrice = orderCommand.getPrice();
-        this.orderPriceDepthSize = -1L;
-        this.orderPriceOrderCount = 0;
-        this.orderTotalSize = orderCommand.getSize();
-        this.orderAccFilledSize = 0L;
-        this.orderVersion = 0;
-        this.matchPrice = -1L;
-        this.matchSize = 0L;
-        this.matchOrderId = 0L;
-        this.matchOrderUserId = 0L;
-        this.driverAction = orderCommand.getOrderAction();
-        this.resultCode = null;
-    }
-
-
     //PLACE OR CANCEL
     public void from(Sequence sequence, OrderCommand orderCommand, Order order, OrderArray orderArray) {
 
-        this.sequence = sequence.getAndIncrement();
         this.symbolId = orderCommand.getSymbolId();
-        this.orderId = orderCommand.getOrderId();
-        this.userId = orderCommand.getUserId();
         this.timestamp = orderCommand.getTimestamp();
-        this.orderAction = orderCommand.getOrderAction();
-        this.orderType = orderCommand.getOrderType();
-        this.orderPrice = orderCommand.getPrice();
-        this.orderPriceDepthSize = orderArray.getSize();
-        this.orderPriceOrderCount = orderArray.getQueue().size();
-        this.orderTotalSize = orderCommand.getSize();
-        this.orderAccFilledSize = order.getFilledSize();
-        this.orderVersion = order.getVersion();
+        this.orderMode = orderCommand.getOrderMode();
+        this.resultCode = null;
+
+        this.part0.setSequence(sequence.getAndIncrement());
+        this.part0.setOrderId(order.getOrderId());
+        this.part0.setUserId(order.getUserId());
+        this.part0.setOrderAction(orderArray.getOrderAction());
+        this.part0.setOrderType(order.getOrderType());
+        this.part0.setOrderPrice(orderArray.getPrice());
+        this.part0.setOrderPriceDepthSize(orderArray.getSize());
+        this.part0.setOrderPriceOrderCount(orderArray.getQueue().size());
+        this.part0.setOrderTotalSize(order.getRemainSize() + order.getFilledSize());
+        this.part0.setOrderAccFilledSize(order.getFilledSize());
+        this.part0.setOrderVersion(order.getVersion());
+
+        this.part1.clearData();
+
         this.matchPrice = -1L;
         this.matchSize = 0L;
-        this.matchOrderId = 0L;
-        this.matchOrderUserId = 0L;
-        this.driverAction = orderCommand.getOrderAction();
+        this.driverAction = null;
+    }
+
+
+    //FOK CANCEL or POSTONLY CANCEL or HEARTBEAT
+    public void from(Sequence sequence, OrderCommand orderCommand) {
+
+        this.symbolId = orderCommand.getSymbolId();
+        this.timestamp = orderCommand.getTimestamp();
+        this.orderMode = orderCommand.getOrderMode();
         this.resultCode = null;
+
+        this.part0.setSequence(sequence.getAndIncrement());
+        this.part0.setOrderId(orderCommand.getOrderId());
+        this.part0.setUserId(orderCommand.getUserId());
+        this.part0.setOrderAction(orderCommand.getOrderAction());
+        this.part0.setOrderType(orderCommand.getOrderType());
+        this.part0.setOrderPrice(orderCommand.getPrice());
+        this.part0.setOrderPriceDepthSize(-1L);
+        this.part0.setOrderPriceOrderCount(-1);
+        this.part0.setOrderTotalSize(orderCommand.getSize());
+        this.part0.setOrderAccFilledSize(0L);
+        this.part0.setOrderVersion(1);
+
+        this.part1.clearData();
+
+        this.matchPrice = -1L;
+        this.matchSize = 0L;
+        this.driverAction = null;
     }
 
 
     //CANCEL BY DEPTH ONLY
     public void from(Sequence sequence, int symbolId, Order order, OrderArray orderArray, long timestamp) {
 
-        this.sequence = sequence.getAndIncrement();
         this.symbolId = symbolId;
-        this.orderId = order.getOrderId();
-        this.userId = order.getUserId();
         this.timestamp = timestamp;
-        this.orderAction = orderArray.getOrderAction();
-        this.orderType = order.getOrderType();
-        this.orderPrice = orderArray.getPrice();
-        this.orderPriceDepthSize = orderArray.getSize();
-        this.orderPriceOrderCount = orderArray.getQueue().size();
-        this.orderTotalSize = order.getRemainSize() + order.getFilledSize();
-        this.orderAccFilledSize = order.getFilledSize();
-        this.orderVersion = order.getVersion();
+        this.orderMode = OrderMode.SIMPLE;
+        this.resultCode = ResultCode.CANCEL_DEPTHONLY;
+
+        this.part0.setSequence(sequence.getAndIncrement());
+        this.part0.setOrderId(order.getOrderId());
+        this.part0.setUserId(order.getUserId());
+        this.part0.setOrderAction(orderArray.getOrderAction());
+        this.part0.setOrderType(order.getOrderType());
+        this.part0.setOrderPrice(orderArray.getPrice());
+        this.part0.setOrderPriceDepthSize(orderArray.getSize());
+        this.part0.setOrderPriceOrderCount(orderArray.getQueue().size());
+        this.part0.setOrderTotalSize(order.getRemainSize() + order.getFilledSize());
+        this.part0.setOrderAccFilledSize(order.getFilledSize());
+        this.part0.setOrderVersion(order.getVersion());
+
+        this.part1.clearData();
+
         this.matchPrice = -1L;
         this.matchSize = 0L;
-        this.matchOrderId = 0L;
-        this.matchOrderUserId = 0L;
-        this.driverAction = orderArray.getOrderAction();
-        this.resultCode = ResultCode.CANCEL_DEPTHONLY;
+        this.driverAction = null;
     }
 
 
     //MATCH
-    public void from(Sequence sequence, int symbolId, Order order, Order thatOrder, OrderArray orderArray,
+    public void from(Sequence sequence, int symbolId, Order order, Order thatOrder, OrderArray orderArray, OrderArray thatOrderArray,
                      long matchPrice, long matchSize, long timestamp, OrderAction driverAction) {
 
-        this.sequence = sequence.getAndIncrement();
         this.symbolId = symbolId;
-        this.orderId = order.getOrderId();
-        this.userId = order.getUserId();
         this.timestamp = timestamp;
-        this.orderAction = orderArray.getOrderAction();
-        this.orderType = order.getOrderType();
-        this.orderPrice = orderArray.getPrice();
-        this.orderPriceDepthSize = orderArray.getSize();
-        this.orderPriceOrderCount = orderArray.getQueue().size();
-        this.orderTotalSize = order.getRemainSize() + order.getFilledSize();
-        this.orderAccFilledSize = order.getFilledSize();
-        this.orderVersion = order.getVersion();
+        this.orderMode = OrderMode.SIMPLE;
+        this.resultCode = ResultCode.MATCH;
+
         this.matchPrice = matchPrice;
         this.matchSize = matchSize;
-        this.matchOrderId = thatOrder.getOrderId();
-        this.matchOrderUserId = thatOrder.getUserId();
         this.driverAction = driverAction;
-        this.resultCode = ResultCode.MATCH;
+
+        this.part0.setSequence(sequence.getAndIncrement());
+        this.part0.setOrderId(order.getOrderId());
+        this.part0.setUserId(order.getUserId());
+        this.part0.setOrderAction(orderArray.getOrderAction());
+        this.part0.setOrderType(order.getOrderType());
+        this.part0.setOrderPrice(orderArray.getPrice());
+        this.part0.setOrderPriceDepthSize(orderArray.getSize());
+        this.part0.setOrderPriceOrderCount(orderArray.getQueue().size());
+        this.part0.setOrderTotalSize(order.getRemainSize() + order.getFilledSize());
+        this.part0.setOrderAccFilledSize(order.getFilledSize());
+        this.part0.setOrderVersion(order.getVersion());
+
+        this.part1.setSequence(sequence.getAndIncrement());
+        this.part1.setOrderId(thatOrder.getOrderId());
+        this.part1.setUserId(thatOrder.getUserId());
+        this.part1.setOrderAction(thatOrderArray.getOrderAction());
+        this.part1.setOrderType(thatOrder.getOrderType());
+        this.part1.setOrderPrice(thatOrderArray.getPrice());
+        this.part1.setOrderPriceDepthSize(thatOrderArray.getSize());
+        this.part1.setOrderPriceOrderCount(thatOrderArray.getQueue().size());
+        this.part1.setOrderTotalSize(thatOrder.getRemainSize() + thatOrder.getFilledSize());
+        this.part1.setOrderAccFilledSize(thatOrder.getFilledSize());
+        this.part1.setOrderVersion(thatOrder.getVersion());
+    }
+
+
+    //Condition PLACE OR CANCEL
+    public void from(Sequence sequence, OrderCommand orderCommand, ConditionOrder order) {
+
+        this.symbolId = orderCommand.getSymbolId();
+        this.timestamp = orderCommand.getTimestamp();
+        this.orderMode = orderCommand.getOrderMode();
+        this.resultCode = null;
+
+        this.part0.setSequence(sequence.getAndIncrement());
+        this.part0.setOrderId(order.getOrderId());
+        this.part0.setUserId(order.getUserId());
+        this.part0.setOrderAction(order.getOrderAction());
+        this.part0.setOrderType(order.getOrderType());
+        this.part0.setOrderPrice(order.getPrice());
+        this.part0.setOrderPriceDepthSize(-1L);
+        this.part0.setOrderPriceOrderCount(0);
+        this.part0.setOrderTotalSize(order.getSize());
+        this.part0.setOrderAccFilledSize(0L);
+        this.part0.setOrderVersion(order.getVersion());
+
+        this.part1.clearData();
+
+        this.matchPrice = -1L;
+        this.matchSize = 0L;
+        this.driverAction = null;
     }
 
 
@@ -172,75 +203,59 @@ public class OrderMatch implements Data {
         ByteBuffer byteBuffer = ByteBuffer.wrap(bytes);
         byte version = byteBuffer.get();
         Validate.isTrue(version == 0);
-        this.sequence = byteBuffer.getLong();
         this.symbolId = byteBuffer.getInt();
-        this.orderId = byteBuffer.getLong();
-        this.userId = byteBuffer.getLong();
         this.timestamp = byteBuffer.getLong();
-        this.orderAction = OrderAction.of(byteBuffer.get());
-        this.orderType = OrderType.of(byteBuffer.get());
-        this.orderPrice = byteBuffer.getLong();
-        this.orderPriceDepthSize = byteBuffer.getLong();
-        this.orderPriceOrderCount = byteBuffer.getInt();
-        this.orderTotalSize = byteBuffer.getLong();
-        this.orderAccFilledSize = byteBuffer.getLong();
-        this.orderVersion = byteBuffer.getInt();
-        this.matchPrice = byteBuffer.getLong();
-        this.matchSize = byteBuffer.getLong();
-        this.matchOrderId = byteBuffer.getLong();
-        this.matchOrderUserId = byteBuffer.getLong();
-        this.driverAction = OrderAction.of(byteBuffer.get());
+        this.orderMode = OrderMode.of(byteBuffer.get());
         this.resultCode = ResultCode.of(byteBuffer.getShort());
+
+        this.part0.from(byteBuffer);
+
+        if (ResultCode.MATCH == this.resultCode) {
+            this.part1.from(byteBuffer);
+            this.matchPrice = byteBuffer.getLong();
+            this.matchSize = byteBuffer.getLong();
+            this.driverAction = OrderAction.of(byteBuffer.get());
+        }
     }
 
 
     @Override public byte[] getBytes() {
 
-        ByteBuffer byteBuffer = ByteBuffer.allocate(114);
+        ByteBuffer byteBuffer = ByteBuffer.allocate(16 + 66 + (ResultCode.MATCH == this.resultCode ? 83 : 0));
         byteBuffer.put((byte) 0);
-        byteBuffer.putLong(this.sequence);
         byteBuffer.putInt(this.symbolId);
-        byteBuffer.putLong(this.orderId);
-        byteBuffer.putLong(this.userId);
         byteBuffer.putLong(this.timestamp);
-        byteBuffer.put(this.orderAction.code);
-        byteBuffer.put(this.orderType.code);
-        byteBuffer.putLong(this.orderPrice);
-        byteBuffer.putLong(this.orderPriceDepthSize);
-        byteBuffer.putInt(this.orderPriceOrderCount);
-        byteBuffer.putLong(this.orderTotalSize);
-        byteBuffer.putLong(this.orderAccFilledSize);
-        byteBuffer.putInt(this.orderVersion);
-        byteBuffer.putLong(this.matchPrice);
-        byteBuffer.putLong(this.matchSize);
-        byteBuffer.putLong(this.matchOrderId);
-        byteBuffer.putLong(this.matchOrderUserId);
-        byteBuffer.put(this.driverAction.code);
+        byteBuffer.put(this.orderMode.code);
         byteBuffer.putShort((short) this.resultCode.code);
+
+        this.part0.getBytes(byteBuffer);
+
+        if (ResultCode.MATCH == this.resultCode) {
+            this.part1.getBytes(byteBuffer);
+            byteBuffer.putLong(this.matchPrice);
+            byteBuffer.putLong(this.matchSize);
+            byteBuffer.put(this.driverAction.code);
+        }
         return byteBuffer.array();
     }
 
 
     @Override public void clearData() {
 
-        //this.sequence = 0L;
         //this.symbolId = 0;
-        //this.orderId = 0L;
-        //this.userId = 0L;
         //this.timestamp = 0L;
-        //this.orderAction = null;
-        //this.orderType = null;
-        //this.orderPrice = 0L;
-        //this.orderPriceDepthSize = 0L;
-        //this.orderPriceOrderCount = 0;
-        //this.orderTotalSize = 0L;
-        //this.orderAccFilledSize = 0L;
-        //this.orderVersion = 0;
+        //this.orderMode = null;
+        //this.resultCode = null;
+        //this.part0.clearData();
+        //this.part1.clearData();
         //this.matchPrice = 0L;
         //this.matchSize = 0L;
-        //this.matchOrderId = 0L;
-        //this.matchOrderUserId = 0L;
         //this.driverAction = null;
-        //this.resultCode = null;
+    }
+
+
+    public long maxSeq() {
+
+        return Math.max(this.part0.getSequence(), this.part1.getSequence());
     }
 }

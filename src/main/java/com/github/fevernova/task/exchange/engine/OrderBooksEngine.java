@@ -35,10 +35,10 @@ public final class OrderBooksEngine extends ContextObject implements WriteBytesM
     }
 
 
-    public void placeOrder(OrderCommand orderCommand, DataProvider<Integer, OrderMatch> provider) {
+    public void placeOrder(OrderCommand orderCommand, DataProvider<Integer, OrderMatch> provider, boolean supportCondition) {
 
         OrderBooks orderBooks = getOrderBooks(orderCommand);
-        orderBooks.place(orderCommand, provider);
+        orderBooks.place(orderCommand, provider, true, null, supportCondition);
     }
 
 
@@ -46,6 +46,20 @@ public final class OrderBooksEngine extends ContextObject implements WriteBytesM
 
         OrderBooks orderBooks = getOrderBooks(orderCommand);
         orderBooks.cancel(orderCommand, provider);
+    }
+
+
+    public void placeConditionOrder(OrderCommand orderCommand, DataProvider<Integer, OrderMatch> provider) {
+
+        OrderBooks orderBooks = getOrderBooks(orderCommand);
+        orderBooks.placeCondition(orderCommand, provider);
+    }
+
+
+    public void cancelConditionOrder(OrderCommand orderCommand, DataProvider<Integer, OrderMatch> provider) {
+
+        OrderBooks orderBooks = getOrderBooks(orderCommand);
+        orderBooks.cancelCondition(orderCommand, provider);
     }
 
 

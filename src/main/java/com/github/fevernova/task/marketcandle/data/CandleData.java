@@ -25,7 +25,7 @@ public class CandleData implements WriteBytesMarshallable, ReadBytesMarshallable
     public void handle(OrderMatch orderMatch, INotify notify) {
 
         CandleLine line = getOrCreateLine(orderMatch.getSymbolId());
-        line.acc(orderMatch.getTimestamp(), orderMatch.getMatchPrice(), orderMatch.getMatchSize(), orderMatch.getSequence(), notify);
+        line.acc(orderMatch.getTimestamp(), orderMatch.getMatchPrice(), orderMatch.getMatchSize(), orderMatch.maxSeq(), notify);
     }
 
 

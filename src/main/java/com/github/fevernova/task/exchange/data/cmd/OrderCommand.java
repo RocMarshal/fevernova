@@ -1,7 +1,9 @@
 package com.github.fevernova.task.exchange.data.cmd;
 
 
+import com.github.fevernova.task.exchange.data.condition.ConditionOrder;
 import com.github.fevernova.task.exchange.data.order.OrderAction;
+import com.github.fevernova.task.exchange.data.order.OrderMode;
 import com.github.fevernova.task.exchange.data.order.OrderType;
 import lombok.Getter;
 import lombok.Setter;
@@ -31,9 +33,29 @@ public class OrderCommand {
 
     private OrderType orderType;
 
+    private OrderMode orderMode;
+
     private long price;
 
+    private long triggerPrice;
+
     private long size;
+
+
+    public void from(int symbolId, ConditionOrder order, long timestamp) {
+
+        this.orderCommandType = OrderCommandType.PLACE_ORDER;
+        this.orderId = order.getOrderId();
+        this.symbolId = symbolId;
+        this.userId = order.getUserId();
+        this.timestamp = timestamp;
+        this.orderAction = order.getOrderAction();
+        this.orderType = order.getOrderType();
+        this.orderMode = OrderMode.SIMPLE;
+        this.price = order.getPrice();
+        this.triggerPrice = 0L;
+        this.size = order.getSize();
+    }
 
 
     public void from(byte[] bytes) {
@@ -48,14 +70,16 @@ public class OrderCommand {
         this.timestamp = byteBuffer.getLong();
         this.orderAction = OrderAction.of(byteBuffer.get());
         this.orderType = OrderType.of(byteBuffer.get());
+        this.orderMode = OrderMode.of(byteBuffer.get());
         this.price = byteBuffer.getLong();
+        this.triggerPrice = byteBuffer.getLong();
         this.size = byteBuffer.getLong();
     }
 
 
     public byte[] to() {
 
-        ByteBuffer byteBuffer = ByteBuffer.allocate(48);
+        ByteBuffer byteBuffer = ByteBuffer.allocate(57);
         byteBuffer.put((byte) 0);
         byteBuffer.put(this.orderCommandType.code);
         byteBuffer.putLong(this.orderId);
@@ -64,7 +88,9 @@ public class OrderCommand {
         byteBuffer.putLong(this.timestamp);
         byteBuffer.put(this.orderAction.code);
         byteBuffer.put(this.orderType.code);
+        byteBuffer.put(this.orderMode.code);
         byteBuffer.putLong(this.price);
+        byteBuffer.putLong(this.triggerPrice);
         byteBuffer.putLong(this.size);
         return byteBuffer.array();
     }

@@ -68,7 +68,7 @@ public class JobParser extends AbstractParser<Integer, CandleDiff> implements Ba
         KafkaData kafkaData = (KafkaData) event;
         this.orderMatch.from(kafkaData.getValue());
         this.lastMsgTime = this.orderMatch.getTimestamp();
-        if (OrderAction.BID == this.orderMatch.getOrderAction() && ResultCode.MATCH == this.orderMatch.getResultCode()) {
+        if (ResultCode.MATCH == this.orderMatch.getResultCode()) {
             this.candleData.handle(this.orderMatch, this);
         }
         flush();

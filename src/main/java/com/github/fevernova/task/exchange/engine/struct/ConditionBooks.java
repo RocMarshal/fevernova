@@ -4,10 +4,10 @@ package com.github.fevernova.task.exchange.engine.struct;
 import com.github.fevernova.framework.component.DataProvider;
 import com.github.fevernova.task.exchange.data.Sequence;
 import com.github.fevernova.task.exchange.data.cmd.OrderCommand;
-import com.github.fevernova.task.exchange.data.order.Order;
+import com.github.fevernova.task.exchange.data.condition.ConditionOrder;
+import com.github.fevernova.task.exchange.data.condition.ConditionOrderArray;
 import com.github.fevernova.task.exchange.data.result.OrderMatch;
 import com.github.fevernova.task.exchange.data.result.ResultCode;
-import com.github.fevernova.task.exchange.data.order.OrderArray;
 import lombok.Getter;
 import net.openhft.chronicle.bytes.BytesIn;
 import net.openhft.chronicle.bytes.BytesOut;
@@ -19,18 +19,18 @@ import java.util.Map;
 import java.util.NavigableMap;
 
 
-@Getter
-public abstract class Books implements WriteBytesMarshallable, ReadBytesMarshallable {
+public abstract class ConditionBooks implements WriteBytesMarshallable, ReadBytesMarshallable {
 
 
-    protected final NavigableMap<Long, OrderArray> priceTree;
+    protected final NavigableMap<Long, ConditionOrderArray> priceTree;
 
     protected long price;
 
-    protected OrderArray orderArray;//price对应的OrderArray
+    @Getter
+    protected ConditionOrderArray orderArray;//price对应的ConditionOrderArray
 
 
-    public Books(NavigableMap<Long, OrderArray> priceTree) {
+    public ConditionBooks(NavigableMap<Long, ConditionOrderArray> priceTree) {
 
         this.priceTree = priceTree;
         this.price = defaultPrice();
@@ -39,43 +39,24 @@ public abstract class Books implements WriteBytesMarshallable, ReadBytesMarshall
 
     protected abstract long defaultPrice();
 
-
     public abstract boolean newEdgePrice(long tmpPrice);
 
 
-    public boolean canMatchAll(OrderCommand orderCommand) {
+    public ConditionOrderArray getOrCreate(OrderCommand orderCommand) {
 
-        if (newEdgePrice(orderCommand.getPrice())) {
-            return false;
-        }
-        NavigableMap<Long, OrderArray> subMap = this.priceTree.subMap(this.price, true, orderCommand.getPrice(), true);
-        long acc = 0L;
-        for (Map.Entry<Long, OrderArray> entry : subMap.entrySet()) {
-            acc += entry.getValue().getSize();
-            acc -= entry.getValue().getDepthOnlySize();
-            if (acc >= orderCommand.getSize()) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-
-    public OrderArray getOrCreateOrderArray(OrderCommand orderCommand) {
-
-        if (this.price == orderCommand.getPrice()) {
+        if (this.price == orderCommand.getTriggerPrice()) {
             return this.orderArray;
         }
-        if (newEdgePrice(orderCommand.getPrice())) {
-            OrderArray oa = new OrderArray(orderCommand.getOrderAction(), orderCommand.getPrice(), true);
-            //this.priceTree.put(oa.getPrice(), oa);
+        if (newEdgePrice(orderCommand.getTriggerPrice())) {
+            ConditionOrderArray oa = new ConditionOrderArray(orderCommand.getTriggerPrice());
+            this.priceTree.put(oa.getPrice(), oa);
             this.price = oa.getPrice();
             this.orderArray = oa;
             return oa;
         } else {
-            OrderArray oa = this.priceTree.get(orderCommand.getPrice());
+            ConditionOrderArray oa = this.priceTree.get(orderCommand.getPrice());
             if (oa == null) {
-                oa = new OrderArray(orderCommand.getOrderAction(), orderCommand.getPrice(), false);
+                oa = new ConditionOrderArray(orderCommand.getTriggerPrice());
                 this.priceTree.put(oa.getPrice(), oa);
             }
             return oa;
@@ -85,42 +66,31 @@ public abstract class Books implements WriteBytesMarshallable, ReadBytesMarshall
 
     public void cancel(OrderCommand orderCommand, DataProvider<Integer, OrderMatch> provider, Sequence sequence) {
 
-        OrderArray oa = this.priceTree.get(orderCommand.getPrice());
+        ConditionOrderArray oa = this.priceTree.get(orderCommand.getTriggerPrice());
         if (oa == null) {
             return;
         }
-        Order order = oa.findAndRemoveOrder(orderCommand.getOrderId());
+        ConditionOrder order = oa.findAndRemoveOrder(orderCommand.getOrderId());
         if (order == null) {
             return;
         }
         OrderMatch orderMatch = provider.feedOne(orderCommand.getSymbolId());
-        orderMatch.from(sequence, orderCommand, order, oa);
+        orderMatch.from(sequence, orderCommand, order);
         orderMatch.setResultCode(ResultCode.CANCEL);
         provider.push();
-        adjustByOrderArray(oa);
+        this.adjust(oa, false);
     }
 
 
-    public void adjustByOrderArray(OrderArray oa) {
+    public void adjust(ConditionOrderArray oa, boolean force) {
 
-        if (oa.getSize() == 0L) {
-            if (!oa.isLazy()) {
-                this.priceTree.remove(oa.getPrice());
-            }
+        if (oa.getSize() == 0L || force) {
+            this.priceTree.remove(oa.getPrice());
             if (this.price == oa.getPrice()) {
-                Map.Entry<Long, OrderArray> tme = this.priceTree.ceilingEntry(this.price);
+                Map.Entry<Long, ConditionOrderArray> tme = this.priceTree.ceilingEntry(this.price);
                 this.price = (tme == null ? defaultPrice() : tme.getKey());
                 this.orderArray = (tme == null ? null : tme.getValue());
             }
-        }
-    }
-
-
-    public void handleLazy() {
-
-        if (this.orderArray != null && this.orderArray.isLazy()) {
-            this.orderArray.setLazy(false);
-            this.priceTree.put(this.price, this.orderArray);
         }
     }
 
@@ -129,7 +99,7 @@ public abstract class Books implements WriteBytesMarshallable, ReadBytesMarshall
 
         int treeSize = bytes.readInt();
         for (int i = 0; i < treeSize; i++) {
-            OrderArray orderArray = new OrderArray(bytes);
+            ConditionOrderArray orderArray = new ConditionOrderArray(bytes);
             this.priceTree.put(orderArray.getPrice(), orderArray);
         }
         this.price = bytes.readLong();

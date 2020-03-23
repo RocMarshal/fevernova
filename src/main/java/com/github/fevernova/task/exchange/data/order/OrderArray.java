@@ -1,12 +1,9 @@
-package com.github.fevernova.task.exchange.engine;
+package com.github.fevernova.task.exchange.data.order;
 
 
 import com.github.fevernova.framework.common.structure.queue.LinkedQueue;
 import com.github.fevernova.framework.component.DataProvider;
 import com.github.fevernova.task.exchange.data.Sequence;
-import com.github.fevernova.task.exchange.data.order.Order;
-import com.github.fevernova.task.exchange.data.order.OrderAction;
-import com.github.fevernova.task.exchange.data.order.OrderType;
 import com.github.fevernova.task.exchange.data.result.OrderMatch;
 import lombok.Getter;
 import lombok.Setter;
@@ -91,11 +88,8 @@ public final class OrderArray implements WriteBytesMarshallable {
             thatOrder.decrement(delta);
             that.decrement(thatOrder, delta);
             this.decrement(thisOrder, delta);
-            OrderMatch thisOrderMatch = provider.feedOne(symbolId);
-            thisOrderMatch.from(sequence, symbolId, thisOrder, thatOrder, this, matchPrice, delta, timestamp, driverAction);
-            provider.push();
-            OrderMatch thatOrderMatch = provider.feedOne(symbolId);
-            thatOrderMatch.from(sequence, symbolId, thatOrder, thisOrder, that, matchPrice, delta, timestamp, driverAction);
+            OrderMatch orderMatch = provider.feedOne(symbolId);
+            orderMatch.from(sequence, symbolId, thisOrder, thatOrder, this, that, matchPrice, delta, timestamp, driverAction);
             provider.push();
         } while (that.getSize() > 0L);
     }

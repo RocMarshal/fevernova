@@ -55,7 +55,7 @@ public class JobParser extends AbstractParser<Integer, DepthResult> implements B
 
         KafkaData kafkaData = (KafkaData) event;
         this.orderMatch.from(kafkaData.getValue());
-        if (this.orderMatch.getOrderPriceDepthSize() >= 0L) {
+        if (this.orderMatch.getPart0().getOrderPriceDepthSize() >= 0L) {
             this.depthEngine.handle(this.orderMatch);
         }
         this.depthEngine.scan();

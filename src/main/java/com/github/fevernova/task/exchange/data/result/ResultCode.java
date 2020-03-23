@@ -3,18 +3,18 @@ package com.github.fevernova.task.exchange.data.result;
 
 public enum ResultCode {
 
-    PLACE(100),
+    PLACE(10),
 
-    CANCEL(200),
-    CANCEL_USER(201),
-    CANCEL_IOC(202),
-    CANCEL_FOK(203),
-    CANCEL_DEPTHONLY(204),
-    CANCEL_POSTONLY(205),
+    CANCEL(20),
+    CANCEL_IOC(21),
+    CANCEL_FOK(22),
+    CANCEL_POSTONLY(23),
+    CANCEL_DEPTHONLY(24),
+    CANCEL_CONDITION_TO_SIMPLE(25),
 
-    MATCH(300),
+    MATCH(30),
 
-    HEARTBEAT(400);
+    HEARTBEAT(40);
 
     public int code;
 
@@ -28,23 +28,23 @@ public enum ResultCode {
     public static ResultCode of(int code) {
 
         switch (code) {
-            case 100:
+            case 10:
                 return PLACE;
-            case 200:
+            case 20:
                 return CANCEL;
-            case 201:
-                return CANCEL_USER;
-            case 202:
+            case 21:
                 return CANCEL_IOC;
-            case 203:
+            case 22:
                 return CANCEL_FOK;
-            case 204:
-                return CANCEL_DEPTHONLY;
-            case 205:
+            case 23:
                 return CANCEL_POSTONLY;
-            case 300:
+            case 24:
+                return CANCEL_DEPTHONLY;
+            case 25:
+                return CANCEL_CONDITION_TO_SIMPLE;
+            case 30:
                 return MATCH;
-            case 400:
+            case 40:
                 return HEARTBEAT;
             default:
                 throw new IllegalArgumentException("unknown ResultCode:" + code);

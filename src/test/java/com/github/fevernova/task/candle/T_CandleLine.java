@@ -30,32 +30,30 @@ public class T_CandleLine {
     @Before
     public void init() {
 
-        this.orderMatch.setSequence(1L);
         this.orderMatch.setSymbolId(1);
-        this.orderMatch.setOrderId(1L);
-        this.orderMatch.setUserId(1L);
         this.orderMatch.setTimestamp(1577808000000L);
-        this.orderMatch.setOrderAction(OrderAction.BID);
-        this.orderMatch.setOrderType(OrderType.GTC);
-        this.orderMatch.setOrderPrice(1L);
-        this.orderMatch.setOrderPriceDepthSize(1L);
-        this.orderMatch.setOrderPriceOrderCount(1);
-        this.orderMatch.setOrderTotalSize(1L);
-        this.orderMatch.setOrderAccFilledSize(1L);
-        this.orderMatch.setOrderVersion(1);
         this.orderMatch.setMatchPrice(1L);
         this.orderMatch.setMatchSize(1L);
-        this.orderMatch.setMatchOrderId(1L);
-        this.orderMatch.setMatchOrderUserId(1L);
         this.orderMatch.setDriverAction(OrderAction.ASK);
         this.orderMatch.setResultCode(ResultCode.MATCH);
+        this.orderMatch.getPart0().setSequence(1L);
+        this.orderMatch.getPart0().setOrderId(1L);
+        this.orderMatch.getPart0().setUserId(1L);
+        this.orderMatch.getPart0().setOrderAction(OrderAction.BID);
+        this.orderMatch.getPart0().setOrderType(OrderType.GTC);
+        this.orderMatch.getPart0().setOrderPrice(1L);
+        this.orderMatch.getPart0().setOrderPriceDepthSize(1L);
+        this.orderMatch.getPart0().setOrderPriceOrderCount(1);
+        this.orderMatch.getPart0().setOrderTotalSize(1L);
+        this.orderMatch.getPart0().setOrderAccFilledSize(1L);
+        this.orderMatch.getPart0().setOrderVersion(1);
     }
 
 
     @Test
     public void T_CandleLIne() {
 
-        this.orderMatch.setSequence(this.orderMatch.getSequence() + 1);
+        this.orderMatch.getPart0().setSequence(this.orderMatch.getPart0().getSequence() + 1);
         this.orderMatch.setTimestamp(Util.nowMS());
         this.orderMatch.setMatchPrice(this.orderMatch.getMatchPrice() + 1);
         this.candleData.handle(this.orderMatch, this.notify);

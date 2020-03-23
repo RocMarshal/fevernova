@@ -7,7 +7,6 @@ import com.github.fevernova.framework.common.data.Data;
 import com.github.fevernova.framework.component.channel.ChannelProxy;
 import com.github.fevernova.framework.component.parser.AbstractParser;
 import com.github.fevernova.io.kafka.data.KafkaData;
-import com.github.fevernova.task.exchange.data.order.OrderAction;
 import com.github.fevernova.task.exchange.data.result.OrderMatch;
 import com.github.fevernova.task.exchange.data.result.OrderMatchFactory;
 import com.github.fevernova.task.exchange.data.result.ResultCode;
@@ -41,7 +40,7 @@ public class JobParser extends AbstractParser<Integer, OrderDetail> {
 
         KafkaData kafkaData = (KafkaData) event;
         this.orderMatch.from(kafkaData.getValue());
-        if (OrderAction.BID == this.orderMatch.getOrderAction() && ResultCode.MATCH == this.orderMatch.getResultCode()) {
+        if (ResultCode.MATCH == this.orderMatch.getResultCode()) {
             RateLimiter rateLimiter = this.limiters.get(this.orderMatch.getSymbolId());
             if (rateLimiter == null) {
                 rateLimiter = RateLimiter.create(this.ratio);

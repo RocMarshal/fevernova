@@ -1,18 +1,17 @@
 package com.github.fevernova.task.exchange.engine;
 
 
+import com.github.fevernova.framework.common.structure.queue.LinkedQueue;
 import com.github.fevernova.framework.component.DataProvider;
 import com.github.fevernova.task.exchange.data.Sequence;
 import com.github.fevernova.task.exchange.data.cmd.OrderCommand;
-import com.github.fevernova.task.exchange.data.order.Order;
-import com.github.fevernova.task.exchange.data.order.OrderAction;
-import com.github.fevernova.task.exchange.data.order.OrderType;
+import com.github.fevernova.task.exchange.data.condition.ConditionOrder;
+import com.github.fevernova.task.exchange.data.condition.ConditionOrderArray;
+import com.github.fevernova.task.exchange.data.order.*;
 import com.github.fevernova.task.exchange.data.result.OrderMatch;
 import com.github.fevernova.task.exchange.data.result.ResultCode;
 import com.github.fevernova.task.exchange.data.uniq.UniqIdFilter;
-import com.github.fevernova.task.exchange.engine.struct.AskBooks;
-import com.github.fevernova.task.exchange.engine.struct.BidBooks;
-import com.github.fevernova.task.exchange.engine.struct.Books;
+import com.github.fevernova.task.exchange.engine.struct.*;
 import lombok.Getter;
 import lombok.Setter;
 import net.openhft.chronicle.bytes.BytesIn;
@@ -39,6 +38,10 @@ public final class OrderBooks implements WriteBytesMarshallable {
 
     private final UniqIdFilter uniqIdFilter = new UniqIdFilter(60_000L, 10);
 
+    private final ConditionBooks upBooks = new UpConditionBooks();
+
+    private final ConditionBooks downBooks = new DownConditionBooks();
+
 
     public OrderBooks(int symbolId) {
 
@@ -54,12 +57,15 @@ public final class OrderBooks implements WriteBytesMarshallable {
         this.askBooks.readMarshallable(bytes);
         this.bidBooks.readMarshallable(bytes);
         this.uniqIdFilter.readMarshallable(bytes);
+        this.upBooks.readMarshallable(bytes);
+        this.downBooks.readMarshallable(bytes);
     }
 
 
-    public void place(OrderCommand orderCommand, DataProvider<Integer, OrderMatch> provider) {
+    public void place(OrderCommand orderCommand, DataProvider<Integer, OrderMatch> provider, boolean withUniq, LinkedQueue<ConditionOrder> queue,
+                      boolean supportCondition) {
 
-        if (!this.uniqIdFilter.unique(orderCommand.getTimestamp(), orderCommand.getOrderId())) {
+        if (withUniq && !this.uniqIdFilter.unique(orderCommand.getTimestamp(), orderCommand.getOrderId())) {
             return;
         }
 
@@ -95,13 +101,21 @@ public final class OrderBooks implements WriteBytesMarshallable {
 
         if (order.needIOCClear()) {
             orderArray.findAndRemoveOrder(order.getOrderId());
-            thisBooks.adjustByOrderArray(orderArray);
             OrderMatch orderMatch = provider.feedOne(orderCommand.getSymbolId());
             orderMatch.from(this.sequence, orderCommand, order, orderArray);
             orderMatch.setResultCode(ResultCode.CANCEL_IOC);
             provider.push();
+            thisBooks.adjustByOrderArray(orderArray);
         }
         thisBooks.handleLazy();
+
+        if (supportCondition) {
+            if (queue != null) {
+                scanConditionBooks(queue);
+            } else {
+                convertCondition2Simple(orderCommand.getTimestamp(), provider);
+            }
+        }
     }
 
 
@@ -136,6 +150,78 @@ public final class OrderBooks implements WriteBytesMarshallable {
     }
 
 
+    public void placeCondition(OrderCommand orderCommand, DataProvider<Integer, OrderMatch> provider) {
+
+        if (!this.uniqIdFilter.unique(orderCommand.getTimestamp(), orderCommand.getOrderId())) {
+            return;
+        }
+        ConditionBooks books = OrderMode.CONDITION_UP == orderCommand.getOrderMode() ? this.upBooks : this.downBooks;
+        ConditionOrderArray orderArray = books.getOrCreate(orderCommand);
+        ConditionOrder order = new ConditionOrder(orderCommand);
+        orderArray.addOrder(order);
+
+        OrderMatch orderPlaceMatch = provider.feedOne(orderCommand.getSymbolId());
+        orderPlaceMatch.from(this.sequence, orderCommand, order);
+        orderPlaceMatch.setResultCode(ResultCode.PLACE);
+        provider.push();
+
+        convertCondition2Simple(orderCommand.getTimestamp(), provider);
+    }
+
+
+    private void convertCondition2Simple(long timestamp, DataProvider<Integer, OrderMatch> provider) {
+
+        LinkedQueue<ConditionOrder> queue = scanConditionBooks(null);
+        ConditionOrder tmp = queue.poll();
+        while (tmp != null) {
+            OrderCommand cmd = new OrderCommand();
+            cmd.from(this.symbolId, tmp, timestamp);
+            place(cmd, provider, false, queue, true);
+            tmp = queue.poll();
+        }
+    }
+
+
+    private LinkedQueue<ConditionOrder> scanConditionBooks(LinkedQueue<ConditionOrder> queue) {
+
+        if (queue == null) {
+            queue = new LinkedQueue<>();
+        }
+        while (!this.upBooks.newEdgePrice(this.lastMatchPrice)) {
+            ConditionOrderArray orderArray = this.upBooks.getOrderArray();
+            if (orderArray == null) {
+                break;
+            }
+            ConditionOrder tmp = orderArray.getQueue().poll();
+            while (tmp != null) {
+                queue.offer(tmp);
+                tmp = orderArray.getQueue().poll();
+            }
+            this.upBooks.adjust(orderArray, true);
+        }
+        while (!this.downBooks.newEdgePrice(this.lastMatchPrice)) {
+            ConditionOrderArray orderArray = this.downBooks.getOrderArray();
+            if (orderArray == null) {
+                break;
+            }
+            ConditionOrder tmp = orderArray.getQueue().poll();
+            while (tmp != null) {
+                queue.offer(tmp);
+                tmp = orderArray.getQueue().poll();
+            }
+            this.downBooks.adjust(orderArray, true);
+        }
+        return queue;
+    }
+
+
+    public void cancelCondition(OrderCommand orderCommand, DataProvider<Integer, OrderMatch> provider) {
+
+        ConditionBooks books = OrderMode.CONDITION_UP == orderCommand.getOrderMode() ? this.upBooks : this.downBooks;
+        books.cancel(orderCommand, provider, this.sequence);
+    }
+
+
     public void heartBeat(OrderCommand orderCommand, DataProvider<Integer, OrderMatch> provider) {
 
         OrderMatch orderMatch = provider.feedOne(orderCommand.getSymbolId());
@@ -153,5 +239,7 @@ public final class OrderBooks implements WriteBytesMarshallable {
         this.askBooks.writeMarshallable(bytes);
         this.bidBooks.writeMarshallable(bytes);
         this.uniqIdFilter.writeMarshallable(bytes);
+        this.upBooks.writeMarshallable(bytes);
+        this.downBooks.writeMarshallable(bytes);
     }
 }

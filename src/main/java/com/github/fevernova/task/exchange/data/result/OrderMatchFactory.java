@@ -10,6 +10,9 @@ public class OrderMatchFactory implements DataFactory {
 
     @Override public Data createData() {
 
-        return new OrderMatch();
+        OrderMatch orderMatch = new OrderMatch();
+        orderMatch.setPart0(new OrderMatchPart());
+        orderMatch.setPart1(new OrderMatchPart());
+        return orderMatch;
     }
 }

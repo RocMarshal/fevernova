@@ -1,8 +1,6 @@
 package com.github.fevernova.task.exchange;
 
 
-import com.github.fevernova.Common;
-import com.github.fevernova.framework.common.Util;
 import com.google.common.collect.Maps;
 import org.junit.Test;
 
@@ -12,30 +10,22 @@ import java.util.NavigableMap;
 public class T_TreeMap {
 
 
-    NavigableMap<Long, String> tree = Maps.newTreeMap();
+    private NavigableMap<Long, String> tree0 = Maps.newTreeMap(Long::compareTo);
 
-
-    public void loadDepth(long depth) {
-
-        for (long i = 0L; i < depth; i++) {
-            tree.put(i, i + "");
-        }
-    }
+    private NavigableMap<Long, String> tree1 = Maps.newTreeMap((l1, l2) -> l2.compareTo(l1));
 
 
     @Test
-    public void T_performance() {
+    public void T_treemap() {
 
-        loadDepth(5000);
-        Common.warmup();
-        long r = 0L;
-        long st = Util.nowMS();
-        for (int i = 0; i < 10_0000_0000; i++) {
-            String x = tree.get(100L);
-            r = (x == null ? r : r + 1);
+        for (long i = 1L; i < 10; i++) {
+            tree0.put(i, i + "");
         }
-        long et = Util.nowMS();
-        System.out.println(et - st);
+        System.out.println(tree0.ceilingEntry(0L));
+        for (long i = 1L; i < 10; i++) {
+            tree1.put(i, i + "");
+        }
+        System.out.println(tree1.ceilingEntry(20L));
     }
 
 }

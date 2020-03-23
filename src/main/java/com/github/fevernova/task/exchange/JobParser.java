@@ -18,7 +18,7 @@ import com.github.fevernova.framework.service.state.StateValue;
 import com.github.fevernova.framework.task.Manager;
 import com.github.fevernova.io.kafka.data.KafkaData;
 import com.github.fevernova.task.exchange.data.cmd.OrderCommand;
-import com.github.fevernova.task.exchange.data.cmd.OrderCommandType;
+import com.github.fevernova.task.exchange.data.order.OrderMode;
 import com.github.fevernova.task.exchange.data.result.OrderMatch;
 import com.github.fevernova.task.exchange.engine.OrderBooksEngine;
 import lombok.extern.slf4j.Slf4j;
@@ -37,6 +37,8 @@ public class JobParser extends AbstractParser<Integer, OrderMatch> implements Ba
 
     private BinaryFileIdentity matchIdentity;
 
+    private boolean supportCondition;
+
 
     public JobParser(GlobalContext globalContext, TaskContext taskContext, int index, int inputsNum, ChannelProxy channelProxy) {
 
@@ -48,6 +50,7 @@ public class JobParser extends AbstractParser<Integer, OrderMatch> implements Ba
         this.matchEngine = new OrderBooksEngine(globalContext, matchEngineContext);
         this.matchIdentity = BinaryFileIdentity.builder().componentType(super.componentType).total(super.total).index(super.index)
                 .identity(OrderBooksEngine.CONS_NAME.toLowerCase()).build();
+        this.supportCondition = taskContext.getBoolean("condition", false);
     }
 
 
@@ -57,12 +60,27 @@ public class JobParser extends AbstractParser<Integer, OrderMatch> implements Ba
         OrderCommand orderCommand = new OrderCommand();
         orderCommand.from(kafkaData.getValue());
 
-        if (OrderCommandType.PLACE_ORDER == orderCommand.getOrderCommandType()) {
-            this.matchEngine.placeOrder(orderCommand, this);
-        } else if (OrderCommandType.CANCEL_ORDER == orderCommand.getOrderCommandType()) {
-            this.matchEngine.cancelOrder(orderCommand, this);
-        } else if (OrderCommandType.HEARTBEAT == orderCommand.getOrderCommandType()) {
-            this.matchEngine.heartBeat(orderCommand, this);
+        if (OrderMode.SIMPLE == orderCommand.getOrderMode()) {
+            switch (orderCommand.getOrderCommandType()) {
+                case PLACE_ORDER:
+                    this.matchEngine.placeOrder(orderCommand, this, supportCondition);
+                    break;
+                case CANCEL_ORDER:
+                    this.matchEngine.cancelOrder(orderCommand, this);
+                    break;
+                case HEARTBEAT:
+                    this.matchEngine.heartBeat(orderCommand, this);
+                    break;
+            }
+        } else if (this.supportCondition) {
+            switch (orderCommand.getOrderCommandType()) {
+                case PLACE_ORDER:
+                    this.matchEngine.placeConditionOrder(orderCommand, this);
+                    break;
+                case CANCEL_ORDER:
+                    this.matchEngine.cancelConditionOrder(orderCommand, this);
+                    break;
+            }
         }
     }
 
