@@ -91,7 +91,7 @@ public final class OrderArray implements WriteBytesMarshallable {
             OrderMatch orderMatch = provider.feedOne(symbolId);
             orderMatch.from(sequence, symbolId, thisOrder, thatOrder, this, that, matchPrice, delta, timestamp, driverAction);
             provider.push();
-        } while (that.getSize() > 0L);
+        } while (this.getSize() > 0 && that.getSize() > 0L);
     }
 
 
@@ -104,6 +104,7 @@ public final class OrderArray implements WriteBytesMarshallable {
 
         this.queue.remove(order);
         this.size -= order.getRemainSize();
+        this.depthOnlySize -= order.getRemainSize();
         order.cancel();
 
         OrderMatch depthOnlyMatch = provider.feedOne(symbolId);

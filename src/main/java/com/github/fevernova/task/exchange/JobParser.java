@@ -37,8 +37,6 @@ public class JobParser extends AbstractParser<Integer, OrderMatch> implements Ba
 
     private BinaryFileIdentity matchIdentity;
 
-    private boolean supportCondition;
-
 
     public JobParser(GlobalContext globalContext, TaskContext taskContext, int index, int inputsNum, ChannelProxy channelProxy) {
 
@@ -50,7 +48,6 @@ public class JobParser extends AbstractParser<Integer, OrderMatch> implements Ba
         this.matchEngine = new OrderBooksEngine(globalContext, matchEngineContext);
         this.matchIdentity = BinaryFileIdentity.builder().componentType(super.componentType).total(super.total).index(super.index)
                 .identity(OrderBooksEngine.CONS_NAME.toLowerCase()).build();
-        this.supportCondition = taskContext.getBoolean("condition", false);
     }
 
 
@@ -63,7 +60,7 @@ public class JobParser extends AbstractParser<Integer, OrderMatch> implements Ba
         if (OrderMode.SIMPLE == orderCommand.getOrderMode()) {
             switch (orderCommand.getOrderCommandType()) {
                 case PLACE_ORDER:
-                    this.matchEngine.placeOrder(orderCommand, this, supportCondition);
+                    this.matchEngine.placeOrder(orderCommand, this);
                     break;
                 case CANCEL_ORDER:
                     this.matchEngine.cancelOrder(orderCommand, this);
@@ -72,7 +69,7 @@ public class JobParser extends AbstractParser<Integer, OrderMatch> implements Ba
                     this.matchEngine.heartBeat(orderCommand, this);
                     break;
             }
-        } else if (this.supportCondition) {
+        } else {
             switch (orderCommand.getOrderCommandType()) {
                 case PLACE_ORDER:
                     this.matchEngine.placeConditionOrder(orderCommand, this);

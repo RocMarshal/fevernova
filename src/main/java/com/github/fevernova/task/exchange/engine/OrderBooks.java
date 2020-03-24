@@ -36,7 +36,7 @@ public final class OrderBooks implements WriteBytesMarshallable {
     @Getter
     private final Books bidBooks = new BidBooks();
 
-    private final UniqIdFilter uniqIdFilter = new UniqIdFilter(60_000L, 10);
+    private final UniqIdFilter uniqIdFilter = new UniqIdFilter(60_000L, 5);
 
     private final ConditionBooks upBooks = new UpConditionBooks();
 
@@ -62,8 +62,13 @@ public final class OrderBooks implements WriteBytesMarshallable {
     }
 
 
-    public void place(OrderCommand orderCommand, DataProvider<Integer, OrderMatch> provider, boolean withUniq, LinkedQueue<ConditionOrder> queue,
-                      boolean supportCondition) {
+    public void place(OrderCommand orderCommand, DataProvider<Integer, OrderMatch> provider) {
+
+        place(orderCommand, provider, true, null);
+    }
+
+
+    private void place(OrderCommand orderCommand, DataProvider<Integer, OrderMatch> provider, boolean withUniq, LinkedQueue<ConditionOrder> queue) {
 
         if (withUniq && !this.uniqIdFilter.unique(orderCommand.getTimestamp(), orderCommand.getOrderId())) {
             return;
@@ -73,48 +78,26 @@ public final class OrderBooks implements WriteBytesMarshallable {
         Books thatBooks = OrderAction.ASK == orderCommand.getOrderAction() ? this.bidBooks : this.askBooks;
 
         if (OrderType.FOK == orderCommand.getOrderType() && !thatBooks.canMatchAll(orderCommand)) {
-            OrderMatch orderMatch = provider.feedOne(orderCommand.getSymbolId());
-            orderMatch.from(this.sequence, orderCommand);
-            orderMatch.setResultCode(ResultCode.CANCEL_FOK);
-            provider.push();
-            return;
+            command2result(orderCommand, provider, ResultCode.CANCEL_FOK);
         }
 
         if (OrderType.POSTONLY == orderCommand.getOrderType() && !thatBooks.newEdgePrice(orderCommand.getPrice())) {
-            OrderMatch orderMatch = provider.feedOne(orderCommand.getSymbolId());
-            orderMatch.from(this.sequence, orderCommand);
-            orderMatch.setResultCode(ResultCode.CANCEL_POSTONLY);
-            provider.push();
-            return;
+            command2result(orderCommand, provider, ResultCode.CANCEL_POSTONLY);
         }
 
-        OrderArray orderArray = thisBooks.getOrCreateOrderArray(orderCommand);
-        Order order = new Order(orderCommand);
-        orderArray.addOrder(order);
-
-        OrderMatch orderPlaceMatch = provider.feedOne(orderCommand.getSymbolId());
-        orderPlaceMatch.from(this.sequence, orderCommand, order, orderArray);
-        orderPlaceMatch.setResultCode(ResultCode.PLACE);
-        provider.push();
-
+        Order order = thisBooks.place(orderCommand, provider, this.sequence);
         matchOrders(provider, orderCommand.getTimestamp(), orderCommand.getOrderAction());
 
         if (order.needIOCClear()) {
-            orderArray.findAndRemoveOrder(order.getOrderId());
-            OrderMatch orderMatch = provider.feedOne(orderCommand.getSymbolId());
-            orderMatch.from(this.sequence, orderCommand, order, orderArray);
-            orderMatch.setResultCode(ResultCode.CANCEL_IOC);
-            provider.push();
-            thisBooks.adjustByOrderArray(orderArray);
+            thisBooks.cancel(orderCommand, provider, this.sequence, ResultCode.CANCEL_IOC);
         }
+
         thisBooks.handleLazy();
 
-        if (supportCondition) {
-            if (queue != null) {
-                scanConditionBooks(queue);
-            } else {
-                convertCondition2Simple(orderCommand.getTimestamp(), provider);
-            }
+        if (queue != null) {
+            scanConditionBooks(queue);
+        } else {
+            convertCondition2Simple(orderCommand.getTimestamp(), provider);
         }
     }
 
@@ -130,13 +113,12 @@ public final class OrderBooks implements WriteBytesMarshallable {
             } else if (this.lastMatchPrice >= this.bidBooks.getPrice()) {
                 this.lastMatchPrice = this.bidBooks.getPrice();
             }
+
             OrderArray bidOrderArray = this.bidBooks.getOrderArray();
             OrderArray askOrderArray = this.askBooks.getOrderArray();
-            if (bidOrderArray.getSize() > askOrderArray.getSize()) {
-                bidOrderArray.meet(this.sequence, askOrderArray, this.symbolId, this.lastMatchPrice, provider, timestamp, driverAction);
-            } else {
-                askOrderArray.meet(this.sequence, bidOrderArray, this.symbolId, this.lastMatchPrice, provider, timestamp, driverAction);
-            }
+
+            bidOrderArray.meet(this.sequence, askOrderArray, this.symbolId, this.lastMatchPrice, provider, timestamp, driverAction);
+
             this.bidBooks.adjustByOrderArray(bidOrderArray);
             this.askBooks.adjustByOrderArray(askOrderArray);
         }
@@ -146,7 +128,7 @@ public final class OrderBooks implements WriteBytesMarshallable {
     public void cancel(OrderCommand orderCommand, DataProvider<Integer, OrderMatch> provider) {
 
         Books books = OrderAction.ASK == orderCommand.getOrderAction() ? this.askBooks : this.bidBooks;
-        books.cancel(orderCommand, provider, this.sequence);
+        books.cancel(orderCommand, provider, this.sequence, ResultCode.CANCEL);
     }
 
 
@@ -176,7 +158,7 @@ public final class OrderBooks implements WriteBytesMarshallable {
         while (tmp != null) {
             OrderCommand cmd = new OrderCommand();
             cmd.from(this.symbolId, tmp, timestamp);
-            place(cmd, provider, false, queue, true);
+            place(cmd, provider, false, queue);
             tmp = queue.poll();
         }
     }
@@ -222,11 +204,11 @@ public final class OrderBooks implements WriteBytesMarshallable {
     }
 
 
-    public void heartBeat(OrderCommand orderCommand, DataProvider<Integer, OrderMatch> provider) {
+    public void command2result(OrderCommand orderCommand, DataProvider<Integer, OrderMatch> provider, ResultCode resultCode) {
 
         OrderMatch orderMatch = provider.feedOne(orderCommand.getSymbolId());
         orderMatch.from(this.sequence, orderCommand);
-        orderMatch.setResultCode(ResultCode.HEARTBEAT);
+        orderMatch.setResultCode(resultCode);
         provider.push();
     }
 

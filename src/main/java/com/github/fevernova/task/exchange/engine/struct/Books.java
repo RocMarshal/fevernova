@@ -5,9 +5,9 @@ import com.github.fevernova.framework.component.DataProvider;
 import com.github.fevernova.task.exchange.data.Sequence;
 import com.github.fevernova.task.exchange.data.cmd.OrderCommand;
 import com.github.fevernova.task.exchange.data.order.Order;
+import com.github.fevernova.task.exchange.data.order.OrderArray;
 import com.github.fevernova.task.exchange.data.result.OrderMatch;
 import com.github.fevernova.task.exchange.data.result.ResultCode;
-import com.github.fevernova.task.exchange.data.order.OrderArray;
 import lombok.Getter;
 import net.openhft.chronicle.bytes.BytesIn;
 import net.openhft.chronicle.bytes.BytesOut;
@@ -61,14 +61,13 @@ public abstract class Books implements WriteBytesMarshallable, ReadBytesMarshall
     }
 
 
-    public OrderArray getOrCreateOrderArray(OrderCommand orderCommand) {
+    private OrderArray getOrCreateOrderArray(OrderCommand orderCommand) {
 
         if (this.price == orderCommand.getPrice()) {
             return this.orderArray;
         }
         if (newEdgePrice(orderCommand.getPrice())) {
             OrderArray oa = new OrderArray(orderCommand.getOrderAction(), orderCommand.getPrice(), true);
-            //this.priceTree.put(oa.getPrice(), oa);
             this.price = oa.getPrice();
             this.orderArray = oa;
             return oa;
@@ -83,9 +82,23 @@ public abstract class Books implements WriteBytesMarshallable, ReadBytesMarshall
     }
 
 
-    public void cancel(OrderCommand orderCommand, DataProvider<Integer, OrderMatch> provider, Sequence sequence) {
+    public Order place(OrderCommand orderCommand, DataProvider<Integer, OrderMatch> provider, Sequence sequence) {
 
-        OrderArray oa = this.priceTree.get(orderCommand.getPrice());
+        OrderArray orderArray = getOrCreateOrderArray(orderCommand);
+        Order order = new Order(orderCommand);
+        orderArray.addOrder(order);
+
+        OrderMatch orderMatch = provider.feedOne(orderCommand.getSymbolId());
+        orderMatch.from(sequence, orderCommand, order, orderArray);
+        orderMatch.setResultCode(ResultCode.PLACE);
+        provider.push();
+        return order;
+    }
+
+
+    public void cancel(OrderCommand orderCommand, DataProvider<Integer, OrderMatch> provider, Sequence sequence, ResultCode resultCode) {
+
+        OrderArray oa = this.price == orderCommand.getPrice() ? this.orderArray : this.priceTree.get(orderCommand.getPrice());
         if (oa == null) {
             return;
         }
@@ -95,7 +108,7 @@ public abstract class Books implements WriteBytesMarshallable, ReadBytesMarshall
         }
         OrderMatch orderMatch = provider.feedOne(orderCommand.getSymbolId());
         orderMatch.from(sequence, orderCommand, order, oa);
-        orderMatch.setResultCode(ResultCode.CANCEL);
+        orderMatch.setResultCode(resultCode);
         provider.push();
         adjustByOrderArray(oa);
     }

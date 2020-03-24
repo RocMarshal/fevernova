@@ -7,6 +7,7 @@ import com.github.fevernova.framework.common.context.TaskContext;
 import com.github.fevernova.framework.component.DataProvider;
 import com.github.fevernova.task.exchange.data.cmd.OrderCommand;
 import com.github.fevernova.task.exchange.data.result.OrderMatch;
+import com.github.fevernova.task.exchange.data.result.ResultCode;
 import com.google.common.collect.Maps;
 import net.openhft.chronicle.bytes.BytesIn;
 import net.openhft.chronicle.bytes.BytesOut;
@@ -35,10 +36,10 @@ public final class OrderBooksEngine extends ContextObject implements WriteBytesM
     }
 
 
-    public void placeOrder(OrderCommand orderCommand, DataProvider<Integer, OrderMatch> provider, boolean supportCondition) {
+    public void placeOrder(OrderCommand orderCommand, DataProvider<Integer, OrderMatch> provider) {
 
         OrderBooks orderBooks = getOrderBooks(orderCommand);
-        orderBooks.place(orderCommand, provider, true, null, supportCondition);
+        orderBooks.place(orderCommand, provider);
     }
 
 
@@ -66,14 +67,13 @@ public final class OrderBooksEngine extends ContextObject implements WriteBytesM
     public void heartBeat(OrderCommand orderCommand, DataProvider<Integer, OrderMatch> provider) {
 
         OrderBooks orderBooks = getOrderBooks(orderCommand);
-        orderBooks.heartBeat(orderCommand, provider);
+        orderBooks.command2result(orderCommand, provider, ResultCode.HEARTBEAT);
     }
 
 
     private OrderBooks getOrderBooks(OrderCommand orderCommand) {
 
         int symbolId = orderCommand.getSymbolId();
-
         if (this.lastOrderBooks != null && this.lastOrderBooks.getSymbolId() == symbolId) {
             return this.lastOrderBooks;
         }

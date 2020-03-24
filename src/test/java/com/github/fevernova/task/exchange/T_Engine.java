@@ -71,7 +71,7 @@ public class T_Engine {
     private int parser(OrderCommand orderCommand) {
 
         if (OrderCommandType.PLACE_ORDER == orderCommand.getOrderCommandType()) {
-            orderBooksEngine.placeOrder(orderCommand, provider, true);
+            orderBooksEngine.placeOrder(orderCommand, provider);
         } else if (OrderCommandType.CANCEL_ORDER == orderCommand.getOrderCommandType()) {
             orderBooksEngine.cancelOrder(orderCommand, provider);
         }

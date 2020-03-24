@@ -78,12 +78,12 @@ public class Confrontation implements Runnable {
         //买的深度
         for (long i = (middilePrice - maxFloat - baseDepth); i < (middilePrice - maxFloat); i++) {
             OrderCommand cmd = build(OrderAction.BID, i, 100000000L);
-            orderBooks.place(cmd, dataProvider, true, null, false);
+            orderBooks.place(cmd, dataProvider);
         }
         //卖的深度
         for (long i = (middilePrice + maxFloat); i < (middilePrice + maxFloat + baseDepth); i++) {
             OrderCommand cmd = build(OrderAction.ASK, i, 100000000L);
-            orderBooks.place(cmd, dataProvider, true, null, false);
+            orderBooks.place(cmd, dataProvider);
         }
 
         orderBooks.setLastMatchPrice(middilePrice);
@@ -92,12 +92,12 @@ public class Confrontation implements Runnable {
             long bidPrice = orderBooks.getBidBooks().getPrice() > (middilePrice - maxFloat) ? orderBooks.getBidBooks().getPrice() + 1 : middilePrice;
             long bidSize = (long) random.nextInt(500);
             OrderCommand bidCmd = build(OrderAction.BID, bidPrice, bidSize);
-            orderBooks.place(bidCmd, dataProvider, true, null, false);
+            orderBooks.place(bidCmd, dataProvider);
 
             long askPrice = orderBooks.getAskBooks().getPrice() < (middilePrice + maxFloat) ? orderBooks.getAskBooks().getPrice() - 1 : middilePrice;
             long askSize = (long) random.nextInt(500);
             OrderCommand askCmd = build(OrderAction.ASK, askPrice, askSize);
-            orderBooks.place(askCmd, dataProvider, true, null, false);
+            orderBooks.place(askCmd, dataProvider);
         }
     }
 
