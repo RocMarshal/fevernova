@@ -1,4 +1,4 @@
-package com.github.fevernova.task.exchange.data.condition;
+package com.github.fevernova.task.exchange.data.order.condition;
 
 
 import com.github.fevernova.framework.common.structure.queue.LinkedObject;

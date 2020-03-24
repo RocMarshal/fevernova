@@ -5,7 +5,7 @@ import com.github.fevernova.framework.common.Util;
 import com.github.fevernova.framework.component.DataProvider;
 import com.github.fevernova.task.exchange.data.order.OrderAction;
 import com.github.fevernova.task.exchange.data.result.OrderMatch;
-import com.github.fevernova.task.exchange.data.result.OrderMatchPart;
+import com.github.fevernova.task.exchange.data.result.OrderPart;
 import com.github.fevernova.task.exchange.data.result.ResultCode;
 import com.github.fevernova.task.marketdepth.books.AskDepthBooks;
 import com.github.fevernova.task.marketdepth.books.BidDepthBooks;
@@ -54,14 +54,14 @@ public class SymbolDepths implements WriteBytesMarshallable, ReadBytesMarshallab
         }
         this.lastSequence = match.maxSeq();
 
-        OrderMatchPart part0 = match.getPart0();
-        DepthBooks depthBooks0 = OrderAction.BID == part0.getOrderAction() ? this.bids : this.asks;
-        depthBooks0.handle(part0.getOrderPrice(), part0.getOrderPriceDepthSize(), part0.getOrderPriceOrderCount());
+        OrderPart part1 = match.getOrderPart1();
+        DepthBooks depthBooks0 = OrderAction.BID == part1.getOrderAction() ? this.bids : this.asks;
+        depthBooks0.handle(part1.getOrderPrice(), part1.getOrderPriceDepthSize(), part1.getOrderPriceOrderCount());
 
         if (ResultCode.MATCH == match.getResultCode()) {
-            OrderMatchPart part1 = match.getPart1();
-            DepthBooks depthBooks1 = OrderAction.BID == part1.getOrderAction() ? this.bids : this.asks;
-            depthBooks1.handle(part1.getOrderPrice(), part1.getOrderPriceDepthSize(), part1.getOrderPriceOrderCount());
+            OrderPart part2 = match.getOrderPart2();
+            DepthBooks depthBooks1 = OrderAction.BID == part2.getOrderAction() ? this.bids : this.asks;
+            depthBooks1.handle(part2.getOrderPrice(), part2.getOrderPriceDepthSize(), part2.getOrderPriceOrderCount());
         }
 
         this.update = true;

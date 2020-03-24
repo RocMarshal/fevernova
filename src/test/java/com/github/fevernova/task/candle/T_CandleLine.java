@@ -32,30 +32,30 @@ public class T_CandleLine {
 
         this.orderMatch.setSymbolId(1);
         this.orderMatch.setTimestamp(1577808000000L);
-        this.orderMatch.setMatchPrice(1L);
-        this.orderMatch.setMatchSize(1L);
-        this.orderMatch.setDriverAction(OrderAction.ASK);
+        this.orderMatch.getMatchPart().setMatchPrice(1L);
+        this.orderMatch.getMatchPart().setMatchSize(1L);
+        this.orderMatch.getMatchPart().setDriverAction(OrderAction.ASK);
         this.orderMatch.setResultCode(ResultCode.MATCH);
-        this.orderMatch.getPart0().setSequence(1L);
-        this.orderMatch.getPart0().setOrderId(1L);
-        this.orderMatch.getPart0().setUserId(1L);
-        this.orderMatch.getPart0().setOrderAction(OrderAction.BID);
-        this.orderMatch.getPart0().setOrderType(OrderType.GTC);
-        this.orderMatch.getPart0().setOrderPrice(1L);
-        this.orderMatch.getPart0().setOrderPriceDepthSize(1L);
-        this.orderMatch.getPart0().setOrderPriceOrderCount(1);
-        this.orderMatch.getPart0().setOrderTotalSize(1L);
-        this.orderMatch.getPart0().setOrderAccFilledSize(1L);
-        this.orderMatch.getPart0().setOrderVersion(1);
+        this.orderMatch.getOrderPart1().setSequence(1L);
+        this.orderMatch.getOrderPart1().setOrderId(1L);
+        this.orderMatch.getOrderPart1().setUserId(1L);
+        this.orderMatch.getOrderPart1().setOrderAction(OrderAction.BID);
+        this.orderMatch.getOrderPart1().setOrderType(OrderType.GTC);
+        this.orderMatch.getOrderPart1().setOrderPrice(1L);
+        this.orderMatch.getOrderPart1().setOrderPriceDepthSize(1L);
+        this.orderMatch.getOrderPart1().setOrderPriceOrderCount(1);
+        this.orderMatch.getOrderPart1().setOrderTotalSize(1L);
+        this.orderMatch.getOrderPart1().setOrderAccFilledSize(1L);
+        this.orderMatch.getOrderPart1().setOrderVersion(1);
     }
 
 
     @Test
     public void T_CandleLIne() {
 
-        this.orderMatch.getPart0().setSequence(this.orderMatch.getPart0().getSequence() + 1);
+        this.orderMatch.getOrderPart1().setSequence(this.orderMatch.getOrderPart1().getSequence() + 1);
         this.orderMatch.setTimestamp(Util.nowMS());
-        this.orderMatch.setMatchPrice(this.orderMatch.getMatchPrice() + 1);
+        this.orderMatch.getMatchPart().setMatchPrice(this.orderMatch.getMatchPart().getMatchPrice() + 1);
         this.candleData.handle(this.orderMatch, this.notify);
         while (true) {
             this.orderMatch.setTimestamp(this.orderMatch.getTimestamp());

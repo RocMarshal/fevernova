@@ -11,8 +11,9 @@ public class OrderMatchFactory implements DataFactory {
     @Override public Data createData() {
 
         OrderMatch orderMatch = new OrderMatch();
-        orderMatch.setPart0(new OrderMatchPart());
-        orderMatch.setPart1(new OrderMatchPart());
+        orderMatch.setOrderPart1(new OrderPart());
+        orderMatch.setOrderPart2(new OrderPart());
+        orderMatch.setMatchPart(new MatchPart());
         return orderMatch;
     }
 }

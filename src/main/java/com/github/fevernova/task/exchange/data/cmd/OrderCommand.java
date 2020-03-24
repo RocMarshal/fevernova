@@ -1,7 +1,7 @@
 package com.github.fevernova.task.exchange.data.cmd;
 
 
-import com.github.fevernova.task.exchange.data.condition.ConditionOrder;
+import com.github.fevernova.task.exchange.data.order.condition.ConditionOrder;
 import com.github.fevernova.task.exchange.data.order.OrderAction;
 import com.github.fevernova.task.exchange.data.order.OrderMode;
 import com.github.fevernova.task.exchange.data.order.OrderType;

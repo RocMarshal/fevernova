@@ -33,9 +33,9 @@ public class OrderDetail implements Data {
 
         this.symbolId = orderMatch.getSymbolId();
         this.timestamp = orderMatch.getTimestamp();
-        this.driverAction = orderMatch.getDriverAction();
-        this.matchPrice = orderMatch.getMatchPrice();
-        this.matchSize = orderMatch.getMatchSize();
+        this.driverAction = orderMatch.getMatchPart().getDriverAction();
+        this.matchPrice = orderMatch.getMatchPart().getMatchPrice();
+        this.matchSize = orderMatch.getMatchPart().getMatchSize();
     }
 
 

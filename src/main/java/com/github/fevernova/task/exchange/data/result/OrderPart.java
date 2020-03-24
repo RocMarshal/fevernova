@@ -13,7 +13,7 @@ import java.nio.ByteBuffer;
 @Getter
 @Setter
 @ToString
-public class OrderMatchPart {
+public class OrderPart {
 
 
     private long sequence;
