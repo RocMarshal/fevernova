@@ -97,7 +97,7 @@ public final class OrderBooks implements WriteBytesMarshallable {
         if (queue != null) {
             scanConditionBooks(queue);
         } else {
-            convertCondition2Simple(orderCommand.getTimestamp(), provider);
+            condition2Simple(orderCommand.getTimestamp(), provider);
         }
     }
 
@@ -138,28 +138,20 @@ public final class OrderBooks implements WriteBytesMarshallable {
             return;
         }
         ConditionBooks books = OrderMode.CONDITION_UP == orderCommand.getOrderMode() ? this.upBooks : this.downBooks;
-        ConditionOrderArray orderArray = books.getOrCreate(orderCommand);
-        ConditionOrder order = new ConditionOrder(orderCommand);
-        orderArray.addOrder(order);
+        books.place(orderCommand, provider, this.sequence);
 
-        OrderMatch orderPlaceMatch = provider.feedOne(orderCommand.getSymbolId());
-        orderPlaceMatch.from(this.sequence, orderCommand, order);
-        orderPlaceMatch.setResultCode(ResultCode.PLACE);
-        provider.push();
-
-        convertCondition2Simple(orderCommand.getTimestamp(), provider);
+        condition2Simple(orderCommand.getTimestamp(), provider);
     }
 
 
-    private void convertCondition2Simple(long timestamp, DataProvider<Integer, OrderMatch> provider) {
+    private void condition2Simple(long timestamp, DataProvider<Integer, OrderMatch> provider) {
 
         LinkedQueue<ConditionOrder> queue = scanConditionBooks(null);
-        ConditionOrder tmp = queue.poll();
-        while (tmp != null) {
+        ConditionOrder tmp;
+        while ((tmp = queue.poll()) != null) {
             OrderCommand cmd = new OrderCommand();
             cmd.from(this.symbolId, tmp, timestamp);
             place(cmd, provider, false, queue);
-            tmp = queue.poll();
         }
     }
 
@@ -169,27 +161,17 @@ public final class OrderBooks implements WriteBytesMarshallable {
         if (queue == null) {
             queue = new LinkedQueue<>();
         }
-        while (!this.upBooks.newEdgePrice(this.lastMatchPrice)) {
-            ConditionOrderArray orderArray = this.upBooks.getOrderArray();
-            if (orderArray == null) {
-                break;
-            }
-            ConditionOrder tmp = orderArray.getQueue().poll();
-            while (tmp != null) {
-                queue.offer(tmp);
-                tmp = orderArray.getQueue().poll();
+        ConditionOrder order;
+        ConditionOrderArray orderArray;
+        while ((orderArray = this.upBooks.getOrderArray()) != null && !this.upBooks.newEdgePrice(this.lastMatchPrice)) {
+            while ((order = orderArray.getQueue().poll()) != null) {
+                queue.offer(order);
             }
             this.upBooks.adjust(orderArray, true);
         }
-        while (!this.downBooks.newEdgePrice(this.lastMatchPrice)) {
-            ConditionOrderArray orderArray = this.downBooks.getOrderArray();
-            if (orderArray == null) {
-                break;
-            }
-            ConditionOrder tmp = orderArray.getQueue().poll();
-            while (tmp != null) {
-                queue.offer(tmp);
-                tmp = orderArray.getQueue().poll();
+        while ((orderArray = this.downBooks.getOrderArray()) != null && !this.downBooks.newEdgePrice(this.lastMatchPrice)) {
+            while ((order = orderArray.getQueue().poll()) != null) {
+                queue.offer(order);
             }
             this.downBooks.adjust(orderArray, true);
         }

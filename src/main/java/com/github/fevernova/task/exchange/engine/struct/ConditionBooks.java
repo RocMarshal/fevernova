@@ -42,7 +42,21 @@ public abstract class ConditionBooks implements WriteBytesMarshallable, ReadByte
     public abstract boolean newEdgePrice(long tmpPrice);
 
 
-    public ConditionOrderArray getOrCreate(OrderCommand orderCommand) {
+    public ConditionOrder place(OrderCommand orderCommand, DataProvider<Integer, OrderMatch> provider, Sequence sequence) {
+
+        ConditionOrderArray orderArray = getOrCreate(orderCommand);
+        ConditionOrder order = new ConditionOrder(orderCommand);
+        orderArray.addOrder(order);
+
+        OrderMatch orderMatch = provider.feedOne(orderCommand.getSymbolId());
+        orderMatch.from(sequence, orderCommand, order);
+        orderMatch.setResultCode(ResultCode.PLACE);
+        provider.push();
+        return order;
+    }
+
+
+    private ConditionOrderArray getOrCreate(OrderCommand orderCommand) {
 
         if (this.price == orderCommand.getTriggerPrice()) {
             return this.orderArray;
@@ -54,7 +68,7 @@ public abstract class ConditionBooks implements WriteBytesMarshallable, ReadByte
             this.orderArray = oa;
             return oa;
         } else {
-            ConditionOrderArray oa = this.priceTree.get(orderCommand.getPrice());
+            ConditionOrderArray oa = this.priceTree.get(orderCommand.getTriggerPrice());
             if (oa == null) {
                 oa = new ConditionOrderArray(orderCommand.getTriggerPrice());
                 this.priceTree.put(oa.getPrice(), oa);
@@ -66,7 +80,7 @@ public abstract class ConditionBooks implements WriteBytesMarshallable, ReadByte
 
     public void cancel(OrderCommand orderCommand, DataProvider<Integer, OrderMatch> provider, Sequence sequence) {
 
-        ConditionOrderArray oa = this.priceTree.get(orderCommand.getTriggerPrice());
+        ConditionOrderArray oa = this.price == orderCommand.getTriggerPrice() ? this.orderArray : this.priceTree.get(orderCommand.getTriggerPrice());
         if (oa == null) {
             return;
         }
