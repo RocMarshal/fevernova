@@ -5,9 +5,9 @@ import com.github.fevernova.framework.common.structure.queue.LinkedQueue;
 import com.github.fevernova.framework.component.DataProvider;
 import com.github.fevernova.task.exchange.data.Sequence;
 import com.github.fevernova.task.exchange.data.cmd.OrderCommand;
+import com.github.fevernova.task.exchange.data.order.*;
 import com.github.fevernova.task.exchange.data.order.condition.ConditionOrder;
 import com.github.fevernova.task.exchange.data.order.condition.ConditionOrderArray;
-import com.github.fevernova.task.exchange.data.order.*;
 import com.github.fevernova.task.exchange.data.result.OrderMatch;
 import com.github.fevernova.task.exchange.data.result.ResultCode;
 import com.github.fevernova.task.exchange.data.uniq.UniqIdFilter;
@@ -94,10 +94,8 @@ public final class OrderBooks implements WriteBytesMarshallable {
 
         thisBooks.handleLazy();
 
-        if (queue != null) {
-            scanConditionBooks(queue);
-        } else {
-            condition2Simple(orderCommand.getTimestamp(), provider);
+        if (this.upBooks.getOrderArray() != null || this.downBooks.getOrderArray() != null) {
+            scanConditionBooks(orderCommand.getTimestamp(), provider, queue);
         }
     }
 
@@ -140,27 +138,15 @@ public final class OrderBooks implements WriteBytesMarshallable {
         ConditionBooks books = OrderMode.CONDITION_UP == orderCommand.getOrderMode() ? this.upBooks : this.downBooks;
         books.place(orderCommand, provider, this.sequence);
 
-        condition2Simple(orderCommand.getTimestamp(), provider);
+        scanConditionBooks(orderCommand.getTimestamp(), provider, null);
     }
 
 
-    private void condition2Simple(long timestamp, DataProvider<Integer, OrderMatch> provider) {
+    private void scanConditionBooks(long timestamp, DataProvider<Integer, OrderMatch> provider, LinkedQueue<ConditionOrder> queue) {
 
-        LinkedQueue<ConditionOrder> queue = scanConditionBooks(null);
-        ConditionOrder tmp;
-        while ((tmp = queue.poll()) != null) {
-            OrderCommand cmd = new OrderCommand();
-            cmd.from(this.symbolId, tmp, timestamp);
-            place(cmd, provider, false, queue);
-        }
-    }
+        boolean isRoot = (queue == null);
+        queue = isRoot ? new LinkedQueue<>() : queue;
 
-
-    private LinkedQueue<ConditionOrder> scanConditionBooks(LinkedQueue<ConditionOrder> queue) {
-
-        if (queue == null) {
-            queue = new LinkedQueue<>();
-        }
         ConditionOrder order;
         ConditionOrderArray orderArray;
         while ((orderArray = this.upBooks.getOrderArray()) != null && !this.upBooks.newEdgePrice(this.lastMatchPrice)) {
@@ -175,7 +161,15 @@ public final class OrderBooks implements WriteBytesMarshallable {
             }
             this.downBooks.adjust(orderArray, true);
         }
-        return queue;
+
+        if (isRoot && queue.size() > 0) {
+            ConditionOrder tmp;
+            while ((tmp = queue.poll()) != null) {
+                OrderCommand cmd = new OrderCommand();
+                cmd.from(this.symbolId, tmp, timestamp);
+                place(cmd, provider, false, queue);
+            }
+        }
     }
 
 
