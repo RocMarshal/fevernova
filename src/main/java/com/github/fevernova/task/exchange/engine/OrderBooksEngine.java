@@ -9,6 +9,7 @@ import com.github.fevernova.task.exchange.data.cmd.OrderCommand;
 import com.github.fevernova.task.exchange.data.result.OrderMatch;
 import com.github.fevernova.task.exchange.data.result.ResultCode;
 import com.google.common.collect.Maps;
+import lombok.Getter;
 import net.openhft.chronicle.bytes.BytesIn;
 import net.openhft.chronicle.bytes.BytesOut;
 import net.openhft.chronicle.bytes.ReadBytesMarshallable;
@@ -24,6 +25,7 @@ public final class OrderBooksEngine extends ContextObject implements WriteBytesM
 
     public static final String CONS_NAME = "OrderBooksEngine";
 
+    @Getter
     private Map<Integer, OrderBooks> symbols;
 
     private OrderBooks lastOrderBooks;

@@ -1,12 +1,13 @@
 package com.github.fevernova.task.exchange;
 
 
-import com.github.fevernova.Common;
 import com.github.fevernova.framework.common.Util;
 import com.github.fevernova.task.exchange.data.cmd.OrderCommand;
 import com.github.fevernova.task.exchange.data.cmd.OrderCommandType;
 import com.github.fevernova.task.exchange.data.order.OrderAction;
+import com.github.fevernova.task.exchange.data.order.OrderMode;
 import com.github.fevernova.task.exchange.data.order.OrderType;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -15,8 +16,6 @@ public class T_CMD {
 
 
     private final OrderCommand cmd = new OrderCommand();
-
-    private final int loop = 1_0000_0000;
 
 
     @Before
@@ -29,7 +28,9 @@ public class T_CMD {
         cmd.setTimestamp(Util.nowMS());
         cmd.setOrderAction(OrderAction.BID);
         cmd.setOrderType(OrderType.GTC);
+        cmd.setOrderMode(OrderMode.SIMPLE);
         cmd.setPrice(1000L);
+        cmd.setTriggerPrice(0L);
         cmd.setSize(10000L);
     }
 
@@ -37,15 +38,7 @@ public class T_CMD {
     @Test
     public void T_CMD_To_Binary() {
 
-        Common.warmup();
-        long st = Util.nowMS();
-        long x = 0L;
-        for (int i = 0; i < loop; i++) {
-            x += cmd.to().length;
-        }
-        long et = Util.nowMS();
-        System.out.println(x);
-        System.out.println(et - st);
+        Assert.assertEquals(cmd.to().length, OrderCommand.BYTE_SIZE);
     }
 
 
@@ -53,17 +46,8 @@ public class T_CMD {
     public void T_CMD_From_Binary() {
 
         byte[] bytes = cmd.to();
-
-        Common.warmup();
-        long st = Util.nowMS();
-        long x = 0L;
-        for (int i = 0; i < 1_0000_0000; i++) {
-            OrderCommand data = new OrderCommand();
-            data.from(bytes);
-            x += data.getPrice();
-        }
-        long et = Util.nowMS();
-        System.out.println(x);
-        System.out.println(et - st);
+        OrderCommand cmd2 = new OrderCommand();
+        cmd2.from(bytes);
+        Assert.assertEquals(cmd.toString(), cmd2.toString());
     }
 }

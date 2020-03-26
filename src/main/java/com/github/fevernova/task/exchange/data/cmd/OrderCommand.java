@@ -1,10 +1,10 @@
 package com.github.fevernova.task.exchange.data.cmd;
 
 
-import com.github.fevernova.task.exchange.data.order.condition.ConditionOrder;
 import com.github.fevernova.task.exchange.data.order.OrderAction;
 import com.github.fevernova.task.exchange.data.order.OrderMode;
 import com.github.fevernova.task.exchange.data.order.OrderType;
+import com.github.fevernova.task.exchange.data.order.condition.ConditionOrder;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -18,6 +18,8 @@ import java.nio.ByteBuffer;
 @ToString
 public class OrderCommand {
 
+
+    public static final int BYTE_SIZE = 57;
 
     private OrderCommandType orderCommandType;
 
@@ -79,7 +81,7 @@ public class OrderCommand {
 
     public byte[] to() {
 
-        ByteBuffer byteBuffer = ByteBuffer.allocate(57);
+        ByteBuffer byteBuffer = ByteBuffer.allocate(BYTE_SIZE);
         byteBuffer.put((byte) 0);
         byteBuffer.put(this.orderCommandType.code);
         byteBuffer.putLong(this.orderId);
