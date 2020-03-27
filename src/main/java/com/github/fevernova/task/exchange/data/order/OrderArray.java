@@ -95,16 +95,16 @@ public final class OrderArray implements WriteBytesMarshallable {
     }
 
 
-    private boolean cancelDepthOnlyOrder(Sequence sequence, int symbolId, long timestamp, Order order, OrderArray orderArray,
+    private static boolean cancelDepthOnlyOrder(Sequence sequence, int symbolId, long timestamp, Order order, OrderArray orderArray,
                                          DataProvider<Integer, OrderMatch> provider) {
 
         if (OrderType.DEPTHONLY != order.getOrderType()) {
             return false;
         }
 
-        this.queue.remove(order);
-        this.size -= order.getRemainSize();
-        this.depthOnlySize -= order.getRemainSize();
+        orderArray.queue.remove(order);
+        orderArray.size -= order.getRemainSize();
+        orderArray.depthOnlySize -= order.getRemainSize();
         order.cancel();
 
         OrderMatch depthOnlyMatch = provider.feedOne(symbolId);

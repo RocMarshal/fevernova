@@ -79,10 +79,12 @@ public final class OrderBooks implements WriteBytesMarshallable {
 
         if (OrderType.FOK == orderCommand.getOrderType() && !thatBooks.canMatchAll(orderCommand)) {
             command2result(orderCommand, provider, ResultCode.CANCEL_FOK);
+            return;
         }
 
         if (OrderType.POSTONLY == orderCommand.getOrderType() && !thatBooks.newEdgePrice(orderCommand.getPrice())) {
             command2result(orderCommand, provider, ResultCode.CANCEL_POSTONLY);
+            return;
         }
 
         Order order = thisBooks.place(orderCommand, provider, this.sequence);

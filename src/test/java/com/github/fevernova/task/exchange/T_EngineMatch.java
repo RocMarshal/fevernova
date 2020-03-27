@@ -105,6 +105,78 @@ public class T_EngineMatch extends T_Engine {
 
 
     @Test
+    public void T_placeFOK() {
+
+        OrderCommand cmd1 = buildCMD(OrderCommandType.PLACE_ORDER, OrderAction.BID, OrderType.GTC, OrderMode.SIMPLE);
+        cmd1.setTimestamp(Util.nowMS());
+        cmd1.setPrice(10);
+        cmd1.setSize(100);
+        parser(cmd1);
+        check(1, 0, 1);
+
+        OrderCommand cmd2 = buildCMD(OrderCommandType.PLACE_ORDER, OrderAction.ASK, OrderType.FOK, OrderMode.SIMPLE);
+        cmd2.setTimestamp(Util.nowMS());
+        cmd2.setPrice(10);
+        cmd2.setSize(50);
+        parser(cmd2);
+        check(1, 0, 3);
+
+        OrderCommand cmd3 = buildCMD(OrderCommandType.PLACE_ORDER, OrderAction.ASK, OrderType.FOK, OrderMode.SIMPLE);
+        cmd3.setTimestamp(Util.nowMS());
+        cmd3.setPrice(10);
+        cmd3.setSize(100);
+        parser(cmd3);
+        check(1, 0, 4);
+    }
+
+
+    @Test
+    public void T_placePostOnly() {
+
+        OrderCommand cmd1 = buildCMD(OrderCommandType.PLACE_ORDER, OrderAction.BID, OrderType.GTC, OrderMode.SIMPLE);
+        cmd1.setTimestamp(Util.nowMS());
+        cmd1.setPrice(10);
+        cmd1.setSize(100);
+        parser(cmd1);
+        check(1, 0, 1);
+
+        OrderCommand cmd2 = buildCMD(OrderCommandType.PLACE_ORDER, OrderAction.ASK, OrderType.POSTONLY, OrderMode.SIMPLE);
+        cmd2.setTimestamp(Util.nowMS());
+        cmd2.setPrice(10);
+        cmd2.setSize(50);
+        parser(cmd2);
+        check(1, 0, 2);
+
+        OrderCommand cmd3 = buildCMD(OrderCommandType.PLACE_ORDER, OrderAction.BID, OrderType.POSTONLY, OrderMode.SIMPLE);
+        cmd3.setTimestamp(Util.nowMS());
+        cmd3.setPrice(11);
+        cmd3.setSize(50);
+        parser(cmd3);
+        check(2, 0, 3);
+    }
+
+
+    @Test
+    public void T_placeDepthOnly() {
+
+        OrderCommand cmd1 = buildCMD(OrderCommandType.PLACE_ORDER, OrderAction.BID, OrderType.GTC, OrderMode.SIMPLE);
+        cmd1.setTimestamp(Util.nowMS());
+        cmd1.setPrice(10);
+        cmd1.setSize(100);
+        parser(cmd1);
+        check(1, 0, 1);
+
+        OrderCommand cmd2 = buildCMD(OrderCommandType.PLACE_ORDER, OrderAction.ASK, OrderType.DEPTHONLY, OrderMode.SIMPLE);
+        cmd2.setTimestamp(Util.nowMS());
+        cmd2.setPrice(10);
+        cmd2.setSize(50);
+        parser(cmd2);
+        check(1, 0, 3);
+
+    }
+
+
+    @Test
     public void T_condition2Simple() {
 
         OrderCommand cmd1 = buildCMD(OrderCommandType.PLACE_ORDER, OrderAction.BID, OrderType.GTC, OrderMode.SIMPLE);
@@ -146,7 +218,7 @@ public class T_EngineMatch extends T_Engine {
     }
 
 
-    @Test
+    //@Test
     public void T_performance() {
 
         ((TestProvider) provider).setPrint(false);
