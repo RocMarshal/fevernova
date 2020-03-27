@@ -1,6 +1,7 @@
 package com.github.fevernova.task.exchange;
 
 
+import com.github.fevernova.framework.common.Util;
 import com.github.fevernova.framework.component.DataProvider;
 import com.github.fevernova.task.exchange.data.cmd.OrderCommand;
 import com.github.fevernova.task.exchange.data.cmd.OrderCommandType;
@@ -34,16 +35,11 @@ public abstract class T_Engine {
         cmd.setOrderId(orderIdSeq++);
         cmd.setSymbolId(symbolId);
         cmd.setUserId(userId);
+        cmd.setTimestamp(Util.nowMS());
         cmd.setOrderAction(action);
         cmd.setOrderType(type);
         cmd.setOrderMode(mode);
         return cmd;
-    }
-
-
-    protected void initLastMatchPrice(long price) {
-
-        orderBooksEngine.getSymbols().get(symbolId).setLastMatchPrice(price);
     }
 
 
@@ -54,11 +50,14 @@ public abstract class T_Engine {
     }
 
 
-    protected void check(int bidNum, int askNum, int matchNum) {
+    protected void check(int bidNum, int askNum, int matchNum, Long price) {
 
         Assert.assertEquals(bidNum, getBooks(OrderAction.BID).getPriceTree().size());
         Assert.assertEquals(askNum, getBooks(OrderAction.ASK).getPriceTree().size());
         Assert.assertEquals(matchNum, ((TestProvider) provider).getCount());
+        if (price != null) {
+            Assert.assertEquals(price.longValue(), orderBooksEngine.getSymbols().get(symbolId).getLastMatchPrice());
+        }
     }
 
 

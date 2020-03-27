@@ -19,10 +19,10 @@ import net.openhft.chronicle.bytes.BytesOut;
 import net.openhft.chronicle.bytes.WriteBytesMarshallable;
 
 
+@Getter
 public final class OrderBooks implements WriteBytesMarshallable {
 
 
-    @Getter
     private final int symbolId;
 
     @Setter
@@ -30,10 +30,8 @@ public final class OrderBooks implements WriteBytesMarshallable {
 
     private final Sequence sequence = new Sequence();
 
-    @Getter
     private final Books askBooks = new AskBooks();
 
-    @Getter
     private final Books bidBooks = new BidBooks();
 
     private final UniqIdFilter uniqIdFilter = new UniqIdFilter(60_000L, 5);

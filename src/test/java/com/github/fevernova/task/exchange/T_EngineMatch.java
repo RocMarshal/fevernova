@@ -32,25 +32,22 @@ public class T_EngineMatch extends T_Engine {
     public void T_placeGTC() {
 
         OrderCommand cmd1 = buildCMD(OrderCommandType.PLACE_ORDER, OrderAction.BID, OrderType.GTC, OrderMode.SIMPLE);
-        cmd1.setTimestamp(Util.nowMS());
         cmd1.setPrice(10);
         cmd1.setSize(100);
         parser(cmd1);
-        check(1, 0, 1);
+        check(1, 0, 1, 0L);
 
         OrderCommand cmd2 = buildCMD(OrderCommandType.PLACE_ORDER, OrderAction.ASK, OrderType.GTC, OrderMode.SIMPLE);
-        cmd2.setTimestamp(Util.nowMS());
         cmd2.setPrice(9);
         cmd2.setSize(50);
         parser(cmd2);
-        check(1, 0, 3);
+        check(1, 0, 3, 9L);
 
         OrderCommand cmd3 = buildCMD(OrderCommandType.PLACE_ORDER, OrderAction.ASK, OrderType.GTC, OrderMode.SIMPLE);
-        cmd3.setTimestamp(Util.nowMS());
         cmd3.setPrice(10);
         cmd3.setSize(50);
         parser(cmd3);
-        check(0, 0, 5);
+        check(0, 0, 5, 10L);
     }
 
 
@@ -58,32 +55,28 @@ public class T_EngineMatch extends T_Engine {
     public void T_placeIOC() {
 
         OrderCommand cmd1 = buildCMD(OrderCommandType.PLACE_ORDER, OrderAction.BID, OrderType.GTC, OrderMode.SIMPLE);
-        cmd1.setTimestamp(Util.nowMS());
         cmd1.setPrice(10);
         cmd1.setSize(100);
         parser(cmd1);
-        check(1, 0, 1);
+        check(1, 0, 1, 0L);
 
         OrderCommand cmd2 = buildCMD(OrderCommandType.PLACE_ORDER, OrderAction.ASK, OrderType.IOC, OrderMode.SIMPLE);
-        cmd2.setTimestamp(Util.nowMS());
         cmd2.setPrice(10);
         cmd2.setSize(50);
         parser(cmd2);
-        check(1, 0, 3);
+        check(1, 0, 3, 10L);
 
         OrderCommand cmd3 = buildCMD(OrderCommandType.PLACE_ORDER, OrderAction.ASK, OrderType.IOC, OrderMode.SIMPLE);
-        cmd3.setTimestamp(Util.nowMS());
         cmd3.setPrice(10);
         cmd3.setSize(100);
         parser(cmd3);
-        check(0, 0, 6);
+        check(0, 0, 6, 10L);
 
         OrderCommand cmd4 = buildCMD(OrderCommandType.PLACE_ORDER, OrderAction.ASK, OrderType.IOC, OrderMode.SIMPLE);
-        cmd4.setTimestamp(Util.nowMS());
         cmd4.setPrice(10);
         cmd4.setSize(100);
         parser(cmd4);
-        check(0, 0, 8);
+        check(0, 0, 8, 10L);
     }
 
 
@@ -91,16 +84,15 @@ public class T_EngineMatch extends T_Engine {
     public void T_cancelGTC() {
 
         OrderCommand cmd1 = buildCMD(OrderCommandType.PLACE_ORDER, OrderAction.BID, OrderType.GTC, OrderMode.SIMPLE);
-        cmd1.setTimestamp(Util.nowMS());
         cmd1.setPrice(10);
         cmd1.setSize(100);
         parser(cmd1);
-        check(1, 0, 1);
+        check(1, 0, 1, 0L);
 
         cmd1.setOrderCommandType(OrderCommandType.CANCEL_ORDER);
         cmd1.setTimestamp(Util.nowMS());
         parser(cmd1);
-        check(0, 0, 2);
+        check(0, 0, 2, 0L);
     }
 
 
@@ -108,25 +100,22 @@ public class T_EngineMatch extends T_Engine {
     public void T_placeFOK() {
 
         OrderCommand cmd1 = buildCMD(OrderCommandType.PLACE_ORDER, OrderAction.BID, OrderType.GTC, OrderMode.SIMPLE);
-        cmd1.setTimestamp(Util.nowMS());
         cmd1.setPrice(10);
         cmd1.setSize(100);
         parser(cmd1);
-        check(1, 0, 1);
+        check(1, 0, 1, 0L);
 
         OrderCommand cmd2 = buildCMD(OrderCommandType.PLACE_ORDER, OrderAction.ASK, OrderType.FOK, OrderMode.SIMPLE);
-        cmd2.setTimestamp(Util.nowMS());
         cmd2.setPrice(10);
         cmd2.setSize(50);
         parser(cmd2);
-        check(1, 0, 3);
+        check(1, 0, 3, 10L);
 
         OrderCommand cmd3 = buildCMD(OrderCommandType.PLACE_ORDER, OrderAction.ASK, OrderType.FOK, OrderMode.SIMPLE);
-        cmd3.setTimestamp(Util.nowMS());
         cmd3.setPrice(10);
         cmd3.setSize(100);
         parser(cmd3);
-        check(1, 0, 4);
+        check(1, 0, 4, 10L);
     }
 
 
@@ -134,25 +123,22 @@ public class T_EngineMatch extends T_Engine {
     public void T_placePostOnly() {
 
         OrderCommand cmd1 = buildCMD(OrderCommandType.PLACE_ORDER, OrderAction.BID, OrderType.GTC, OrderMode.SIMPLE);
-        cmd1.setTimestamp(Util.nowMS());
         cmd1.setPrice(10);
         cmd1.setSize(100);
         parser(cmd1);
-        check(1, 0, 1);
+        check(1, 0, 1, 0L);
 
         OrderCommand cmd2 = buildCMD(OrderCommandType.PLACE_ORDER, OrderAction.ASK, OrderType.POSTONLY, OrderMode.SIMPLE);
-        cmd2.setTimestamp(Util.nowMS());
         cmd2.setPrice(10);
         cmd2.setSize(50);
         parser(cmd2);
-        check(1, 0, 2);
+        check(1, 0, 2, 0L);
 
         OrderCommand cmd3 = buildCMD(OrderCommandType.PLACE_ORDER, OrderAction.BID, OrderType.POSTONLY, OrderMode.SIMPLE);
-        cmd3.setTimestamp(Util.nowMS());
         cmd3.setPrice(11);
         cmd3.setSize(50);
         parser(cmd3);
-        check(2, 0, 3);
+        check(2, 0, 3, 0L);
     }
 
 
@@ -160,34 +146,28 @@ public class T_EngineMatch extends T_Engine {
     public void T_placeDepthOnly() {
 
         OrderCommand cmd1 = buildCMD(OrderCommandType.PLACE_ORDER, OrderAction.BID, OrderType.GTC, OrderMode.SIMPLE);
-        cmd1.setTimestamp(Util.nowMS());
         cmd1.setPrice(10);
         cmd1.setSize(100);
         parser(cmd1);
-        check(1, 0, 1);
+        check(1, 0, 1, 0L);
 
         OrderCommand cmd2 = buildCMD(OrderCommandType.PLACE_ORDER, OrderAction.ASK, OrderType.DEPTHONLY, OrderMode.SIMPLE);
-        cmd2.setTimestamp(Util.nowMS());
         cmd2.setPrice(10);
         cmd2.setSize(50);
         parser(cmd2);
-        check(1, 0, 3);
+        check(1, 0, 3, 10L);
 
         OrderCommand cmd3 = buildCMD(OrderCommandType.PLACE_ORDER, OrderAction.BID, OrderType.DEPTHONLY, OrderMode.SIMPLE);
-        cmd3.setTimestamp(Util.nowMS());
         cmd3.setPrice(9);
         cmd3.setSize(50);
         parser(cmd3);
-        check(2, 0, 4);
+        check(2, 0, 4, 10L);
 
         OrderCommand cmd4 = buildCMD(OrderCommandType.PLACE_ORDER, OrderAction.ASK, OrderType.GTC, OrderMode.SIMPLE);
-        cmd4.setTimestamp(Util.nowMS());
         cmd4.setPrice(8);
         cmd4.setSize(150);
         parser(cmd4);
-        check(0, 1, 7);
-
-
+        check(0, 1, 7, 9L);
     }
 
 
@@ -195,41 +175,36 @@ public class T_EngineMatch extends T_Engine {
     public void T_condition2Simple() {
 
         OrderCommand cmd1 = buildCMD(OrderCommandType.PLACE_ORDER, OrderAction.BID, OrderType.GTC, OrderMode.SIMPLE);
-        cmd1.setTimestamp(Util.nowMS());
         cmd1.setPrice(10);
         cmd1.setSize(100);
         parser(cmd1);
-        check(1, 0, 1);
+        check(1, 0, 1, 0L);
 
         OrderCommand cmd2 = buildCMD(OrderCommandType.PLACE_ORDER, OrderAction.ASK, OrderType.GTC, OrderMode.SIMPLE);
-        cmd2.setTimestamp(Util.nowMS());
         cmd2.setPrice(9);
         cmd2.setSize(100);
         parser(cmd2);
-        check(0, 0, 3);
+        check(0, 0, 3, 9L);
 
         OrderCommand cmd3 = buildCMD(OrderCommandType.PLACE_ORDER, OrderAction.BID, OrderType.GTC, OrderMode.CONDITION_UP);
-        cmd3.setTimestamp(Util.nowMS());
         cmd3.setPrice(10);
         cmd3.setTriggerPrice(9);
         cmd3.setSize(100);
         parser(cmd3);
-        check(1, 0, 5);
+        check(1, 0, 5, 9L);
 
         OrderCommand cmd4 = buildCMD(OrderCommandType.PLACE_ORDER, OrderAction.BID, OrderType.GTC, OrderMode.CONDITION_UP);
-        cmd4.setTimestamp(Util.nowMS());
         cmd4.setPrice(8);
         cmd4.setTriggerPrice(10);
         cmd4.setSize(100);
         parser(cmd4);
-        check(1, 0, 6);
+        check(1, 0, 6, 9L);
 
         OrderCommand cmd5 = buildCMD(OrderCommandType.PLACE_ORDER, OrderAction.ASK, OrderType.GTC, OrderMode.SIMPLE);
-        cmd5.setTimestamp(Util.nowMS());
         cmd5.setPrice(10);
         cmd5.setSize(100);
         parser(cmd5);
-        check(1, 0, 9);
+        check(1, 0, 9, 10L);
     }
 
 
@@ -239,12 +214,10 @@ public class T_EngineMatch extends T_Engine {
         ((TestProvider) provider).setPrint(false);
 
         OrderCommand bidCMD = buildCMD(OrderCommandType.PLACE_ORDER, OrderAction.BID, OrderType.GTC, OrderMode.SIMPLE);
-        bidCMD.setTimestamp(Util.nowMS());
         bidCMD.setPrice(10);
         bidCMD.setSize(100);
 
         OrderCommand askCMD = buildCMD(OrderCommandType.PLACE_ORDER, OrderAction.ASK, OrderType.GTC, OrderMode.SIMPLE);
-        askCMD.setTimestamp(Util.nowMS());
         askCMD.setPrice(10);
         askCMD.setSize(100);
 

@@ -2,7 +2,6 @@ package com.github.fevernova.task.exchange;
 
 
 import com.github.fevernova.Common;
-import com.github.fevernova.framework.common.Util;
 import com.github.fevernova.framework.common.context.GlobalContext;
 import com.github.fevernova.framework.common.context.TaskContext;
 import com.github.fevernova.framework.common.data.BarrierData;
@@ -47,12 +46,10 @@ public class T_EngineState extends T_Engine {
     public void T_snapshot() {
 
         OrderCommand bidCMD = buildCMD(OrderCommandType.PLACE_ORDER, OrderAction.BID, OrderType.GTC, OrderMode.SIMPLE);
-        bidCMD.setTimestamp(Util.nowMS());
         bidCMD.setPrice(1000000);
         bidCMD.setSize(100);
 
         OrderCommand askCMD = buildCMD(OrderCommandType.PLACE_ORDER, OrderAction.ASK, OrderType.GTC, OrderMode.SIMPLE);
-        askCMD.setTimestamp(Util.nowMS());
         askCMD.setPrice(10000000);
         askCMD.setSize(100);
 
@@ -77,6 +74,6 @@ public class T_EngineState extends T_Engine {
         orderBooksEngine = new OrderBooksEngine(null, null);
         fsStorage.recoveryBinary(fp, orderBooksEngine);
 
-        check(100000, 100000, 200000);
+        check(100000, 100000, 200000, null);
     }
 }
