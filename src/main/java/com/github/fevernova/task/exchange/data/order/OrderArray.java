@@ -102,10 +102,8 @@ public final class OrderArray implements WriteBytesMarshallable {
             return false;
         }
 
-        orderArray.queue.remove(order);
-        orderArray.size -= order.getRemainSize();
+        orderArray.findAndRemoveOrder(order.getOrderId());
         orderArray.depthOnlySize -= order.getRemainSize();
-        order.cancel();
 
         OrderMatch depthOnlyMatch = provider.feedOne(symbolId);
         depthOnlyMatch.from(sequence, symbolId, order, orderArray, timestamp);

@@ -173,6 +173,21 @@ public class T_EngineMatch extends T_Engine {
         parser(cmd2);
         check(1, 0, 3);
 
+        OrderCommand cmd3 = buildCMD(OrderCommandType.PLACE_ORDER, OrderAction.BID, OrderType.DEPTHONLY, OrderMode.SIMPLE);
+        cmd3.setTimestamp(Util.nowMS());
+        cmd3.setPrice(9);
+        cmd3.setSize(50);
+        parser(cmd3);
+        check(2, 0, 4);
+
+        OrderCommand cmd4 = buildCMD(OrderCommandType.PLACE_ORDER, OrderAction.ASK, OrderType.GTC, OrderMode.SIMPLE);
+        cmd4.setTimestamp(Util.nowMS());
+        cmd4.setPrice(8);
+        cmd4.setSize(150);
+        parser(cmd4);
+        check(0, 1, 7);
+
+
     }
 
 
