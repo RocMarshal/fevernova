@@ -3,6 +3,7 @@ package com.github.fevernova.task.candle;
 
 import com.github.fevernova.framework.common.Util;
 import com.github.fevernova.task.exchange.data.order.OrderAction;
+import com.github.fevernova.task.exchange.data.order.OrderMode;
 import com.github.fevernova.task.exchange.data.order.OrderType;
 import com.github.fevernova.task.exchange.data.result.OrderMatch;
 import com.github.fevernova.task.exchange.data.result.OrderMatchFactory;
@@ -31,11 +32,10 @@ public class T_CandleLine {
     public void init() {
 
         this.orderMatch.setSymbolId(1);
-        this.orderMatch.setTimestamp(1577808000000L);
-        this.orderMatch.getMatchPart().setMatchPrice(1L);
-        this.orderMatch.getMatchPart().setMatchSize(1L);
-        this.orderMatch.getMatchPart().setDriverAction(OrderAction.ASK);
+        this.orderMatch.setTimestamp(Util.nowMS());
+        this.orderMatch.setOrderMode(OrderMode.SIMPLE);
         this.orderMatch.setResultCode(ResultCode.MATCH);
+
         this.orderMatch.getOrderPart1().setSequence(1L);
         this.orderMatch.getOrderPart1().setOrderId(1L);
         this.orderMatch.getOrderPart1().setUserId(1L);
@@ -47,14 +47,18 @@ public class T_CandleLine {
         this.orderMatch.getOrderPart1().setOrderTotalSize(1L);
         this.orderMatch.getOrderPart1().setOrderAccFilledSize(1L);
         this.orderMatch.getOrderPart1().setOrderVersion(1);
+
+        this.orderMatch.getMatchPart().setMatchPrice(1L);
+        this.orderMatch.getMatchPart().setMatchSize(1L);
+        this.orderMatch.getMatchPart().setDriverAction(OrderAction.ASK);
     }
 
 
     @Test
     public void T_CandleLIne() {
 
-        this.orderMatch.getOrderPart1().setSequence(this.orderMatch.getOrderPart1().getSequence() + 1);
         this.orderMatch.setTimestamp(Util.nowMS());
+        this.orderMatch.getOrderPart1().setSequence(this.orderMatch.getOrderPart1().getSequence() + 1);
         this.orderMatch.getMatchPart().setMatchPrice(this.orderMatch.getMatchPart().getMatchPrice() + 1);
         this.candleData.handle(this.orderMatch, this.notify);
         while (true) {
