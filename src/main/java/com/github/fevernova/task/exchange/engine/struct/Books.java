@@ -89,8 +89,7 @@ public abstract class Books implements WriteBytesMarshallable, ReadBytesMarshall
         orderArray.addOrder(order);
 
         OrderMatch orderMatch = provider.feedOne(orderCommand.getSymbolId());
-        orderMatch.from(sequence, orderCommand, order, orderArray);
-        orderMatch.setResultCode(ResultCode.PLACE);
+        orderMatch.from(sequence, orderCommand, order, orderArray, ResultCode.PLACE);
         provider.push();
         return order;
     }
@@ -107,8 +106,7 @@ public abstract class Books implements WriteBytesMarshallable, ReadBytesMarshall
             return;
         }
         OrderMatch orderMatch = provider.feedOne(orderCommand.getSymbolId());
-        orderMatch.from(sequence, orderCommand, order, oa);
-        orderMatch.setResultCode(resultCode);
+        orderMatch.from(sequence, orderCommand, order, oa, resultCode);
         provider.push();
         adjustByOrderArray(oa);
     }

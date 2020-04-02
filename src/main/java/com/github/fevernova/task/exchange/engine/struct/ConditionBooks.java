@@ -49,8 +49,7 @@ public abstract class ConditionBooks implements WriteBytesMarshallable, ReadByte
         orderArray.addOrder(order);
 
         OrderMatch orderMatch = provider.feedOne(orderCommand.getSymbolId());
-        orderMatch.from(sequence, orderCommand, order);
-        orderMatch.setResultCode(ResultCode.PLACE);
+        orderMatch.from(sequence, orderCommand, order, ResultCode.PLACE);
         provider.push();
         return order;
     }
@@ -89,8 +88,7 @@ public abstract class ConditionBooks implements WriteBytesMarshallable, ReadByte
             return;
         }
         OrderMatch orderMatch = provider.feedOne(orderCommand.getSymbolId());
-        orderMatch.from(sequence, orderCommand, order);
-        orderMatch.setResultCode(ResultCode.CANCEL);
+        orderMatch.from(sequence, orderCommand, order, ResultCode.CANCEL);
         provider.push();
         this.adjust(oa, false);
     }

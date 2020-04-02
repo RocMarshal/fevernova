@@ -44,12 +44,12 @@ public class OrderMatch implements Data {
 
 
     //PLACE OR CANCEL
-    public void from(Sequence sequence, OrderCommand orderCommand, Order order, OrderArray orderArray) {
+    public void from(Sequence sequence, OrderCommand orderCommand, Order order, OrderArray orderArray, ResultCode resultCode) {
 
         this.symbolId = orderCommand.getSymbolId();
         this.timestamp = orderCommand.getTimestamp();
         this.orderMode = orderCommand.getOrderMode();
-        this.resultCode = null;
+        this.resultCode = resultCode;
 
         this.orderPart1.setSequence(sequence.getAndIncrement());
         this.orderPart1.setOrderId(order.getOrderId());
@@ -69,12 +69,12 @@ public class OrderMatch implements Data {
 
 
     //FOK CANCEL or POSTONLY CANCEL or HEARTBEAT
-    public void from(Sequence sequence, OrderCommand orderCommand) {
+    public void from(Sequence sequence, OrderCommand orderCommand, ResultCode resultCode) {
 
         this.symbolId = orderCommand.getSymbolId();
         this.timestamp = orderCommand.getTimestamp();
         this.orderMode = orderCommand.getOrderMode();
-        this.resultCode = null;
+        this.resultCode = resultCode;
 
         this.orderPart1.setSequence(sequence.getAndIncrement());
         this.orderPart1.setOrderId(orderCommand.getOrderId());
@@ -158,12 +158,12 @@ public class OrderMatch implements Data {
 
 
     //Condition PLACE OR CANCEL
-    public void from(Sequence sequence, OrderCommand orderCommand, ConditionOrder order) {
+    public void from(Sequence sequence, OrderCommand orderCommand, ConditionOrder order, ResultCode resultCode) {
 
         this.symbolId = orderCommand.getSymbolId();
         this.timestamp = orderCommand.getTimestamp();
         this.orderMode = orderCommand.getOrderMode();
-        this.resultCode = null;
+        this.resultCode = resultCode;
 
         this.orderPart1.setSequence(sequence.getAndIncrement());
         this.orderPart1.setOrderId(order.getOrderId());

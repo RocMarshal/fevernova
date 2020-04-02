@@ -149,6 +149,6 @@ public class JobSource extends AbstractBatchSource<Integer, ListData> implements
 
     @Override public void jobFinishedListener() {
 
-        log.info("job.job_history : {} , {} , {} , {} .", this.table.getDbTableName(), this.totalCount, this.startTime, this.endTime);
+        log.info("job_history : {} , {} , {} , {} .", this.table.getDbTableName(), this.totalCount, this.startTime, this.endTime);
     }
 }

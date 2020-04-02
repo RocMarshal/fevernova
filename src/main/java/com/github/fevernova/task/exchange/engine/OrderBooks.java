@@ -183,8 +183,7 @@ public final class OrderBooks implements WriteBytesMarshallable {
     public void command2result(OrderCommand orderCommand, DataProvider<Integer, OrderMatch> provider, ResultCode resultCode) {
 
         OrderMatch orderMatch = provider.feedOne(orderCommand.getSymbolId());
-        orderMatch.from(this.sequence, orderCommand);
-        orderMatch.setResultCode(resultCode);
+        orderMatch.from(this.sequence, orderCommand, resultCode);
         provider.push();
     }
 
