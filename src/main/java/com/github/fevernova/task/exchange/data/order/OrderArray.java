@@ -52,6 +52,12 @@ public final class OrderArray implements WriteBytesMarshallable {
     }
 
 
+    public long getSizeWithoutDepthOnly() {
+
+        return this.size - this.depthOnlySize;
+    }
+
+
     public void addOrder(Order order) {
 
         this.queue.offer(order);
@@ -96,7 +102,7 @@ public final class OrderArray implements WriteBytesMarshallable {
 
 
     private static boolean cancelDepthOnlyOrder(Sequence sequence, int symbolId, long timestamp, Order order, OrderArray orderArray,
-                                         DataProvider<Integer, OrderMatch> provider) {
+                                                DataProvider<Integer, OrderMatch> provider) {
 
         if (OrderType.DEPTHONLY != order.getOrderType()) {
             return false;
