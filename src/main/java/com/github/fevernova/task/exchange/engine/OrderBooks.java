@@ -130,6 +130,15 @@ public final class OrderBooks implements WriteBytesMarshallable {
     }
 
 
+    public void locateMatchPrice(OrderCommand orderCommand, DataProvider<Integer, OrderMatch> provider) {
+
+        this.lastMatchPrice = orderCommand.getPrice();
+        if (this.upBooks.getOrderArray() != null || this.downBooks.getOrderArray() != null) {
+            scanConditionBooks(orderCommand.getTimestamp(), provider, null);
+        }
+    }
+
+
     public void placeCondition(OrderCommand orderCommand, DataProvider<Integer, OrderMatch> provider) {
 
         if (!this.uniqIdFilter.unique(orderCommand.getTimestamp(), orderCommand.getOrderId())) {

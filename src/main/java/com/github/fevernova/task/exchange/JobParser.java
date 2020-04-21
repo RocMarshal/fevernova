@@ -65,6 +65,9 @@ public class JobParser extends AbstractParser<Integer, OrderMatch> implements Ba
                 case CANCEL_ORDER:
                     this.matchEngine.cancelOrder(orderCommand, this);
                     break;
+                case LOCATE_MATCH_PRICE:
+                    this.matchEngine.locateMatchPrice(orderCommand, this);
+                    break;
                 case HEARTBEAT:
                     this.matchEngine.heartBeat(orderCommand, this);
                     break;

@@ -66,6 +66,13 @@ public final class OrderBooksEngine extends ContextObject implements WriteBytesM
     }
 
 
+    public void locateMatchPrice(OrderCommand orderCommand, DataProvider<Integer, OrderMatch> provider) {
+
+        OrderBooks orderBooks = getOrderBooks(orderCommand);
+        orderBooks.locateMatchPrice(orderCommand, provider);
+    }
+
+
     public void heartBeat(OrderCommand orderCommand, DataProvider<Integer, OrderMatch> provider) {
 
         OrderBooks orderBooks = getOrderBooks(orderCommand);
