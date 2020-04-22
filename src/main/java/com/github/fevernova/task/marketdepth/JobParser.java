@@ -2,6 +2,7 @@ package com.github.fevernova.task.marketdepth;
 
 
 import com.alibaba.fastjson.JSONObject;
+import com.github.fevernova.framework.common.Util;
 import com.github.fevernova.framework.common.context.GlobalContext;
 import com.github.fevernova.framework.common.context.TaskContext;
 import com.github.fevernova.framework.common.data.BarrierData;
@@ -55,17 +56,18 @@ public class JobParser extends AbstractParser<Integer, DepthResult> implements B
 
         KafkaData kafkaData = (KafkaData) event;
         this.orderMatch.from(kafkaData.getValue());
+        long now = Util.nowMS();
         if (this.orderMatch.getOrderPart1().getOrderPriceDepthSize() >= 0L) {
-            this.depthEngine.handle(this.orderMatch);
+            this.depthEngine.handle(this.orderMatch, now);
         }
-        this.depthEngine.scan();
+        this.depthEngine.scan(now);
     }
 
 
     @Override protected void timeOut() {
 
         super.timeOut();
-        this.depthEngine.scan();
+        this.depthEngine.scan(Util.nowMS());
     }
 
 

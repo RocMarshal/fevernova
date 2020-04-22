@@ -41,20 +41,19 @@ public class DepthEngine implements WriteBytesMarshallable, ReadBytesMarshallabl
     }
 
 
-    public void handle(OrderMatch match) {
+    public void handle(OrderMatch match, long now) {
 
         SymbolDepths symbolDepths = this.data.get(match.getSymbolId());
         if (symbolDepths == null) {
             symbolDepths = new SymbolDepths(match.getSymbolId(), this.maxDepthSize);
             this.data.put(match.getSymbolId(), symbolDepths);
         }
-        symbolDepths.handle(match, this.provider, Util.nowMS());
+        symbolDepths.handle(match, this.provider, now);
     }
 
 
-    public void scan() {
+    public void scan(long now) {
 
-        long now = Util.nowMS();
         if (now - this.lastScanTime >= this.interval) {
             this.lastScanTime = now;
         }
