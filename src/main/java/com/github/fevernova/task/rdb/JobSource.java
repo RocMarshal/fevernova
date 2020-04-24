@@ -1,6 +1,7 @@
-package com.github.fevernova.task.mysql;
+package com.github.fevernova.task.rdb;
 
 
+import com.github.fevernova.framework.common.Util;
 import com.github.fevernova.framework.common.context.GlobalContext;
 import com.github.fevernova.framework.common.context.TaskContext;
 import com.github.fevernova.framework.component.channel.ChannelProxy;
@@ -8,8 +9,8 @@ import com.github.fevernova.framework.component.source.AbstractBatchSource;
 import com.github.fevernova.io.mysql.MysqlDataSource;
 import com.github.fevernova.io.mysql.schema.Column;
 import com.github.fevernova.io.mysql.schema.Table;
-import com.github.fevernova.task.mysql.data.ListData;
-import com.github.fevernova.task.mysql.data.MysqlJDBCType;
+import com.github.fevernova.task.rdb.data.ListData;
+import com.github.fevernova.task.rdb.data.MysqlJDBCType;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -34,6 +35,10 @@ public class JobSource extends AbstractBatchSource<Integer, ListData> implements
 
     protected Table table;
 
+    protected List<String> tableSeries;
+
+    protected Integer tableSeriesIndex;
+
     protected int stepSize;
 
     protected boolean stepByTimeStamp;
@@ -56,30 +61,44 @@ public class JobSource extends AbstractBatchSource<Integer, ListData> implements
     public JobSource(GlobalContext globalContext, TaskContext taskContext, int index, int inputsNum, ChannelProxy channelProxy) {
 
         super(globalContext, taskContext, index, inputsNum, channelProxy);
-        this.dataSource = new MysqlDataSource(new TaskContext("mysql", super.taskContext.getSubProperties("mysql.")));
+        this.dataSource = new MysqlDataSource(new TaskContext("datasource", super.taskContext.getSubProperties("datasource.")));
         this.dataSource.init(new MysqlJDBCType(), false);
         String dbName = taskContext.getString("db");
         String tableName = taskContext.getString("table");
+        if (StringUtils.isBlank(tableName)) {
+            String tableNamesStr = taskContext.get("tables");
+            Validate.notNull(tableNamesStr);
+            this.tableSeries = Util.splitStringWithFilter(tableNamesStr, ",", null);
+            this.tableSeriesIndex = 0;
+            tableName = this.tableSeries.get(this.tableSeriesIndex);
+        }
+
         this.dataSource.config(dbName, tableName, taskContext.getString("sensitivecolumns"));
         this.table = this.dataSource.getTable(dbName, tableName, true);
 
-        this.stepByTimeStamp = taskContext.getBoolean("stepbytimestamp", false);
         this.stepSize = taskContext.getInteger("stepsize", this.stepByTimeStamp ? 60 * 1000 : 1000);
+        this.stepByTimeStamp = taskContext.getBoolean("stepbytimestamp", false);
+
+        init4Table(this.table.getDbTableName());
+    }
+
+
+    private void init4Table(String dbTableName) {
 
         final List<String> columnsName = this.table.getColumns().stream().
                 filter(column -> !column.isIgnore()).map(column -> column.escapeName()).collect(Collectors.toList());
         final List<String> primaryKeys = this.table.getColumns().stream().
                 filter(column -> column.isPrimaryKey()).map(column -> column.escapeName()).collect(Collectors.toList());
 
-        String primaryKey = taskContext.getString("primarykey");
+        String primaryKey = super.taskContext.getString("primarykey");
         if (primaryKey == null) {
             Validate.isTrue(primaryKeys.size() == 1);
             primaryKey = primaryKeys.get(0);
         }
-        this.sqlQuery = String.format(SQL_QUERY_TEMPLETE, StringUtils.join(columnsName, ","), this.table.getDbTableName(), primaryKey, primaryKey);
-        String extraSql = taskContext.getString("extrasql", "");
+        this.sqlQuery = String.format(SQL_QUERY_TEMPLETE, StringUtils.join(columnsName, ","), dbTableName, primaryKey, primaryKey);
+        String extraSql = super.taskContext.getString("extrasql", "");
         this.sqlQuery = this.sqlQuery + extraSql;
-        this.sqlRange = String.format(SQL_RANGE_TEMPLETE, primaryKey, primaryKey, this.table.getDbTableName());
+        this.sqlRange = String.format(SQL_RANGE_TEMPLETE, primaryKey, primaryKey, dbTableName);
 
         Pair<Long, Long> range = this.stepByTimeStamp ? this.dataSource.executeQuery(this.sqlRange, r -> {
             r.next();
@@ -88,14 +107,9 @@ public class JobSource extends AbstractBatchSource<Integer, ListData> implements
             r.next();
             return Pair.of(r.getLong(1), r.getLong(2));
         });
-        this.start = taskContext.getLong("start", range.getKey());
-        this.end = taskContext.getLong("end", range.getValue());
-    }
+        this.start = super.taskContext.getLong("start", range.getKey());
+        this.end = super.taskContext.getLong("end", range.getValue());
 
-
-    @Override public void onStart() {
-
-        super.onStart();
         this.currentStart = this.start - 1;
         this.currentEnd = this.start + this.stepSize;
         if (this.currentEnd > this.end) {
@@ -113,7 +127,12 @@ public class JobSource extends AbstractBatchSource<Integer, ListData> implements
             this.currentEnd = this.end;
         }
         if (this.currentStart == this.end) {
-            super.jobFinished();
+            if (this.tableSeriesIndex == null || this.tableSeriesIndex == this.tableSeries.size() - 1) {
+                super.jobFinished();
+            } else {
+                this.tableSeriesIndex++;
+                init4Table(MysqlDataSource.buildDbTableName(this.table.getDb(), this.tableSeries.get(this.tableSeriesIndex)));
+            }
         }
     }
 

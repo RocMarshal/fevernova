@@ -1,4 +1,4 @@
-package com.github.fevernova.task.mysql;
+package com.github.fevernova.task.rdb;
 
 
 import com.github.fevernova.framework.common.Util;
@@ -9,8 +9,8 @@ import com.github.fevernova.framework.common.data.Data;
 import com.github.fevernova.framework.component.sink.AbstractBatchSink;
 import com.github.fevernova.io.mysql.MysqlDataSource;
 import com.github.fevernova.io.mysql.schema.Table;
-import com.github.fevernova.task.mysql.data.ListData;
-import com.github.fevernova.task.mysql.data.MysqlJDBCType;
+import com.github.fevernova.task.rdb.data.ListData;
+import com.github.fevernova.task.rdb.data.MysqlJDBCType;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;

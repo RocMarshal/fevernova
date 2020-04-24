@@ -1,4 +1,4 @@
-package com.github.fevernova.task.mysql.data;
+package com.github.fevernova.task.rdb.data;
 
 
 import com.github.fevernova.io.data.TypeMatchRouter;

@@ -1,4 +1,4 @@
-package com.github.fevernova.task.mysql;
+package com.github.fevernova.task.rdb;
 
 
 import com.github.fevernova.framework.common.Constants;
@@ -9,7 +9,7 @@ import com.github.fevernova.framework.metric.evaluate.NoMetricEvaluate;
 import com.github.fevernova.framework.service.config.TaskConfig;
 import com.github.fevernova.framework.task.BaseTask;
 import com.github.fevernova.framework.task.TaskTopology;
-import com.github.fevernova.task.mysql.data.ListDataFactory;
+import com.github.fevernova.task.rdb.data.ListDataFactory;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
