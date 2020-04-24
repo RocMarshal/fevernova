@@ -1,4 +1,4 @@
-package com.github.fevernova.io.mysql.schema;
+package com.github.fevernova.io.rdb.schema;
 
 
 import com.github.fevernova.io.data.message.Meta;
