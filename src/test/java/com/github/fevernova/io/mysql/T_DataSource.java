@@ -26,7 +26,7 @@ import java.util.Set;
 public class T_DataSource {
 
 
-    private MysqlDataSource mysql;
+    private BinlogDataSource mysql;
 
 
     @Before
@@ -42,14 +42,9 @@ public class T_DataSource {
         Set<String> whiteList = Sets.newHashSet();
         whiteList.add("test.persons");
 
-        this.mysql = new MysqlDataSource(mysqlContext);
+        this.mysql = new BinlogDataSource(mysqlContext, new MysqlBinlogType());
         this.mysql.config(whiteList, Maps.newHashMap());
-
-        try {
-            this.mysql.init(new MysqlBinlogType(), false);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        this.mysql.initDataSource();
     }
 
 

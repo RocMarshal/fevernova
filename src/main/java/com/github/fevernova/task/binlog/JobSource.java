@@ -16,6 +16,7 @@ import com.github.fevernova.framework.service.barrier.listener.BarrierCoordinato
 import com.github.fevernova.framework.service.checkpoint.CheckPointSaver;
 import com.github.fevernova.framework.service.checkpoint.ICheckPointSaver;
 import com.github.fevernova.framework.service.state.StateValue;
+import com.github.fevernova.io.mysql.BinlogDataSource;
 import com.github.fevernova.io.mysql.MysqlDataSource;
 import com.github.fevernova.task.binlog.data.BinlogData;
 import com.github.fevernova.task.binlog.data.MysqlCheckPoint;
@@ -45,7 +46,7 @@ public class JobSource extends AbstractSource<String, BinlogData>
 
     private final TaskContext dataSourceContext;
 
-    private final MysqlDataSource mysqlDataSource;
+    private final BinlogDataSource binlogDataSource;
 
     private final BinaryLogClient mysqlClient;
 
@@ -74,24 +75,21 @@ public class JobSource extends AbstractSource<String, BinlogData>
 
         super(globalContext, taskContext, index, inputsNum, channelProxy);
         this.checkpoints = new CheckPointSaver<>();
+
         this.dataSourceContext = new TaskContext("mysql", super.taskContext.getSubProperties("mysql."));
-        this.mysqlDataSource = new MysqlDataSource(this.dataSourceContext);
-        try {
-            this.mysqlDataSource.init(new MysqlBinlogType(), true);
-        } catch (Exception e) {
-            log.error("source init error : ", e);
-            Validate.isTrue(false);
-        }
-        this.mysqlClient = new BinaryLogClient(this.mysqlDataSource.getHost(), this.mysqlDataSource.getPort(), this.mysqlDataSource.getUsername(),
-                                               this.mysqlDataSource.getPassword());
-        this.mysqlClient.setServerId(this.mysqlDataSource.getSlaveId());
+        this.binlogDataSource = new BinlogDataSource(this.dataSourceContext, new MysqlBinlogType());
+        this.binlogDataSource.initDataSource();
+
+        this.mysqlClient = new BinaryLogClient(this.binlogDataSource.getHost(), this.binlogDataSource.getPort(),
+                                               this.binlogDataSource.getUsername(), this.binlogDataSource.getPassword());
+        this.mysqlClient.setServerId(this.binlogDataSource.getSlaveId());
         this.mysqlClient.registerLifecycleListener(this);
         this.mysqlClient.registerEventListener(this);
         Pair<EventDeserializer, Map<Long, TableMapEventData>> ps = DeserializationHelper.create();
         this.mysqlClient.setEventDeserializer(ps.getKey());
         this.cacheTableMap4BinlogClient = ps.getValue();
         this.iRingBuffer = new SimpleRingBuffer<>(taskContext.getInteger("buffersize", 128));
-        super.globalContext.getCustomContext().put(MysqlDataSource.class.getSimpleName(), this.mysqlDataSource);
+        super.globalContext.getCustomContext().put(MysqlDataSource.class.getSimpleName(), this.binlogDataSource);
 
         //test
         this.binlogFileName = taskContext.get("binlogfilename");
@@ -221,7 +219,7 @@ public class JobSource extends AbstractSource<String, BinlogData>
         }
 
         TableMapEventData tmed = currentTableMapEvent.getData();
-        String dbTableName = MysqlDataSource.buildDbTableName(tmed.getDatabase(), tmed.getTable());
+        String dbTableName = this.binlogDataSource.buildDbTableName(tmed.getDatabase(), tmed.getTable());
 
         BinlogData binlogData = feedOne(dbTableName);
         binlogData.setDbTableName(dbTableName);
@@ -246,9 +244,9 @@ public class JobSource extends AbstractSource<String, BinlogData>
     @Override protected void snapshotWhenBarrier(BarrierData barrierData) {
 
         MysqlCheckPoint mysqlCheckPoint = MysqlCheckPoint.builder()
-                .host(this.mysqlDataSource.getHost())
-                .port(this.mysqlDataSource.getPort())
-                .serverId(this.mysqlDataSource.getServerId())
+                .host(this.binlogDataSource.getHost())
+                .port(this.binlogDataSource.getPort())
+                .serverId(this.binlogDataSource.getServerId())
                 .binlogFileName(this.binlogFileName)
                 .binlogPosition(this.binlogPosition)
                 .binlogTimestamp(this.binlogTimestamp)
@@ -302,7 +300,7 @@ public class JobSource extends AbstractSource<String, BinlogData>
 
         super.onShutdown();
         try {
-            this.mysqlDataSource.close();
+            this.binlogDataSource.close();
             if (this.mysqlClient != null) {
                 this.mysqlClient.unregisterLifecycleListener(this);
                 this.mysqlClient.unregisterEventListener(this);
@@ -353,17 +351,17 @@ public class JobSource extends AbstractSource<String, BinlogData>
         cp.parseFromJSON((JSONObject) stateValue.getValue());
         this.binlogTimestamp = cp.getBinlogTimestamp();
         this.globalId = cp.getGlobalId();
-        if (this.mysqlDataSource.getServerId() == cp.getServerId()) {
+        if (this.binlogDataSource.getServerId() == cp.getServerId()) {
             log.info("the serverid as same as last checkpoint , Go on : " + cp.getBinlogFileName() + "/" + cp.getBinlogPosition());
             this.binlogFileName = cp.getBinlogFileName();
             this.binlogPosition = cp.getBinlogPosition();
         } else {
-            log.warn("Sid is diff (old:" + cp.getServerId() + " new: " + this.mysqlDataSource.getServerId() + ")");
-            SimpleBinlogClient sbc = new SimpleBinlogClient(this.mysqlDataSource.getHost(),
-                                                            this.mysqlDataSource.getPort(),
-                                                            this.mysqlDataSource.getUsername(),
-                                                            this.mysqlDataSource.getPassword(),
-                                                            this.mysqlDataSource.getSlaveId(),
+            log.warn("Sid is diff (old:" + cp.getServerId() + " new: " + this.binlogDataSource.getServerId() + ")");
+            SimpleBinlogClient sbc = new SimpleBinlogClient(this.binlogDataSource.getHost(),
+                                                            this.binlogDataSource.getPort(),
+                                                            this.binlogDataSource.getUsername(),
+                                                            this.binlogDataSource.getPassword(),
+                                                            this.binlogDataSource.getSlaveId(),
                                                             cp.getBinlogTimestamp() - super.taskContext.getLong("rollback", 60000L));
             try {
                 sbc.connect();

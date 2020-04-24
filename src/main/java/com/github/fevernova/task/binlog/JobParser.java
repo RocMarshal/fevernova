@@ -11,11 +11,12 @@ import com.github.fevernova.io.data.TypeRouter;
 import com.github.fevernova.io.data.message.DataContainer;
 import com.github.fevernova.io.data.message.Meta;
 import com.github.fevernova.io.data.message.Opt;
-import com.github.fevernova.task.binlog.data.BinlogData;
-import com.github.fevernova.task.binlog.data.MessageData;
+import com.github.fevernova.io.mysql.BinlogDataSource;
 import com.github.fevernova.io.mysql.MysqlDataSource;
 import com.github.fevernova.io.rdb.schema.Column;
 import com.github.fevernova.io.rdb.schema.Table;
+import com.github.fevernova.task.binlog.data.BinlogData;
+import com.github.fevernova.task.binlog.data.MessageData;
 import com.github.shyiko.mysql.binlog.event.*;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.Validate;
@@ -30,7 +31,7 @@ public class JobParser extends AbstractParser<String, MessageData> {
 
     private Set<String> whiteList;
 
-    private MysqlDataSource mysql;
+    private BinlogDataSource mysql;
 
 
     public JobParser(GlobalContext globalContext, TaskContext taskContext, int index, int inputsNum, ChannelProxy channelProxy) {
@@ -43,7 +44,7 @@ public class JobParser extends AbstractParser<String, MessageData> {
     @Override public void init() {
 
         super.init();
-        this.mysql = (MysqlDataSource) super.globalContext.getCustomContext().get(MysqlDataSource.class.getSimpleName());
+        this.mysql = (BinlogDataSource) super.globalContext.getCustomContext().get(MysqlDataSource.class.getSimpleName());
         if (isFirst()) {
             this.mysql.config(this.whiteList, super.taskContext.getSubProperties("mapping."));
         }
