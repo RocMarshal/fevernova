@@ -22,13 +22,13 @@ public class PostgreDataSource extends RDBDataSource {
 
         super(context);
         super.port = context.getInteger("port", 5432);
-        super.escapeLetter = "\"";
+        super.escapeLetter = "'";
     }
 
 
     @Override public void initDataSource() {
 
-        String jdbcUrl = super.context.getString("url", "jdbc:postgresql://" + super.host + ":" + super.port);
+        String jdbcUrl = super.context.getString("url", "jdbc:postgresql://" + super.host + ":" + super.port + "/");
         try {
             Map<String, String> config = Maps.newHashMapWithExpectedSize(20);
             config.put("url", jdbcUrl);
@@ -59,10 +59,8 @@ public class PostgreDataSource extends RDBDataSource {
     @Override protected void reloadSchema(Table table) {
 
         table.getColumns().clear();
-        //TODO
-        String sql = "SELECT COLUMN_NAME,ORDINAL_POSITION,DATA_TYPE,CHARACTER_SET_NAME,"
-                     + "NUMERIC_PRECISION,NUMERIC_SCALE,DATETIME_PRECISION,COLUMN_TYPE,COLUMN_KEY"
-                     + " FROM `information_schema`.`COLUMNS` WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ? ORDER BY ORDINAL_POSITION";
+        String sql = "SELECT COLUMN_NAME,ORDINAL_POSITION,DATA_TYPE,CHARACTER_SET_NAME,NUMERIC_PRECISION,NUMERIC_SCALE,DATETIME_PRECISION"
+                     + " FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ? ORDER BY ORDINAL_POSITION";
         executeQuery(sql, new ICallable<Object>() {
 
 
@@ -80,7 +78,7 @@ public class PostgreDataSource extends RDBDataSource {
                     table.getColumns().add(Column.builder().name(r.getString("COLUMN_NAME"))
                                                    .seq(r.getInt("ORDINAL_POSITION"))
                                                    .type(r.getString("DATA_TYPE"))
-                                                   .primaryKey("PRI".equals(r.getString("COLUMN_KEY")))
+                                                   .primaryKey(false)
                                                    .charset(r.getString("CHARACTER_SET_NAME"))
                                                    .ignore(ignore)
                                                    .escapeLetter(getEscapeLetter())

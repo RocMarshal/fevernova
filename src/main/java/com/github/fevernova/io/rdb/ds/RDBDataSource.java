@@ -42,6 +42,21 @@ public abstract class RDBDataSource {
     protected String escapeLetter;
 
 
+    public static RDBDataSource createOf(TaskContext context) {
+
+        String type = context.getString("dbtype", "mysql");
+        switch (type) {
+            case "mysql":
+                return new MysqlDataSource(context);
+            case "postgresql":
+                return new PostgreDataSource(context);
+            default:
+                Validate.isTrue(false, "RDBDataSource type unknown .");
+                return null;
+        }
+    }
+
+
     public RDBDataSource(TaskContext context) {
 
         this.context = context;

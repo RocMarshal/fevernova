@@ -7,7 +7,6 @@ import com.github.fevernova.framework.common.context.TaskContext;
 import com.github.fevernova.framework.common.data.BarrierData;
 import com.github.fevernova.framework.common.data.Data;
 import com.github.fevernova.framework.component.sink.AbstractBatchSink;
-import com.github.fevernova.io.rdb.ds.MysqlDataSource;
 import com.github.fevernova.io.rdb.ds.RDBDataSource;
 import com.github.fevernova.io.rdb.schema.Table;
 import com.github.fevernova.task.rdb.data.ListData;
@@ -54,7 +53,8 @@ public class JobSink extends AbstractBatchSink {
         super.rollingPeriod = 1000L;
         super.lastRollingSeq = (Util.nowMS() / super.rollingPeriod);
 
-        this.dataSource = new MysqlDataSource(new TaskContext("datasource", super.taskContext.getSubProperties("datasource.")));
+        TaskContext dsContext = new TaskContext("datasource", super.taskContext.getSubProperties("datasource."));
+        this.dataSource = RDBDataSource.createOf(dsContext);
         this.dataSource.initDataSource();
         String dbName = taskContext.getString("db");
         String tableName = taskContext.getString("table");

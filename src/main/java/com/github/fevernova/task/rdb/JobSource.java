@@ -6,7 +6,6 @@ import com.github.fevernova.framework.common.context.GlobalContext;
 import com.github.fevernova.framework.common.context.TaskContext;
 import com.github.fevernova.framework.component.channel.ChannelProxy;
 import com.github.fevernova.framework.component.source.AbstractBatchSource;
-import com.github.fevernova.io.rdb.ds.MysqlDataSource;
 import com.github.fevernova.io.rdb.ds.RDBDataSource;
 import com.github.fevernova.io.rdb.schema.Column;
 import com.github.fevernova.io.rdb.schema.Table;
@@ -24,7 +23,7 @@ import java.util.stream.Collectors;
 
 
 @Slf4j
-public class JobSource extends AbstractBatchSource<Integer, ListData> implements MysqlDataSource.ICallable<Boolean> {
+public class JobSource extends AbstractBatchSource<Integer, ListData> implements RDBDataSource.ICallable<Boolean> {
 
 
     private static final String SQL_QUERY_TEMPLETE = "SELECT %s FROM %s WHERE %s > ? AND %s <= ? ";
@@ -61,7 +60,8 @@ public class JobSource extends AbstractBatchSource<Integer, ListData> implements
     public JobSource(GlobalContext globalContext, TaskContext taskContext, int index, int inputsNum, ChannelProxy channelProxy) {
 
         super(globalContext, taskContext, index, inputsNum, channelProxy);
-        this.dataSource = new MysqlDataSource(new TaskContext("datasource", super.taskContext.getSubProperties("datasource.")));
+        TaskContext dsContext = new TaskContext("datasource", super.taskContext.getSubProperties("datasource."));
+        this.dataSource = RDBDataSource.createOf(dsContext);
         this.dataSource.initDataSource();
         String dbName = taskContext.getString("db");
         String tableName = taskContext.getString("table");
@@ -129,7 +129,7 @@ public class JobSource extends AbstractBatchSource<Integer, ListData> implements
                 super.jobFinished();
             } else {
                 this.tableSeriesIndex++;
-                init4Table(MysqlDataSource.buildDbTableName(this.table.getDb(), this.tableSeries.get(this.tableSeriesIndex)));
+                init4Table(RDBDataSource.buildDbTableName(this.table.getDb(), this.tableSeries.get(this.tableSeriesIndex)));
             }
         }
     }
