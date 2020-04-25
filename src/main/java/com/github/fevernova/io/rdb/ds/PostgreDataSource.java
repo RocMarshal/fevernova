@@ -22,7 +22,7 @@ public class PostgreDataSource extends RDBDataSource {
 
         super(context);
         super.port = context.getInteger("port", 5432);
-        super.escapeLetter = "'";
+        super.escapeLetter = "\"";
     }
 
 

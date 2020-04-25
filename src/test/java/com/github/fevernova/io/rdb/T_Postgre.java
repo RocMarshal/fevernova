@@ -20,20 +20,21 @@ public class T_Postgre {
 
         TaskContext context = new TaskContext("datasource");
         context.put("host", "127.0.0.1");
-        context.put("port", "5432");
+        context.put("port", "5431");
         context.put("username", "postgres");
         context.put("password", "postgres");
+        context.put("dbtype", "postgresql");
 
         this.postgre = new PostgreDataSource(context);
         this.postgre.initDataSource();
-        this.postgre.config("public", "company", "");
+        this.postgre.config("public", "persons", "");
     }
 
 
     @Test
     public void T_reloadSchema() {
 
-        Table table = this.postgre.getTable("public.company", false);
+        Table table = this.postgre.getTable("public.persons", false);
         table.getColumns().forEach(column -> System.out.println(column));
     }
 
