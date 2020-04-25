@@ -25,9 +25,6 @@ public final class OrderBooks implements WriteBytesMarshallable {
 
     private final int symbolId;
 
-    @Setter
-    private long lastMatchPrice = 0L;
-
     private final Sequence sequence = new Sequence();
 
     private final Books askBooks = new AskBooks();
@@ -39,6 +36,9 @@ public final class OrderBooks implements WriteBytesMarshallable {
     private final ConditionBooks upBooks = new UpConditionBooks();
 
     private final ConditionBooks downBooks = new DownConditionBooks();
+
+    @Setter
+    private long lastMatchPrice = 0L;
 
 
     public OrderBooks(int symbolId) {

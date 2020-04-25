@@ -51,6 +51,12 @@ public abstract class RDBDataSource {
     }
 
 
+    public static String buildDbTableName(String db, String table) {
+
+        return db + "." + table;
+    }
+
+
     public abstract void initDataSource();
 
 
@@ -137,12 +143,6 @@ public abstract class RDBDataSource {
         if (this.dataSource != null) {
             ((DruidDataSource) this.dataSource).close();
         }
-    }
-
-
-    public static String buildDbTableName(String db, String table) {
-
-        return db + "." + table;
     }
 
 

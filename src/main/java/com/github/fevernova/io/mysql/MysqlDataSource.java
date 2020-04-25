@@ -27,6 +27,28 @@ public class MysqlDataSource extends RDBDataSource {
     }
 
 
+    public static String matchCharset(String charset) {
+
+        if (charset == null) {
+            return null;
+        }
+        switch (charset.toLowerCase()) {
+            case "utf8":
+            case "utf8mb4":
+                return "UTF-8";
+            case "latin1":
+            case "ascii":
+                return "Windows-1252";
+            case "ucs2":
+                return "UTF-16";
+            case "ujis":
+                return "EUC-JP";
+            default:
+                return charset;
+        }
+    }
+
+
     @Override
     public void initDataSource() {
 
@@ -89,27 +111,5 @@ public class MysqlDataSource extends RDBDataSource {
                 return null;
             }
         });
-    }
-
-
-    public static String matchCharset(String charset) {
-
-        if (charset == null) {
-            return null;
-        }
-        switch (charset.toLowerCase()) {
-            case "utf8":
-            case "utf8mb4":
-                return "UTF-8";
-            case "latin1":
-            case "ascii":
-                return "Windows-1252";
-            case "ucs2":
-                return "UTF-16";
-            case "ujis":
-                return "EUC-JP";
-            default:
-                return charset;
-        }
     }
 }

@@ -52,6 +52,23 @@ public final class OrderArray implements WriteBytesMarshallable {
     }
 
 
+    private static boolean cancelDepthOnlyOrder(Sequence sequence, int symbolId, long timestamp, Order order, OrderArray orderArray,
+                                                DataProvider<Integer, OrderMatch> provider) {
+
+        if (OrderType.DEPTHONLY != order.getOrderType()) {
+            return false;
+        }
+
+        orderArray.findAndRemoveOrder(order.getOrderId());
+        orderArray.depthOnlySize -= order.getRemainSize();
+
+        OrderMatch depthOnlyMatch = provider.feedOne(symbolId);
+        depthOnlyMatch.from(sequence, symbolId, order, orderArray, timestamp);
+        provider.push();
+        return true;
+    }
+
+
     public long getSizeWithoutDepthOnly() {
 
         return this.size - this.depthOnlySize;
@@ -98,23 +115,6 @@ public final class OrderArray implements WriteBytesMarshallable {
             orderMatch.from(sequence, symbolId, thisOrder, thatOrder, this, that, matchPrice, delta, timestamp, driverAction);
             provider.push();
         } while (this.getSize() > 0 && that.getSize() > 0L);
-    }
-
-
-    private static boolean cancelDepthOnlyOrder(Sequence sequence, int symbolId, long timestamp, Order order, OrderArray orderArray,
-                                                DataProvider<Integer, OrderMatch> provider) {
-
-        if (OrderType.DEPTHONLY != order.getOrderType()) {
-            return false;
-        }
-
-        orderArray.findAndRemoveOrder(order.getOrderId());
-        orderArray.depthOnlySize -= order.getRemainSize();
-
-        OrderMatch depthOnlyMatch = provider.feedOne(symbolId);
-        depthOnlyMatch.from(sequence, symbolId, order, orderArray, timestamp);
-        provider.push();
-        return true;
     }
 
 

@@ -13,13 +13,13 @@ import com.github.fevernova.framework.service.barrier.listener.BarrierCompletedL
 public abstract class AbstractBatchSource<K, V extends Data> extends AbstractSource<K, V> implements BarrierCompletedListener {
 
 
-    private boolean jobFinished = false;
-
     protected Long lastBarrierId;
 
     protected long startTime;
 
     protected long endTime;
+
+    private boolean jobFinished = false;
 
 
     public AbstractBatchSource(GlobalContext globalContext, TaskContext taskContext, int index, int inputsNum, ChannelProxy channelProxy) {

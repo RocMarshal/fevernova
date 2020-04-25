@@ -17,11 +17,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 public abstract class AbstractKafkaSink extends AbstractSink implements Callback {
 
 
-    private TaskContext kafkaContext;
-
     protected KafkaProducer<byte[], byte[]> kafka;
 
     protected String topic;
+
+    private TaskContext kafkaContext;
 
     private AtomicInteger errorCounter;
 

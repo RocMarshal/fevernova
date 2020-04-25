@@ -22,6 +22,8 @@ public class DepthEngine implements WriteBytesMarshallable, ReadBytesMarshallabl
 
     public static final String CONS_NAME = "DepthData";
 
+    private final DataProvider<Integer, DepthResult> provider;
+
     private Map<Integer, SymbolDepths> data = Maps.newHashMap();
 
     private int maxDepthSize;
@@ -29,8 +31,6 @@ public class DepthEngine implements WriteBytesMarshallable, ReadBytesMarshallabl
     private long interval;
 
     private long lastScanTime = Util.nowMS();
-
-    private final DataProvider<Integer, DepthResult> provider;
 
 
     public DepthEngine(int maxDepthSize, long interval, DataProvider<Integer, DepthResult> provider) {

@@ -22,11 +22,11 @@ import java.util.Map;
 public class JobParser extends AbstractParser<Integer, OrderDetail> {
 
 
+    private final int ratio;
+
     private OrderMatch orderMatch = (OrderMatch) new OrderMatchFactory().createData();
 
     private Map<Integer, RateLimiter> limiters = Maps.newHashMap();
-
-    private final int ratio;
 
 
     public JobParser(GlobalContext globalContext, TaskContext taskContext, int index, int inputsNum, ChannelProxy channelProxy) {

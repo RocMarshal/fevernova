@@ -16,14 +16,14 @@ public abstract class SlideWindow<W extends ObjectWithId> implements WriteBytesM
 
     protected long span;
 
-    private int windowNum;
-
     protected WindowListener<W> windowListener;
+
+    protected W currentWindow;
+
+    private int windowNum;
 
     //cache
     private int currentWindowSeq;
-
-    protected W currentWindow;
 
 
     public SlideWindow(long span, int windowNum) {

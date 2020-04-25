@@ -19,9 +19,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class JobSource extends com.github.fevernova.task.mirrormaker.JobSource implements BarrierCoordinatorListener {
 
 
-    private boolean broadCastOnStart;
-
     private final AtomicBoolean canBeCommitted = new AtomicBoolean(false);
+
+    private boolean broadCastOnStart;
 
 
     public JobSource(GlobalContext globalContext, TaskContext taskContext, int index, int inputsNum, ChannelProxy channelProxy) {
