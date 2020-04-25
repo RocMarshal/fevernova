@@ -54,7 +54,7 @@ public abstract class RDBDataSource {
     public abstract void initDataSource();
 
 
-    public void config(String dbName, String tableName, String sensitiveColumns) {
+    public Table config(String dbName, String tableName, String sensitiveColumns) {
 
         Set<String> ignoreColumnNames = Sets.newHashSet();
         if (!StringUtils.isEmpty(sensitiveColumns)) {
@@ -62,30 +62,26 @@ public abstract class RDBDataSource {
             ignoreColumnNames.addAll(columnNames);
         }
         String dbTableName = buildDbTableName(dbName, tableName);
-        Table table = Table.builder().dbTableName(dbTableName).db(dbName).table(tableName).columns(Lists.newArrayList())
-                .ignoreColumnName(ignoreColumnNames).build();
+        Table table = Table.builder().dbTableName(dbTableName).db(dbName).table(tableName)
+                .columns(Lists.newArrayList()).ignoreColumnName(ignoreColumnNames).build();
+        reloadSchema(table);
         this.schema.put(dbTableName, table);
+        return table;
     }
 
 
-    public Table getTable(String dbName, String tableName, boolean forceReload) {
-
-        return getTable(buildDbTableName(dbName, tableName), forceReload);
-    }
+    protected abstract void reloadSchema(final Table table);
 
 
     public Table getTable(String dbTableName, boolean forceReload) {
 
         Table table = this.schema.get(dbTableName);
         Validate.notNull(table);
-        if (forceReload || table.getColumns().isEmpty()) {
+        if (forceReload) {
             reloadSchema(table);
         }
         return table;
     }
-
-
-    protected abstract void reloadSchema(final Table table);
 
 
     public void executeQuery(String sql) {

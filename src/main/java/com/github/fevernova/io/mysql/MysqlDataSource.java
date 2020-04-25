@@ -21,9 +21,6 @@ import java.util.Map;
 public class MysqlDataSource extends RDBDataSource {
 
 
-    protected String version;
-
-
     public MysqlDataSource(TaskContext context) {
 
         super(context);
@@ -54,7 +51,6 @@ public class MysqlDataSource extends RDBDataSource {
             config.put("removeAbandonedTimeout", "1200");
             config.put("logAbandoned", "true");
             super.dataSource = DruidDataSourceFactory.createDataSource(config);
-            this.version = _getMysqlVersion();
         } catch (Exception e) {
             log.error("init jdbc error : ", e);
             Validate.isTrue(false);
@@ -93,39 +89,6 @@ public class MysqlDataSource extends RDBDataSource {
                 return null;
             }
         });
-    }
-
-
-    private String _getCharset(final Table table) {
-
-        String sql =
-                "SELECT CCSA.CHARACTER_SET_NAME FROM INFORMATION_SCHEMA.TABLES JOIN information_schema.COLLATION_CHARACTER_SET_APPLICABILITY AS "
-                + "CCSA ON TABLES.TABLE_COLLATION = CCSA.COLLATION_NAME WHERE TABLES.TABLE_SCHEMA = ? AND TABLES.TABLE_NAME = ? ";
-
-        String result = executeQuery(sql, new ICallable<String>() {
-
-
-            @Override public void handleParams(PreparedStatement p) throws Exception {
-
-                p.setString(1, table.getDb());
-                p.setString(2, table.getTable());
-            }
-
-
-            @Override public String handleResultSet(ResultSet r) throws Exception {
-
-                return r.next() ? r.getString(1) : null;
-            }
-        });
-        return result;
-    }
-
-
-    private String _getMysqlVersion() {
-
-        String sql = "select version();";
-        String result = executeQuery(sql, r -> r.next() ? r.getString(1) : null);
-        return result;
     }
 
 

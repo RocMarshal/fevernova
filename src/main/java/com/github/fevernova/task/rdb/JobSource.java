@@ -7,6 +7,7 @@ import com.github.fevernova.framework.common.context.TaskContext;
 import com.github.fevernova.framework.component.channel.ChannelProxy;
 import com.github.fevernova.framework.component.source.AbstractBatchSource;
 import com.github.fevernova.io.mysql.MysqlDataSource;
+import com.github.fevernova.io.rdb.RDBDataSource;
 import com.github.fevernova.io.rdb.schema.Column;
 import com.github.fevernova.io.rdb.schema.Table;
 import com.github.fevernova.task.rdb.data.ListData;
@@ -30,7 +31,7 @@ public class JobSource extends AbstractBatchSource<Integer, ListData> implements
 
     private static final String SQL_RANGE_TEMPLETE = "SELECT MIN(%s) , MAX(%s) FROM %s ";
 
-    protected MysqlDataSource dataSource;
+    protected RDBDataSource dataSource;
 
     protected Table table;
 
@@ -72,9 +73,7 @@ public class JobSource extends AbstractBatchSource<Integer, ListData> implements
             tableName = this.tableSeries.get(this.tableSeriesIndex);
         }
 
-        this.dataSource.config(dbName, tableName, taskContext.getString("sensitivecolumns"));
-        this.table = this.dataSource.getTable(dbName, tableName, true);
-
+        this.table = this.dataSource.config(dbName, tableName, taskContext.getString("sensitivecolumns"));
         this.stepSize = taskContext.getInteger("stepsize", this.stepByTimeStamp ? 60 * 1000 : 1000);
         this.stepByTimeStamp = taskContext.getBoolean("stepbytimestamp", false);
 
@@ -167,6 +166,6 @@ public class JobSource extends AbstractBatchSource<Integer, ListData> implements
 
     @Override public void jobFinishedListener() {
 
-        log.info("job_history : {} , {} , {} , {} .", this.table.getDbTableName(), this.totalCount, this.startTime, this.endTime);
+        log.info("job_history : {} , {} , {} , {} .", this.table.getDbTableName(), this.totalCount, super.startTime, super.endTime);
     }
 }

@@ -8,6 +8,7 @@ import com.github.fevernova.framework.common.data.BarrierData;
 import com.github.fevernova.framework.common.data.Data;
 import com.github.fevernova.framework.component.sink.AbstractBatchSink;
 import com.github.fevernova.io.mysql.MysqlDataSource;
+import com.github.fevernova.io.rdb.RDBDataSource;
 import com.github.fevernova.io.rdb.schema.Table;
 import com.github.fevernova.task.rdb.data.ListData;
 import lombok.extern.slf4j.Slf4j;
@@ -31,7 +32,7 @@ public class JobSink extends AbstractBatchSink {
 
     private static final String SQL_CREATE_TEMPLETE = "CREATE TABLE IF NOT EXISTS %s.%s like %s.%s ";
 
-    protected MysqlDataSource dataSource;
+    protected RDBDataSource dataSource;
 
     protected Table table;
 
@@ -69,8 +70,7 @@ public class JobSink extends AbstractBatchSink {
             this.dataSource.executeQuery(String.format(SQL_CREATE_TEMPLETE, dbName, tableName, dbName, this.baseTableName));
         }
 
-        this.dataSource.config(dbName, tableName, taskContext.getString("sensitivecolumns"));
-        this.table = this.dataSource.getTable(dbName, tableName, true);
+        this.table = this.dataSource.config(dbName, tableName, taskContext.getString("sensitivecolumns"));
         boolean truncate = taskContext.getBoolean("truncate", false);
         if (isFirst() && truncate) {
             this.dataSource.executeQuery("truncate table " + this.table.getDbTableName());

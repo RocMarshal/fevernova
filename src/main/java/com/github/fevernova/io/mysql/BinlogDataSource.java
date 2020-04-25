@@ -67,6 +67,7 @@ public class BinlogDataSource extends MysqlDataSource {
             String tableName = item.split("\\.")[1];
             Table table = Table.builder().dbTableName(item).db(dbName).table(tableName).topic(topic).columns(Lists.newArrayList()).
                     ignoreColumnName(ignoreColumnNames).build();
+            reloadSchema(table);
             super.schema.put(item, table);
         }
     }
