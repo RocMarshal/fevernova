@@ -1,10 +1,9 @@
-package com.github.fevernova.io.rdb;
+package com.github.fevernova.io.rdb.ds;
 
 
 import com.alibaba.druid.pool.DruidDataSource;
 import com.github.fevernova.framework.common.Util;
 import com.github.fevernova.framework.common.context.TaskContext;
-import com.github.fevernova.io.mysql.MysqlDataSource;
 import com.github.fevernova.io.rdb.schema.Table;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -40,14 +39,15 @@ public abstract class RDBDataSource {
 
     protected Map<String, Table> schema = Maps.newConcurrentMap();
 
+    protected String escapeLetter;
+
 
     public RDBDataSource(TaskContext context) {
 
         this.context = context;
-        this.host = context.getString("host", "127.0.0.1");
-        this.port = context.getInteger("port", 3306);
         this.username = context.get("username");
         this.password = context.get("password");
+        this.host = context.getString("host", "127.0.0.1");
     }
 
 
@@ -99,7 +99,7 @@ public abstract class RDBDataSource {
             st.close();
             con.close();
         } catch (Throwable e) {
-            log.error("MysqlDataSource.executequery", e);
+            log.error("DataSource.executequery", e);
             e.printStackTrace();
             Validate.isTrue(false);
         }
@@ -119,7 +119,7 @@ public abstract class RDBDataSource {
             r.close();
             return e;
         } catch (Exception e) {
-            log.error("MysqlDataSource.executequery", e);
+            log.error("DataSource.executequery", e);
             Validate.isTrue(false);
         } finally {
             try {
@@ -130,7 +130,7 @@ public abstract class RDBDataSource {
                     c.close();
                 }
             } catch (SQLException e) {
-                log.error("MysqlDataSource.executequery", e);
+                log.error("DataSource.executequery", e);
             }
         }
         return null;

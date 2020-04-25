@@ -2,6 +2,7 @@ package com.github.fevernova.io.mysql;
 
 
 import com.github.fevernova.framework.common.context.TaskContext;
+import com.github.fevernova.io.rdb.ds.BinlogDataSource;
 import com.github.fevernova.io.rdb.schema.Table;
 import com.github.fevernova.task.binlog.util.MysqlBinlogType;
 import com.github.shyiko.mysql.binlog.BinaryLogClient;

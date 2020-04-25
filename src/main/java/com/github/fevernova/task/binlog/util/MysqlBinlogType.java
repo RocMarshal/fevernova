@@ -10,7 +10,7 @@ import com.github.fevernova.io.data.type.impl.date.UDate;
 import com.github.fevernova.io.data.type.impl.date.UDateTime;
 import com.github.fevernova.io.data.type.impl.date.UTime;
 import com.github.fevernova.io.data.type.impl.date.UYear;
-import com.github.fevernova.io.mysql.MysqlDataSource;
+import com.github.fevernova.io.rdb.ds.MysqlDataSource;
 
 
 public class MysqlBinlogType implements TypeMatchRouter {

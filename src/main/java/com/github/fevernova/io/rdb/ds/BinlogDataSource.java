@@ -1,4 +1,4 @@
-package com.github.fevernova.io.mysql;
+package com.github.fevernova.io.rdb.ds;
 
 
 import com.github.fevernova.framework.common.Util;
@@ -102,6 +102,7 @@ public class BinlogDataSource extends MysqlDataSource {
                                                    .charset(charset)
                                                    .ignore(ignore)
                                                    .typeRouter(typeRouter)
+                                                   .escapeLetter(getEscapeLetter())
                                                    .build());
                 }
                 return null;

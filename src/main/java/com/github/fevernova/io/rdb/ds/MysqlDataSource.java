@@ -1,13 +1,11 @@
-package com.github.fevernova.io.mysql;
+package com.github.fevernova.io.rdb.ds;
 
 
 import com.alibaba.druid.pool.DruidDataSourceFactory;
 import com.github.fevernova.framework.common.context.TaskContext;
-import com.github.fevernova.io.rdb.RDBDataSource;
 import com.github.fevernova.io.rdb.schema.Column;
 import com.github.fevernova.io.rdb.schema.Table;
 import com.google.common.collect.Maps;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.Validate;
 
@@ -16,7 +14,6 @@ import java.sql.ResultSet;
 import java.util.Map;
 
 
-@Getter
 @Slf4j
 public class MysqlDataSource extends RDBDataSource {
 
@@ -24,6 +21,8 @@ public class MysqlDataSource extends RDBDataSource {
     public MysqlDataSource(TaskContext context) {
 
         super(context);
+        super.port = context.getInteger("port", 3306);
+        super.escapeLetter = "`";
     }
 
 
@@ -64,7 +63,7 @@ public class MysqlDataSource extends RDBDataSource {
             config.put("maxActive", "10");
             config.put("defaultAutoCommit", "true");
             config.put("minEvictableIdleTimeMillis", "300000");
-            config.put("validationQuery", "SELECT 'x' FROME DUAL");
+            config.put("validationQuery", "SELECT 'x' FROM DUAL");
             config.put("testWhileIdle", "true");
             config.put("testOnBorrow", "false");
             config.put("testOnReturn", "false");
@@ -106,6 +105,7 @@ public class MysqlDataSource extends RDBDataSource {
                                                    .primaryKey("PRI".equals(r.getString("COLUMN_KEY")))
                                                    .charset(r.getString("CHARACTER_SET_NAME"))
                                                    .ignore(ignore)
+                                                   .escapeLetter(getEscapeLetter())
                                                    .build());
                 }
                 return null;
