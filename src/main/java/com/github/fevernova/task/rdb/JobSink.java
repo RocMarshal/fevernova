@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
 public class JobSink extends AbstractBatchSink {
 
 
-    private static final String SQL_INSERT_TEMPLETE = "%s INTO %s ( %s ) VALUES ( %s )";
+    private static final String SQL_INSERT_TEMPLETE = "%s INTO %s ( %s ) VALUES ( %s ) ";
 
     private static final String SQL_CREATE_TEMPLETE = "CREATE TABLE IF NOT EXISTS %s.%s like %s.%s ";
 
@@ -49,11 +49,11 @@ public class JobSink extends AbstractBatchSink {
     public JobSink(GlobalContext globalContext, TaskContext taskContext, int index, int inputsNum) {
 
         super(globalContext, taskContext, index, inputsNum);
-        super.rollingSize = super.taskContext.getLong("rollingsize", 1000L);
+        super.rollingSize = taskContext.getLong("rollingsize", 1000L);
         super.rollingPeriod = 1000L;
         super.lastRollingSeq = (Util.nowMS() / super.rollingPeriod);
 
-        TaskContext dsContext = new TaskContext("datasource", super.taskContext.getSubProperties("datasource."));
+        TaskContext dsContext = new TaskContext("datasource", taskContext.getSubProperties("datasource."));
         this.dataSource = RDBDataSource.createOf(dsContext);
         this.dataSource.initDataSource();
         String dbName = taskContext.getString("db");
@@ -85,6 +85,8 @@ public class JobSink extends AbstractBatchSink {
         this.columnsNum = columnsName.size();
         this.sqlInsert = String.format(SQL_INSERT_TEMPLETE, mode, this.table.getDbTableName(),
                                        StringUtils.join(columnsName, ","), StringUtils.join(paramsArray, ","));
+        String extraSql = taskContext.getString("extrasql", "");
+        this.sqlInsert = this.sqlInsert + extraSql;
     }
 
 
