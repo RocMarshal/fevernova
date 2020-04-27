@@ -59,12 +59,19 @@ public class PostgreDataSource extends RDBDataSource {
 
     @Override public String processExtraSql4Upsert(Table table, String customStr) {
 
-        if (StringUtils.isBlank(customStr)) {
-            return customStr;
+        if (StringUtils.isNotBlank(customStr)) {
+            String lc = customStr.trim().toLowerCase();
+            if (lc.startsWith("on conflict") && !lc.contains("do update set")) {
+                final StringBuilder columns = new StringBuilder(" do update set ");
+                table.getColumns().forEach(column -> {
+                    if (!column.isIgnore()) {
+                        columns.append(column.getName()).append(" = excluded.").append(column.getName());
+                    }
+                });
+                return customStr + columns.toString();
+            }
         }
-        final StringBuilder columns = new StringBuilder(" do update set ");
-        table.getColumns().forEach(column -> columns.append(column.getName()).append(" = excluded.").append(column.getName()));
-        return customStr + columns.toString();
+        return customStr;
     }
 
 
