@@ -86,7 +86,7 @@ public class JobSink extends AbstractBatchSink {
         this.sqlInsert = String.format(SQL_INSERT_TEMPLETE, mode, this.table.getDbTableName(),
                                        StringUtils.join(columnsName, ","), StringUtils.join(paramsArray, ","));
         String extraSql = taskContext.getString("extrasql", "");
-        this.sqlInsert = this.sqlInsert + extraSql;
+        this.sqlInsert = this.sqlInsert + this.dataSource.processExtraSql4Upsert(this.table, extraSql);
     }
 
 

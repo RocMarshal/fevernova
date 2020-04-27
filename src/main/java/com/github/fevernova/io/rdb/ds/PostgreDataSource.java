@@ -7,6 +7,7 @@ import com.github.fevernova.io.rdb.schema.Column;
 import com.github.fevernova.io.rdb.schema.Table;
 import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 
 import java.sql.PreparedStatement;
@@ -53,6 +54,17 @@ public class PostgreDataSource extends RDBDataSource {
             log.error("init jdbc error : ", e);
             Validate.isTrue(false);
         }
+    }
+
+
+    @Override public String processExtraSql4Upsert(Table table, String customStr) {
+
+        if (StringUtils.isBlank(customStr)) {
+            return customStr;
+        }
+        final StringBuilder columns = new StringBuilder(" do update set ");
+        table.getColumns().forEach(column -> columns.append(column.getName()).append(" = excluded.").append(column.getName()));
+        return customStr + columns.toString();
     }
 
 

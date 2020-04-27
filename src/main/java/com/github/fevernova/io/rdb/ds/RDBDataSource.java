@@ -91,6 +91,12 @@ public abstract class RDBDataSource {
     }
 
 
+    public String processExtraSql4Upsert(Table table, String customStr) {
+
+        return customStr;
+    }
+
+
     protected abstract void reloadSchema(final Table table);
 
 
