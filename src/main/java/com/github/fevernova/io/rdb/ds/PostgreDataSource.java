@@ -12,7 +12,9 @@ import org.apache.commons.lang3.Validate;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 
 @Slf4j
@@ -63,13 +65,12 @@ public class PostgreDataSource extends RDBDataSource {
             String lc = customStr.trim().toLowerCase();
             if (lc.startsWith("on conflict") && !lc.contains("do update set") && !lc.contains("do nothing")) {
                 final StringBuilder columns = new StringBuilder(" do update set ");
-                final int lastSeq = table.getColumns().get(table.getColumns().size() - 1).getSeq();
-                table.getColumns().forEach(column -> {
-                    if (!column.isIgnore()) {
-                        columns.append(column.getName()).append(" = excluded.").append(column.getName());
-                        if (column.getSeq() != lastSeq) {
-                            columns.append(" , ");
-                        }
+                List<Column> list = table.getColumns().stream().filter(column -> !column.isIgnore()).collect(Collectors.toList());
+                final int lastSeq = list.get(list.size() - 1).getSeq();
+                list.forEach(column -> {
+                    columns.append(column.getName()).append(" = excluded.").append(column.getName());
+                    if (column.getSeq() != lastSeq) {
+                        columns.append(", ");
                     }
                 });
                 return customStr + columns.toString();
