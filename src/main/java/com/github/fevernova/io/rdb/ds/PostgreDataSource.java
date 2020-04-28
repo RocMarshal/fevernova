@@ -61,11 +61,15 @@ public class PostgreDataSource extends RDBDataSource {
 
         if (StringUtils.isNotBlank(customStr)) {
             String lc = customStr.trim().toLowerCase();
-            if (lc.startsWith("on conflict") && !lc.contains("do update set")) {
+            if (lc.startsWith("on conflict") && !lc.contains("do update set") && !lc.contains("do nothing")) {
                 final StringBuilder columns = new StringBuilder(" do update set ");
+                final int lastSeq = table.getColumns().get(table.getColumns().size() - 1).getSeq();
                 table.getColumns().forEach(column -> {
                     if (!column.isIgnore()) {
                         columns.append(column.getName()).append(" = excluded.").append(column.getName());
+                        if (column.getSeq() != lastSeq) {
+                            columns.append(" , ");
+                        }
                     }
                 });
                 return customStr + columns.toString();

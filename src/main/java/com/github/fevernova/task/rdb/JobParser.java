@@ -27,7 +27,7 @@ public class JobParser extends AbstractParser<Integer, ListData> {
         if (log.isDebugEnabled()) {
             log.debug(JSON.toJSONString(oldData));
         }
-        ListData newData = feedOne(0);
+        ListData newData = feedOne(getNextRoundRobinSeq());
         newData.getValues().addAll(oldData.getValues());
         push();
     }

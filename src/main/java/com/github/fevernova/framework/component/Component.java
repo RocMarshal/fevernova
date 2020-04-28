@@ -52,6 +52,8 @@ public abstract class Component extends LifecycleAwareExtension {
 
     protected volatile ComponentStatus status;
 
+    protected int roundRobinSeq = 0;
+
     @Setter
     protected BarrierServiceCallBack barrierServiceCallBack;
 
@@ -152,6 +154,17 @@ public abstract class Component extends LifecycleAwareExtension {
     public boolean needRecovery() {
 
         return isFirst();
+    }
+
+
+    protected int getNextRoundRobinSeq() {
+
+        if (this.roundRobinSeq > 127) {
+            this.roundRobinSeq = 0;
+            return this.roundRobinSeq;
+        } else {
+            return this.roundRobinSeq++;
+        }
     }
 
 

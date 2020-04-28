@@ -150,7 +150,7 @@ public class JobSource extends AbstractBatchSource<Integer, ListData> implements
     @Override public Boolean handleResultSet(ResultSet r) throws Exception {
 
         while (r.next()) {
-            ListData listData = feedOne(0);
+            ListData listData = feedOne(getNextRoundRobinSeq());
             int i = 1;
             for (Column column : this.table.getColumns()) {
                 if (!column.isIgnore()) {
