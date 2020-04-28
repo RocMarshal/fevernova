@@ -63,16 +63,13 @@ public class JobSource extends AbstractBatchSource<Integer, ListData> implements
         TaskContext dsContext = new TaskContext("datasource", super.taskContext.getSubProperties("datasource."));
         this.dataSource = RDBDataSource.createOf(dsContext);
         this.dataSource.initDataSource();
-        String dbName = taskContext.getString("db");
-        String tableName = taskContext.getString("table");
-        if (StringUtils.isBlank(tableName)) {
-            String tableNamesStr = taskContext.get("tables");
-            Validate.notNull(tableNamesStr);
-            this.tableSeries = Util.splitStringWithFilter(tableNamesStr, ",", null);
-            this.tableSeriesIndex = 0;
-            tableName = this.tableSeries.get(this.tableSeriesIndex);
-        }
-
+        String dbTableNames = taskContext.get("dbtables");
+        Validate.notNull(dbTableNames);
+        this.tableSeries = Util.splitStringWithFilter(dbTableNames, ",", null);
+        this.tableSeriesIndex = 0;
+        String dbTableName = this.tableSeries.get(this.tableSeriesIndex);
+        String dbName = dbTableName.split("\\.")[0];
+        String tableName = dbTableName.split("\\.")[1];
         this.table = this.dataSource.config(dbName, tableName, taskContext.getString("sensitivecolumns"));
         this.stepSize = taskContext.getInteger("stepsize", this.stepByTimeStamp ? 60 * 1000 : 1000);
         this.stepByTimeStamp = taskContext.getBoolean("stepbytimestamp", false);
@@ -83,6 +80,7 @@ public class JobSource extends AbstractBatchSource<Integer, ListData> implements
 
     private void init4Table(String dbTableName) {
 
+        log.info("locate at " + dbTableName);
         final List<String> columnsName = this.table.getColumns().stream().
                 filter(column -> !column.isIgnore()).map(column -> column.escapeName()).collect(Collectors.toList());
         final List<String> primaryKeys = this.table.getColumns().stream().
@@ -125,11 +123,10 @@ public class JobSource extends AbstractBatchSource<Integer, ListData> implements
             this.currentEnd = this.end;
         }
         if (this.currentStart == this.end) {
-            if (this.tableSeriesIndex == null || this.tableSeriesIndex == this.tableSeries.size() - 1) {
+            if (this.tableSeriesIndex == this.tableSeries.size() - 1) {
                 super.jobFinished();
             } else {
-                this.tableSeriesIndex++;
-                init4Table(RDBDataSource.buildDbTableName(this.table.getDb(), this.tableSeries.get(this.tableSeriesIndex)));
+                init4Table(this.tableSeries.get(++this.tableSeriesIndex));
             }
         }
     }
