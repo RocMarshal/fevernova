@@ -29,8 +29,6 @@ public class JobSink extends AbstractBatchSink {
 
     private static final String SQL_INSERT_TEMPLETE = "%s INTO %s ( %s ) VALUES ( %s ) ";
 
-    private static final String SQL_CREATE_TEMPLETE = "CREATE TABLE IF NOT EXISTS %s.%s like %s.%s ";
-
     protected RDBDataSource dataSource;
 
     protected Table table;
@@ -67,7 +65,7 @@ public class JobSink extends AbstractBatchSink {
         }
         boolean createTable = taskContext.getBoolean("createtable", false);
         if (isFirst() && createTable) {
-            this.dataSource.executeQuery(String.format(SQL_CREATE_TEMPLETE, dbName, tableName, dbName, this.baseTableName));
+            this.dataSource.executeQuery(String.format(this.dataSource.getCreateTableTemplete(), dbName, tableName, dbName, this.baseTableName));
         }
 
         this.table = this.dataSource.config(dbName, tableName, taskContext.getString("sensitivecolumns"));

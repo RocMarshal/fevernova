@@ -25,6 +25,7 @@ public class PostgreDataSource extends RDBDataSource {
 
         super(context);
         super.port = context.getInteger("port", 5432);
+        super.createTableTemplete = "CREATE TABLE IF NOT EXISTS %s.%s ( like %s.%s ) ";
         super.escapeLetter = "\"";
     }
 

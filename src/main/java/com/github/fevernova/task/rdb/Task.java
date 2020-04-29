@@ -51,8 +51,8 @@ public class Task extends BaseTask {
                 .sourceAvailbleNum(new AtomicInteger(this.sourceParallelism))
                 .parserAvailbleNum(new AtomicInteger(this.parserParallelism))
                 .sinkAvailbleNum(new AtomicInteger(this.sinkParallelism))
-                .inputDynamicBalance(false)
-                .outputDynamicBalance(false)
+                .inputDynamicBalance(true)
+                .outputDynamicBalance(true)
                 .metricEvaluateClass(NoMetricEvaluate.class)
                 .build()));
         return this;

@@ -22,6 +22,7 @@ public class MysqlDataSource extends RDBDataSource {
 
         super(context);
         super.port = context.getInteger("port", 3306);
+        super.createTableTemplete = "CREATE TABLE IF NOT EXISTS %s.%s like %s.%s ";
         super.escapeLetter = "`";
     }
 

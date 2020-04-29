@@ -25,19 +25,21 @@ import java.util.Set;
 public abstract class RDBDataSource {
 
 
+    protected final Map<String, Table> schema = Maps.newConcurrentMap();
+
     protected TaskContext context;
-
-    protected String host;
-
-    protected int port;
 
     protected String username;
 
     protected String password;
 
+    protected String host;
+
+    protected int port;
+
     protected DataSource dataSource;
 
-    protected Map<String, Table> schema = Maps.newConcurrentMap();
+    protected String createTableTemplete;
 
     protected String escapeLetter;
 
