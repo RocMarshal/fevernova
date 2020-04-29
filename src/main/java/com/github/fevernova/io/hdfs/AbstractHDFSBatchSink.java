@@ -77,7 +77,7 @@ public abstract class AbstractHDFSBatchSink extends AbstractBatchSink implements
     }
 
 
-    @Override protected void batchClose() throws Exception {
+    @Override protected void batchClose(boolean bySnapshot) throws Exception {
 
         if (this.hdfsWriter != null) {
             Pair<String, String> p = this.hdfsWriter.close();

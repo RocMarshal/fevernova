@@ -124,7 +124,7 @@ public class JobSink extends AbstractBatchSink {
     }
 
 
-    @Override protected void batchClose() throws Exception {
+    @Override protected void batchClose(boolean bySnapshot) throws Exception {
 
         this.preparedStatement.executeBatch();
         this.connection.commit();

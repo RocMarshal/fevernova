@@ -53,7 +53,7 @@ public abstract class AbstractBatchSink extends AbstractSink {
 
         if (isSizeReady4Rolling()) {
             syncBatch();
-            closeBatch();
+            closeBatch(false);
         } else if (isSizeReady4Sync()) {
             syncBatch();
         }
@@ -65,7 +65,7 @@ public abstract class AbstractBatchSink extends AbstractSink {
         if (isTimeReady4Rolling(barrierData.getTimestamp())) {
             if (this.inBatch) {
                 syncBatch();
-                closeBatch();
+                closeBatch(true);
             }
             this.lastRollingSeq = barrierData.getTimestamp() / this.rollingPeriod;
             batchWhenBarrierSnaptshot(barrierData);
@@ -103,10 +103,10 @@ public abstract class AbstractBatchSink extends AbstractSink {
     }
 
 
-    protected void closeBatch() {
+    protected void closeBatch(boolean bySnapshot) {
 
         try {
-            batchClose();
+            batchClose(bySnapshot);
             this.inBatch = false;
             this.accumulateSize4Rolling = 0L;
         } catch (Throwable e) {
@@ -122,7 +122,7 @@ public abstract class AbstractBatchSink extends AbstractSink {
 
     protected abstract void batchSync() throws IOException;
 
-    protected abstract void batchClose() throws Exception;
+    protected abstract void batchClose(boolean bySnapshot) throws Exception;
 
     protected abstract void batchWhenBarrierSnaptshot(BarrierData barrierData);
 
