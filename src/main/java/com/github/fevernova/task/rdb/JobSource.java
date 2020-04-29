@@ -73,7 +73,6 @@ public class JobSource extends AbstractBatchSource<Integer, ListData> implements
         this.table = this.dataSource.config(dbName, tableName, taskContext.getString("sensitivecolumns"));
         this.stepSize = taskContext.getInteger("stepsize", this.stepByTimeStamp ? 60 * 1000 : 1000);
         this.stepByTimeStamp = taskContext.getBoolean("stepbytimestamp", false);
-
         init4Table(this.table.getDbTableName());
     }
 

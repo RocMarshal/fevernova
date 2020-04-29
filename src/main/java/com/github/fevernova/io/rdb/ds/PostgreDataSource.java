@@ -21,18 +21,23 @@ import java.util.stream.Collectors;
 public class PostgreDataSource extends RDBDataSource {
 
 
+    private String dbName;
+
+
     public PostgreDataSource(TaskContext context) {
 
         super(context);
         super.port = context.getInteger("port", 5432);
         super.createTableTemplete = "CREATE TABLE IF NOT EXISTS %s.%s ( like %s.%s ) ";
         super.escapeLetter = "\"";
+        this.dbName = context.getString("db");
+        Validate.notNull(this.dbName);
     }
 
 
     @Override public void initDataSource() {
 
-        String jdbcUrl = super.context.getString("url", "jdbc:postgresql://" + super.host + ":" + super.port + "/");
+        String jdbcUrl = super.context.getString("url", "jdbc:postgresql://" + super.host + ":" + super.port + "/" + this.dbName);
         try {
             Map<String, String> config = Maps.newHashMapWithExpectedSize(20);
             config.put("url", jdbcUrl);
