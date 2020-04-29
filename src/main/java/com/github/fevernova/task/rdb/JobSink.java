@@ -56,7 +56,6 @@ public class JobSink extends AbstractBatchSink {
         this.dataSource.initDataSource();
         String dbName = taskContext.getString("db");
         String tableName = taskContext.getString("table");
-
         String dateSuffix = taskContext.getString("tabledatesuffix");
         if (StringUtils.isNotBlank(dateSuffix)) {
             SimpleDateFormat simpleDateFormat = new SimpleDateFormat(dateSuffix);
@@ -67,24 +66,19 @@ public class JobSink extends AbstractBatchSink {
         if (isFirst() && createTable) {
             this.dataSource.executeQuery(String.format(this.dataSource.getCreateTableTemplete(), dbName, tableName, dbName, this.baseTableName));
         }
-
         this.table = this.dataSource.config(dbName, tableName, taskContext.getString("sensitivecolumns"));
         boolean truncate = taskContext.getBoolean("truncate", false);
         if (isFirst() && truncate) {
             this.dataSource.executeQuery("truncate table " + this.table.getDbTableName());
         }
-
         String mode = taskContext.getString("mode", "INSERT");//INSERT/REPLACE/INSERT IGNORE
         final List<String> columnsName = this.table.getColumns().stream().
                 filter(column -> !column.isIgnore()).map(column -> column.escapeName()).collect(Collectors.toList());
-        final List<String> paramsArray = this.table.getColumns().stream().
-                filter(column -> !column.isIgnore()).map(column -> "?").collect(Collectors.toList());
-
+        final List<String> paramsArray = columnsName.stream().map(column -> "?").collect(Collectors.toList());
         this.columnsNum = columnsName.size();
         this.sqlInsert = String.format(SQL_INSERT_TEMPLETE, mode, this.table.getDbTableName(),
                                        StringUtils.join(columnsName, ","), StringUtils.join(paramsArray, ","));
-        String extraSql = taskContext.getString("extrasql", "");
-        this.sqlInsert = this.sqlInsert + this.dataSource.processExtraSql4Upsert(this.table, extraSql);
+        this.sqlInsert = this.sqlInsert + this.dataSource.processExtraSql4Upsert(this.table, taskContext.getString("extrasql", ""));
     }
 
 

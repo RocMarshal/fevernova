@@ -71,8 +71,8 @@ public class JobSource extends AbstractBatchSource<Integer, ListData> implements
         String dbName = dbTableName.split("\\.")[0];
         String tableName = dbTableName.split("\\.")[1];
         this.table = this.dataSource.config(dbName, tableName, taskContext.getString("sensitivecolumns"));
-        this.stepSize = taskContext.getInteger("stepsize", this.stepByTimeStamp ? 60 * 1000 : 1000);
         this.stepByTimeStamp = taskContext.getBoolean("stepbytimestamp", false);
+        this.stepSize = taskContext.getInteger("stepsize", this.stepByTimeStamp ? 60 * 1000 : 1000);
         init4Table(this.table.getDbTableName());
     }
 
@@ -82,11 +82,10 @@ public class JobSource extends AbstractBatchSource<Integer, ListData> implements
         log.info("locate at " + dbTableName);
         final List<String> columnsName = this.table.getColumns().stream().
                 filter(column -> !column.isIgnore()).map(column -> column.escapeName()).collect(Collectors.toList());
-        final List<String> primaryKeys = this.table.getColumns().stream().
-                filter(column -> column.isPrimaryKey()).map(column -> column.escapeName()).collect(Collectors.toList());
-
         String primaryKey = super.taskContext.getString("primarykey");
         if (primaryKey == null) {
+            final List<String> primaryKeys = this.table.getColumns().stream().
+                    filter(column -> column.isPrimaryKey()).map(column -> column.escapeName()).collect(Collectors.toList());
             Validate.isTrue(primaryKeys.size() == 1);
             primaryKey = primaryKeys.get(0);
         }
