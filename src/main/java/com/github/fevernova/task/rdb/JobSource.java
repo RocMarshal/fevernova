@@ -108,9 +108,15 @@ public class JobSource extends AbstractBatchSource<Long, ListData> implements RD
             this.currentEnd = this.end;
         }
         String keyColumnStr = super.taskContext.getString("keycolumn");
-        Column keyColumn = (keyColumnStr == null ? getPrimaryKey() :
-                this.table.getColumns().stream().filter(column -> keyColumnStr.equals(column.getName())).findFirst().get());
-        this.keyColumnIndex = keyColumn.isIgnore() ? null : this.table.getColumnsWithoutIgnore().indexOf(keyColumn) + 1;
+        Column keyColumn = null;
+        if (keyColumnStr == null) {
+            keyColumn = getPrimaryKey();
+        } else if (!"NULL".equals(keyColumnStr)) {
+            keyColumn = this.table.getColumns().stream().filter(column -> keyColumnStr.equals(column.getName())).findFirst().get();
+        }
+        if (keyColumn != null && !keyColumn.isIgnore()) {
+            this.keyColumnIndex = this.table.getColumnsWithoutIgnore().indexOf(keyColumn) + 1;
+        }
     }
 
 
