@@ -27,6 +27,8 @@ public class Table {
 
     private Set<String> ignoreColumnName;
 
+    private List<Column> columnsWithoutIgnore;
+
     @Setter
     private Meta meta;
 

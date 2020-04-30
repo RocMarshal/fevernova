@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 
 
 @Slf4j
-public class JobSource extends AbstractBatchSource<Integer, ListData> implements RDBDataSource.ICallable<Boolean> {
+public class JobSource extends AbstractBatchSource<Long, ListData> implements RDBDataSource.ICallable<Boolean> {
 
 
     private static final String SQL_QUERY_TEMPLETE = "SELECT %s FROM %s WHERE %s > ? AND %s <= ? ";
@@ -56,6 +56,8 @@ public class JobSource extends AbstractBatchSource<Integer, ListData> implements
 
     protected long totalCount;
 
+    protected Integer keyColumnIndex;
+
 
     public JobSource(GlobalContext globalContext, TaskContext taskContext, int index, int inputsNum, ChannelProxy channelProxy) {
 
@@ -80,19 +82,15 @@ public class JobSource extends AbstractBatchSource<Integer, ListData> implements
     private void init4Table(String dbTableName) {
 
         log.info("locate at " + dbTableName);
-        final List<String> columnsName = this.table.getColumns().stream().
-                filter(column -> !column.isIgnore()).map(column -> column.escapeName()).collect(Collectors.toList());
-        String primaryKey = super.taskContext.getString("primarykey");
-        if (primaryKey == null) {
-            final List<String> primaryKeys = this.table.getColumns().stream().
-                    filter(column -> column.isPrimaryKey()).map(column -> column.escapeName()).collect(Collectors.toList());
-            Validate.isTrue(primaryKeys.size() == 1);
-            primaryKey = primaryKeys.get(0);
+        String rangeColumn = super.taskContext.getString("rangecolumn");
+        if (rangeColumn == null) {
+            rangeColumn = getPrimaryKey().escapeName();
         }
-        this.sqlQuery = String.format(SQL_QUERY_TEMPLETE, StringUtils.join(columnsName, ","), dbTableName, primaryKey, primaryKey);
+        List<String> columnsName = this.table.getColumnsWithoutIgnore().stream().map(column -> column.escapeName()).collect(Collectors.toList());
+        this.sqlQuery = String.format(SQL_QUERY_TEMPLETE, StringUtils.join(columnsName, ","), dbTableName, rangeColumn, rangeColumn);
         String extraSql = super.taskContext.getString("extrasql", "");
         this.sqlQuery = this.sqlQuery + extraSql;
-        this.sqlRange = String.format(SQL_RANGE_TEMPLETE, primaryKey, primaryKey, dbTableName);
+        this.sqlRange = String.format(SQL_RANGE_TEMPLETE, rangeColumn, rangeColumn, dbTableName);
 
         Pair<Long, Long> range = this.stepByTimeStamp ? this.dataSource.executeQuery(this.sqlRange, r -> {
             r.next();
@@ -109,6 +107,18 @@ public class JobSource extends AbstractBatchSource<Integer, ListData> implements
         if (this.currentEnd > this.end) {
             this.currentEnd = this.end;
         }
+        String keyColumnStr = super.taskContext.getString("keycolumn");
+        Column keyColumn = (keyColumnStr == null ? getPrimaryKey() :
+                this.table.getColumns().stream().filter(column -> keyColumnStr.equals(column.getName())).findFirst().get());
+        this.keyColumnIndex = keyColumn.isIgnore() ? null : this.table.getColumnsWithoutIgnore().indexOf(keyColumn) + 1;
+    }
+
+
+    private Column getPrimaryKey() {
+
+        final List<Column> primaryKeys = this.table.getColumns().stream().filter(column -> column.isPrimaryKey()).collect(Collectors.toList());
+        Validate.isTrue(primaryKeys.size() == 1);
+        return primaryKeys.get(0);
     }
 
 
@@ -145,13 +155,13 @@ public class JobSource extends AbstractBatchSource<Integer, ListData> implements
     @Override public Boolean handleResultSet(ResultSet r) throws Exception {
 
         while (r.next()) {
-            ListData listData = feedOne(getNextRoundRobinSeq());
+            Long key = this.keyColumnIndex == null ? 0L : r.getLong(this.keyColumnIndex);
+            ListData listData = feedOne(key);
             int i = 1;
-            for (Column column : this.table.getColumns()) {
-                if (!column.isIgnore()) {
-                    listData.getValues().add(Pair.of(column.getName(), r.getObject(i++)));
-                }
+            for (Column column : this.table.getColumnsWithoutIgnore()) {
+                listData.getValues().add(Pair.of(column.getName(), r.getObject(i++)));
             }
+            listData.setKey(key);
             this.totalCount++;
             push();
         }

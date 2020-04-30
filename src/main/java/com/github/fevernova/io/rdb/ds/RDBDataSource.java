@@ -18,6 +18,7 @@ import java.sql.*;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 
 @Getter
@@ -86,9 +87,10 @@ public abstract class RDBDataSource {
         }
         String dbTableName = buildDbTableName(dbName, tableName);
         Table table = Table.builder().dbTableName(dbTableName).db(dbName).table(tableName)
-                .columns(Lists.newArrayList()).ignoreColumnName(ignoreColumnNames).build();
+                .columns(Lists.newArrayList()).ignoreColumnName(ignoreColumnNames).columnsWithoutIgnore(Lists.newArrayList()).build();
         reloadSchema(table);
         this.schema.put(dbTableName, table);
+        table.getColumnsWithoutIgnore().addAll(table.getColumns().stream().filter(column -> !column.isIgnore()).collect(Collectors.toList()));
         return table;
     }
 

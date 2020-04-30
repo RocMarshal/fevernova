@@ -72,8 +72,8 @@ public class JobSink extends AbstractBatchSink {
             this.dataSource.executeQuery("truncate table " + this.table.getDbTableName());
         }
         String mode = taskContext.getString("mode", "INSERT");//INSERT/REPLACE/INSERT IGNORE
-        final List<String> columnsName = this.table.getColumns().stream().
-                filter(column -> !column.isIgnore()).map(column -> column.escapeName()).collect(Collectors.toList());
+        final List<String> columnsName =
+                this.table.getColumnsWithoutIgnore().stream().map(column -> column.escapeName()).collect(Collectors.toList());
         final List<String> paramsArray = columnsName.stream().map(column -> "?").collect(Collectors.toList());
         this.columnsNum = columnsName.size();
         this.sqlInsert = String.format(SQL_INSERT_TEMPLETE, mode, this.table.getDbTableName(),

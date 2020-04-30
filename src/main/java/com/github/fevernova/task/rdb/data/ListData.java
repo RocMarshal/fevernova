@@ -17,6 +17,8 @@ public class ListData implements Data {
 
     private List<Pair<String, Object>> values = Lists.newArrayList();
 
+    private Long key = null;
+
 
     @Override public void clearData() {
 

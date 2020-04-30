@@ -12,7 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 
 
 @Slf4j(topic = "fevernova-data")
-public class JobParser extends AbstractParser<Integer, ListData> {
+public class JobParser extends AbstractParser<Long, ListData> {
 
 
     public JobParser(GlobalContext globalContext, TaskContext taskContext, int index, int inputsNum, ChannelProxy channelProxy) {
@@ -27,7 +27,8 @@ public class JobParser extends AbstractParser<Integer, ListData> {
         if (log.isDebugEnabled()) {
             log.debug(JSON.toJSONString(oldData));
         }
-        ListData newData = feedOne(getNextRoundRobinSeq());
+
+        ListData newData = feedOne(oldData.getKey() == null ? 0L : oldData.getKey());
         newData.getValues().addAll(oldData.getValues());
         push();
     }

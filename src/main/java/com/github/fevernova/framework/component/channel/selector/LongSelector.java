@@ -6,6 +6,6 @@ public class LongSelector implements ISelector<Long> {
 
     @Override public int getIntVal(Long val) {
 
-        return val.intValue();
+        return val == null ? 0 : val.intValue();
     }
 }
