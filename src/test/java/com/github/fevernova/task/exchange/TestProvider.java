@@ -33,21 +33,21 @@ public class TestProvider implements DataProvider<Integer, OrderMatch> {
 
     @Override public OrderMatch feedOne(Integer key) {
 
-        Validate.isTrue(!flag);
-        flag = true;
-        return orderMatch;
+        Validate.isTrue(!this.flag);
+        this.flag = true;
+        return this.orderMatch;
     }
 
 
     @Override public void push() {
 
-        Validate.isTrue(flag);
-        flag = false;
-        count++;
-        if (print) {
-            log.info(orderMatch.toString());
+        Validate.isTrue(this.flag);
+        this.flag = false;
+        this.count++;
+        if (this.print) {
+            log.info(this.orderMatch.toString());
         }
-        orderMatch.clearData();
+        this.orderMatch.clearData();
     }
 
 }

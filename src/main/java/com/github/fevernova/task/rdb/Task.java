@@ -17,8 +17,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class Task extends BaseTask {
 
 
-    int sourceParallelism = 1;
-
     int parserParallelism = 0;
 
     int sinkParallelism = 0;
@@ -45,10 +43,10 @@ public class Task extends BaseTask {
                 .outputDataFactoryClass(ListDataFactory.class)
                 .inputSelectorClass(LongSelector.class)
                 .outputSelectorClass(LongSelector.class)
-                .sourceParallelism(this.sourceParallelism)
+                .sourceParallelism(1)
                 .parserParallelism(this.parserParallelism)
                 .sinkParallelism(this.sinkParallelism)
-                .sourceAvailbleNum(new AtomicInteger(this.sourceParallelism))
+                .sourceAvailbleNum(new AtomicInteger(1))
                 .parserAvailbleNum(new AtomicInteger(this.parserParallelism))
                 .sinkAvailbleNum(new AtomicInteger(this.sinkParallelism))
                 .inputDynamicBalance(false)

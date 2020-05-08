@@ -12,7 +12,6 @@ import com.github.fevernova.task.marketcandle.data.CandleData;
 import com.github.fevernova.task.marketcandle.data.INotify;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
-import org.junit.Test;
 
 import java.util.Arrays;
 
@@ -53,9 +52,8 @@ public class T_CandleLine {
         this.orderMatch.getMatchPart().setDriverAction(OrderAction.ASK);
     }
 
-
-    @Test
-    public void T_CandleLIne() {
+    
+    public void T_CandleLine() {
 
         this.orderMatch.setTimestamp(Util.nowMS());
         this.orderMatch.getOrderPart1().setSequence(this.orderMatch.getOrderPart1().getSequence() + 1);
