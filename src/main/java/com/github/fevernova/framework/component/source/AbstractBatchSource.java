@@ -47,9 +47,9 @@ public abstract class AbstractBatchSource<K, V extends Data> extends AbstractSou
 
     @Override public void completed(BarrierData barrierData) throws Exception {
 
-        if (this.jobFinished && this.lastBarrierId != null && this.lastBarrierId <= barrierData.getBarrierId()) {
+        if (this.jobFinished && this.lastBarrierId != null && this.lastBarrierId == barrierData.getBarrierId()) {
             jobFinishedListener();
-            super.globalContext.jobFinished();
+            super.globalContext.jobFinished(super.total);
         }
     }
 
