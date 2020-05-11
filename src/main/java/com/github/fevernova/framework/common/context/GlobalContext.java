@@ -25,6 +25,7 @@ public class GlobalContext {
 
     private Map<String, Object> customContext;
 
+    @Builder.Default
     private AtomicInteger jobFinishedCounter = new AtomicInteger(0);
 
 
