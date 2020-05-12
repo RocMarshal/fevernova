@@ -68,7 +68,7 @@ public class JobSource extends AbstractBatchSource<Long, ListData> implements RD
         String dbTableNames = taskContext.get("dbtables");
         Validate.notNull(dbTableNames);
         this.tableSeries = Util.splitStringWithFilter(dbTableNames, ",", null);
-        this.tableSeriesIndex = 0;
+        this.tableSeriesIndex = super.index;
         String dbTableName = this.tableSeries.get(this.tableSeriesIndex);
         String dbName = dbTableName.split("\\.")[0];
         String tableName = dbTableName.split("\\.")[1];
@@ -137,10 +137,11 @@ public class JobSource extends AbstractBatchSource<Long, ListData> implements RD
             this.currentEnd = this.end;
         }
         if (this.currentStart == this.end) {
-            if (this.tableSeriesIndex == this.tableSeries.size() - 1) {
+            if (this.tableSeriesIndex + super.total >= this.tableSeries.size()) {
                 super.jobFinished();
             } else {
-                init4Table(this.tableSeries.get(++this.tableSeriesIndex));
+                this.tableSeriesIndex += super.total;
+                init4Table(this.tableSeries.get(this.tableSeriesIndex));
             }
         }
     }
